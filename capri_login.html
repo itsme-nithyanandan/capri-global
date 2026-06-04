@@ -311,7 +311,7 @@ body{
 </div>
 
 <!-- Supabase JS SDK -->
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.3/dist/umd/supabase.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <script>
 // ── CONFIG ────────────────────────────────────────────────────────────────────
 const SUPABASE_URL = 'https://oceldpcobqzvqrlbbvvl.db.co';
@@ -321,18 +321,11 @@ const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
   auth: {
     autoRefreshToken: true,
     persistSession: true,
-    detectSessionInUrl: false
-  },
-  global: {
-    fetch: (...args) => fetch(...args)
+    detectSessionInUrl: false,
+    storageKey: 'capri_auth'
   }
 });
-
-// Quick connectivity test
-fetch(SUPABASE_URL + '/auth/v1/health')
-  .then(r => r.json())
-  .then(d => console.log('Supabase health:', d))
-  .catch(e => console.error('Supabase unreachable:', e));
+console.log('Supabase client initialised:', SUPABASE_URL);
 
 // ── YEAR ──────────────────────────────────────────────────────────────────────
 document.getElementById('year').textContent = new Date().getFullYear();

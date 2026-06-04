@@ -3434,37 +3434,34 @@ applyDashFilters();
 
 
 
-<!-- ── FLOATING NEW CASE BUTTON ── -->
+<!-- ── NEW CASE FULL PAGE VIEW ── -->
 <style>
 .fab-new-case {
   position: fixed;
   bottom: 28px;
-  left: calc(var(--sidebar-w) + 24px);
+  left: calc(var(--sidebar-w, 240px) + 24px);
   z-index: 300;
   display: flex;
   align-items: center;
   gap: 10px;
   padding: 13px 22px;
   background: linear-gradient(135deg, #C8A852 0%, #E8C96A 50%, #C8A852 100%);
-  background-size: 200% 200%;
   color: #1A1200;
   border: none;
   border-radius: 40px;
-  font-family: 'DM Sans', sans-serif;
+  font-family: inherit;
   font-size: 13px;
   font-weight: 700;
   cursor: pointer;
   box-shadow: 0 4px 20px rgba(200,168,82,.55), 0 2px 6px rgba(0,0,0,.15);
   transition: all .2s ease;
-  letter-spacing: .01em;
   animation: fab-pulse 3s ease-in-out infinite;
 }
 .fab-new-case:hover {
   transform: translateY(-3px) scale(1.03);
-  box-shadow: 0 8px 28px rgba(200,168,82,.65), 0 3px 10px rgba(0,0,0,.18);
+  box-shadow: 0 8px 28px rgba(200,168,82,.65);
   animation: none;
 }
-.fab-new-case:active { transform: translateY(-1px) scale(1.01); }
 .fab-icon {
   width: 28px; height: 28px;
   background: rgba(0,0,0,.12);
@@ -3476,36 +3473,101 @@ applyDashFilters();
 .fab-new-case:hover .fab-icon { transform: rotate(90deg); }
 .fab-label { display: flex; flex-direction: column; line-height: 1.2; }
 .fab-label-main { font-size: 13px; font-weight: 700; }
-.fab-label-sub  { font-size: 10px; font-weight: 500; opacity: .65; letter-spacing: .03em; }
+.fab-label-sub  { font-size: 10px; font-weight: 500; opacity: .65; }
 @keyframes fab-pulse {
-  0%,100% { box-shadow: 0 4px 20px rgba(200,168,82,.55), 0 2px 6px rgba(0,0,0,.15); }
-  50%      { box-shadow: 0 4px 28px rgba(200,168,82,.80), 0 2px 8px rgba(0,0,0,.18); }
+  0%,100% { box-shadow: 0 4px 20px rgba(200,168,82,.55); }
+  50%      { box-shadow: 0 4px 28px rgba(200,168,82,.80); }
 }
-.fab-new-case::after {
-  content: 'Open customer form';
-  position: absolute;
-  bottom: calc(100% + 10px);
-  left: 50%;
-  transform: translateX(-50%);
-  background: #1A1200;
-  color: #C8A852;
-  font-size: 10px;
+
+/* Full page form wrapper */
+#form-fullpage {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 500;
+  background: #F2EFE8;
+  flex-direction: column;
+}
+#form-fullpage.open {
+  display: flex;
+}
+.form-topbar {
+  height: 52px;
+  background: #0F3326;
+  display: flex;
+  align-items: center;
+  padding: 0 20px;
+  gap: 14px;
+  flex-shrink: 0;
+}
+.form-back-btn {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 7px 14px;
+  border-radius: 8px;
+  border: 1px solid rgba(255,255,255,.2);
+  background: rgba(255,255,255,.08);
+  color: white;
+  font-family: inherit;
+  font-size: 12px;
   font-weight: 500;
-  padding: 5px 10px;
-  border-radius: 6px;
-  white-space: nowrap;
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity .2s;
+  cursor: pointer;
+  transition: all .15s;
 }
-.fab-new-case:hover::after { opacity: 1; }
+.form-back-btn:hover { background: rgba(255,255,255,.15); }
+.form-topbar-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: white;
+  flex: 1;
+}
+.form-topbar-badge {
+  font-size: 10px;
+  font-weight: 600;
+  padding: 3px 10px;
+  border-radius: 10px;
+  background: #C8A852;
+  color: #1A1200;
+  letter-spacing: .04em;
+}
+#form-iframe {
+  flex: 1;
+  border: none;
+  width: 100%;
+}
 </style>
 
-<button class="fab-new-case" onclick="window.open('capri_customer_form.html','_blank')" title="New case">
+<!-- Full page form container -->
+<div id="form-fullpage">
+  <div class="form-topbar">
+    <button class="form-back-btn" onclick="closeFormPage()">
+      <i class="ti ti-arrow-left" style="font-size:14px"></i> Back to dashboard
+    </button>
+    <div class="form-topbar-title">New Car Loan Case</div>
+    <div class="form-topbar-badge">New Case</div>
+  </div>
+  <iframe id="form-iframe" src="capri_customer_form.html"></iframe>
+</div>
+
+<!-- FAB -->
+<button class="fab-new-case" onclick="openFormPage()">
   <div class="fab-icon"><i class="ti ti-plus"></i></div>
   <div class="fab-label">
     <span class="fab-label-main">New Case</span>
-    <span class="fab-label-sub">Customer form →</span>
+    <span class="fab-label-sub">Fill form →</span>
   </div>
 </button>
+
+<script>
+function openFormPage() {
+  document.getElementById('form-fullpage').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+function closeFormPage() {
+  document.getElementById('form-fullpage').classList.remove('open');
+  document.body.style.overflow = '';
+}
+</script>
+
 </body></html>

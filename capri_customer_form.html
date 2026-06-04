@@ -1279,56 +1279,79 @@ async function generateCaseId() {
 
 // ── COLLECT ALL FORM DATA ─────────────────────────────────────────────────────
 function collectFormData() {
-  const g = id => document.getElementById(id)?.value?.trim() || null;
+  const g  = id => document.getElementById(id)?.value?.trim() || null;
   const gn = id => { const v = parseFloat(document.getElementById(id)?.value); return isNaN(v) ? null : v; };
+  const gb = id => document.getElementById(id)?.checked || false;
+
+  // Computed values
+  const exshow  = gn('v-exshow');
+  const onroadX = gn('v-reg');
+  const onroad  = (exshow && onroadX) ? exshow + onroadX : (gn('v-onroad') || null);
+  const loan    = gn('v-loan');
+  const ltv     = (onroad && loan) ? Math.round((loan / onroad) * 100 * 100) / 100 : null;
 
   return {
-    // Customer
-    cust_name:        g('f-name'),
-    cust_dob:         g('f-dob'),
-    cust_gender:      g('f-gender'),
-    cust_pan:         g('f-pan'),
-    cust_aadhaar:     g('f-aadhaar'),
-    cust_mobile:      g('f-mobile'),
-    cust_email:       g('f-email'),
-    cust_marital:     g('f-marital'),
-    cust_dependants:  g('f-dependants'),
-    // Permanent address
-    perm_addr1:       g('p-addr1'),
-    perm_addr2:       g('p-addr2'),
-    perm_city:        g('p-city'),
-    perm_district:    g('p-dist'),
-    perm_state:       g('p-state'),
-    perm_pincode:     g('p-pin'),
-    // Current address
-    curr_same_as_perm: document.getElementById('same-chk')?.checked || false,
-    curr_addr1:       g('c-addr1'),
-    curr_addr2:       g('c-addr2'),
-    curr_city:        g('c-city'),
-    curr_district:    g('c-dist'),
-    curr_state:       g('c-state'),
-    curr_pincode:     g('c-pin'),
-    // Residence
-    res_type:         g('f-restype'),
-    // Dealer
-    dealer_name:      g('d-name'),
-    // Vehicle
-    car_model:        g('car-model'),
-    car_fuel:         g('v-fuel'),
-    // Loan
-    loan_amount:      gn('v-loan'),
-    loan_down_payment:gn('v-down'),
+    // ── Customer ──
+    cust_name:          g('f-name'),
+    cust_dob:           g('f-dob'),
+    cust_gender:        g('f-gender'),
+    cust_pan:           g('f-pan'),
+    cust_aadhaar:       g('f-aadhaar'),
+    cust_mobile:        g('f-mobile'),
+    cust_email:         g('f-email'),
+    cust_marital:       g('f-marital'),
+    cust_dependants:    g('f-dependants'),
+    // ── Permanent address ──
+    perm_addr1:         g('p-addr1'),
+    perm_addr2:         g('p-addr2'),
+    perm_city:          g('p-city'),
+    perm_district:      g('p-dist'),
+    perm_state:         g('p-state'),
+    perm_pincode:       g('p-pin'),
+    // ── Current address ──
+    curr_same_as_perm:  gb('same-chk'),
+    curr_addr1:         g('c-addr1'),
+    curr_addr2:         g('c-addr2'),
+    curr_city:          g('c-city'),
+    curr_district:      g('c-dist'),
+    curr_state:         g('c-state'),
+    curr_pincode:       g('c-pin'),
+    // ── Residence ──
+    res_type:           g('f-restype'),
+    res_years:          g('emp-years') || null,
+    // ── Dealer ──
+    dealer_name:        g('d-name'),
+    dealer_area:        g('d-area'),
+    // ── Vehicle ──
+    car_model:          g('car-model'),
+    car_variant:        g('car-variant'),
+    car_fuel:           g('v-fuel'),
+    car_colour:         g('car-colour'),
+    car_exshowroom:     exshow,
+    car_onroad_extras:  onroadX,
+    car_onroad_total:   onroad,
+    // ── Loan ──
+    loan_amount:        loan,
+    loan_down_payment:  gn('v-down'),
     loan_tenure_months: parseInt(g('v-tenure')) || null,
-    cibil_score:      parseInt(g('v-cibil')) || null,
-    // Employment
-    emp_type:         g('emp-type'),
-    emp_company:      g('emp-company'),
-    emp_years:        g('emp-years'),
-    // Income
-    inc_net_monthly:  gn('inc-net'),
-    // Preferred bank & branch
+    loan_ltv_pct:       ltv,
+    cibil_score:        parseInt(g('v-cibil')) || null,
+    // ── Preferred bank & branch ──
     preferred_bank_name:   document.getElementById('pref-bank')?.value || null,
     preferred_branch_name: selectedBranch || null,
+    // ── Employment ──
+    emp_type:           g('emp-type'),
+    emp_company:        g('emp-company'),
+    emp_years:          g('emp-years'),
+    // ── Income ──
+    inc_net_monthly:    gn('inc-net'),
+    inc_gross_monthly:  gn('inc-gross'),
+    inc_other:          gn('inc-other'),
+    // ── Co-applicant ──
+    co_app_enabled:     gb('co-chk'),
+    co_app_name:        g('co-name'),
+    co_app_relation:    g('co-relation'),
+    co_app_emp_type:    g('co-emp-type'),
   };
 }
 

@@ -6,6 +6,7 @@
 <title>Capri Global — City Head Dashboard</title>
 <link href="./Capri Global — City Head Dashboard_files/css2" rel="stylesheet">
 <link rel="stylesheet" href="./Capri Global — City Head Dashboard_files/tabler-icons.min.css">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <style>
 :root {
   --bg: #EEECEA;
@@ -391,6 +392,16 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);fon
       <div class="icon-btn" title="Export"><i class="ti ti-download"></i></div>
       <button class="btn btn-primary btn-sm" onclick="showTab(&#39;reports&#39;,document.querySelectorAll(&#39;.nav-item&#39;)[5])">
         <i class="ti ti-send" style="font-size:12px"></i> Send report
+      </button>
+      <div style="width:1px;height:20px;background:var(--border);margin:0 4px"></div>
+      <button onclick="confirmLogout()" title="Sign out"
+        style="display:flex;align-items:center;gap:6px;padding:7px 12px;border-radius:var(--radius-sm);
+               border:1px solid var(--border);background:transparent;cursor:pointer;
+               font-family:inherit;font-size:12px;font-weight:500;color:var(--muted);
+               transition:all .15s;white-space:nowrap"
+        onmouseover="this.style.background='var(--red-bg)';this.style.color='var(--red-text)';this.style.borderColor='var(--red-border)'"
+        onmouseout="this.style.background='transparent';this.style.color='var(--muted)';this.style.borderColor='var(--border)'">
+        <i class="ti ti-logout" style="font-size:14px"></i> Sign out
       </button>
     </div>
   </div>
@@ -3433,6 +3444,67 @@ applyDashFilters();
 </script>
 
 
+
+
+<!-- SUPABASE AUTH + LOGOUT -->
+<script>
+const SUPABASE_URL = 'https://oceldpcobqzvqrlbbvvl.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9jZWxkcGNvYnF6dnFybGJidnZsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA0MTI1ODksImV4cCI6MjA5NTk4ODU4OX0.ntz3DT6gV2LCcR9fNNGrLdDuxkgLLIIINy_L2Y7cDSQ';
+const dbAuth = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
+  auth: {
+    autoRefreshToken: true,
+    persistSession: true,
+    detectSessionInUrl: false,
+    storageKey: 'capri_auth',
+    storage: window.localStorage
+  }
+});
+
+// Load user name into topbar avatar
+(async () => {
+  try {
+    const { data: { session } } = await dbAuth.auth.getSession();
+    if (session) {
+      const { data: user } = await dbAuth.from('users')
+        .select('name, role')
+        .eq('id', session.user.id)
+        .single();
+      if (user) {
+        // Update avatar initials
+        const avatar = document.querySelector('.user-avatar');
+        if (avatar) {
+          const initials = user.name.split(' ').map(w => w[0]).join('').slice(0,2).toUpperCase();
+          avatar.textContent = initials;
+          avatar.title = user.name + ' · ' + user.role;
+        }
+      }
+    } else {
+      // No session — redirect to login
+      window.location.href = 'capri_login.html';
+    }
+  } catch(e) {
+    console.log('Auth check:', e.message);
+  }
+})();
+
+// Logout confirmation + sign out
+function confirmLogout() {
+  const confirmed = confirm('Sign out of Capri Global?');
+  if (!confirmed) return;
+  doLogout();
+}
+
+async function doLogout() {
+  try {
+    await dbAuth.auth.signOut();
+  } catch(e) {
+    console.log('Sign out error:', e.message);
+  }
+  // Clear local storage and redirect
+  localStorage.removeItem('capri_auth');
+  window.location.href = 'capri_login.html';
+}
+</script>
 
 <!-- ── NEW CASE FULL PAGE VIEW ── -->
 <style>

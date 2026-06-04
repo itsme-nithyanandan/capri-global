@@ -1205,7 +1205,13 @@ input[data-aadhaar]{font-family:'DM Mono',monospace;letter-spacing:.1em}
 const SUPABASE_URL = 'https://oceldpcobqzvqrlbbvvl.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9jZWxkcGNvYnF6dnFybGJidnZsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA0MTI1ODksImV4cCI6MjA5NTk4ODU4OX0.ntz3DT6gV2LCcR9fNNGrLdDuxkgLLIIINy_L2Y7cDSQ';
 const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
-  auth: { autoRefreshToken: true, persistSession: true, detectSessionInUrl: false, storageKey: 'capri_auth' }
+  auth: {
+    autoRefreshToken: true,
+    persistSession: true,
+    detectSessionInUrl: false,
+    storageKey: 'capri_auth',
+    storage: window.localStorage
+  }
 });
 
 // Current logged-in user — loaded on page init
@@ -1216,17 +1222,22 @@ let autoSaveTimer = null;
 // ── INIT — runs when form opens ──────────────────────────────────────────────
 (async () => {
   try {
-    // 1. Get session
+    // 1. Get session — works both standalone and inside iframe
+    // since we use localStorage with the same storageKey as the dashboard
     const { data: { session } } = await db.auth.getSession();
     if (session) {
+      console.log('Session found:', session.user.email);
       const { data: userData } = await db.from('users')
         .select('id,name,role,color')
         .eq('id', session.user.id)
         .single();
       currentUser = userData;
+      console.log('User loaded:', currentUser?.name, currentUser?.role);
+    } else {
+      console.log('No session found — saves will go to localStorage');
     }
   } catch(e) {
-    console.log('Session check:', e.message);
+    console.log('Session check failed:', e.message);
   }
 
   // 2. Generate case ID immediately — autosave starts from here
@@ -1439,6 +1450,8 @@ function restoreFormData(data) {
 let currentSection = 1;
 const totalSections = 3;
 const slotDone = {};
+let selectedBranch = null;
+let selectedBankName = null;
 
 const MONTHS = ['May 2026','Apr 2026','Mar 2026','Feb 2026','Jan 2026','Dec 2025','Nov 2025','Oct 2025','Sep 2025','Aug 2025','Jul 2025','Jun 2025'];
 const FY     = ['FY 2024–25','FY 2023–24','FY 2022–23'];
@@ -1905,6 +1918,9 @@ function selectBranch(el, branchName, bankName) {
   });
   el.style.borderColor = 'var(--accent)';
   el.style.background  = 'var(--green-bg)';
+  // Store globally so collectFormData and submit can access
+  selectedBranch  = branchName;
+  selectedBankName = bankName;
   const confirm = document.getElementById('selected-branch-confirm');
   document.getElementById('selected-branch-txt').textContent =
     ' ' + bankName + ' — ' + branchName + ' selected';

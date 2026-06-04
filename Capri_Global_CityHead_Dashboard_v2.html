@@ -3433,4 +3433,79 @@ applyDashFilters();
 </script>
 
 
+
+<!-- ── FLOATING NEW CASE BUTTON ── -->
+<style>
+.fab-new-case {
+  position: fixed;
+  bottom: 28px;
+  left: calc(var(--sidebar-w) + 24px);
+  z-index: 300;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 13px 22px;
+  background: linear-gradient(135deg, #C8A852 0%, #E8C96A 50%, #C8A852 100%);
+  background-size: 200% 200%;
+  color: #1A1200;
+  border: none;
+  border-radius: 40px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 4px 20px rgba(200,168,82,.55), 0 2px 6px rgba(0,0,0,.15);
+  transition: all .2s ease;
+  letter-spacing: .01em;
+  animation: fab-pulse 3s ease-in-out infinite;
+}
+.fab-new-case:hover {
+  transform: translateY(-3px) scale(1.03);
+  box-shadow: 0 8px 28px rgba(200,168,82,.65), 0 3px 10px rgba(0,0,0,.18);
+  animation: none;
+}
+.fab-new-case:active { transform: translateY(-1px) scale(1.01); }
+.fab-icon {
+  width: 28px; height: 28px;
+  background: rgba(0,0,0,.12);
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 15px; flex-shrink: 0;
+  transition: transform .2s;
+}
+.fab-new-case:hover .fab-icon { transform: rotate(90deg); }
+.fab-label { display: flex; flex-direction: column; line-height: 1.2; }
+.fab-label-main { font-size: 13px; font-weight: 700; }
+.fab-label-sub  { font-size: 10px; font-weight: 500; opacity: .65; letter-spacing: .03em; }
+@keyframes fab-pulse {
+  0%,100% { box-shadow: 0 4px 20px rgba(200,168,82,.55), 0 2px 6px rgba(0,0,0,.15); }
+  50%      { box-shadow: 0 4px 28px rgba(200,168,82,.80), 0 2px 8px rgba(0,0,0,.18); }
+}
+.fab-new-case::after {
+  content: 'Open customer form';
+  position: absolute;
+  bottom: calc(100% + 10px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: #1A1200;
+  color: #C8A852;
+  font-size: 10px;
+  font-weight: 500;
+  padding: 5px 10px;
+  border-radius: 6px;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .2s;
+}
+.fab-new-case:hover::after { opacity: 1; }
+</style>
+
+<button class="fab-new-case" onclick="window.open('capri_customer_form.html','_blank')" title="New case">
+  <div class="fab-icon"><i class="ti ti-plus"></i></div>
+  <div class="fab-label">
+    <span class="fab-label-main">New Case</span>
+    <span class="fab-label-sub">Customer form →</span>
+  </div>
+</button>
 </body></html>

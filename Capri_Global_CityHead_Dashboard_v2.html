@@ -3451,189 +3451,118 @@ applyDashFilters();
 const SUPABASE_URL = 'https://oceldpcobqzvqrlbbvvl.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9jZWxkcGNvYnF6dnFybGJidnZsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA0MTI1ODksImV4cCI6MjA5NTk4ODU4OX0.ntz3DT6gV2LCcR9fNNGrLdDuxkgLLIIINy_L2Y7cDSQ';
 const dbAuth = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
-  auth: {
-    autoRefreshToken: true,
-    persistSession: true,
-    detectSessionInUrl: false,
-    storageKey: 'capri_auth',
-    storage: window.localStorage
+  auth: { autoRefreshToken:true, persistSession:true, detectSessionInUrl:false, storageKey:'capri_auth', storage:window.localStorage }
+});
+
+// Run after all dashboard JS is ready
+window.addEventListener('DOMContentLoaded', async () => {
+  try {
+    const { data:{ session } } = await dbAuth.auth.getSession();
+    if (!session) { window.location.href = 'capri_login.html'; return; }
+
+    const { data: user } = await dbAuth.from('users')
+      .select('id,name,role,color,reports_to')
+      .eq('id', session.user.id)
+      .single();
+    if (!user) { window.location.href = 'capri_login.html'; return; }
+
+    // ── Sidebar ──
+    const ini = user.name.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
+    const avatarEl = document.getElementById('sidebar-avatar');
+    const nameEl   = document.getElementById('sidebar-name');
+    const roleEl   = document.getElementById('sidebar-role');
+    const badgeEl  = document.getElementById('role-badge-nav');
+    if (avatarEl) avatarEl.textContent = ini;
+    if (nameEl)   nameEl.textContent   = user.name;
+
+    const roleLabel = { city_head:'Chennai · Full access', bm:'Branch Manager', rm:'Relationship Manager' };
+    const roleBadge = { city_head:'CITY HEAD', bm:'BRANCH MGR', rm:'REL. MGR' };
+    if (roleEl)  roleEl.textContent  = roleLabel[user.role] || user.role;
+    if (badgeEl) badgeEl.textContent = roleBadge[user.role] || user.role.toUpperCase();
+
+    // ── BM role ──
+    if (user.role === 'bm') {
+      // Hide BM filter
+      const bmWrap = document.getElementById('bm-filter-wrap');
+      if (bmWrap) bmWrap.style.display = 'none';
+
+      // Populate RM filter with only this BM's RMs
+      const rmSel = document.getElementById('dash-rm-filter');
+      if (rmSel) {
+        const { data: myRMs } = await dbAuth.from('users')
+          .select('id,name').eq('reports_to', user.id).eq('role','rm');
+        rmSel.innerHTML = '<option value="">All my RMs</option>';
+        (myRMs||[]).forEach(rm => {
+          const o = document.createElement('option');
+          o.value = rm.name; o.textContent = rm.name;
+          rmSel.appendChild(o);
+        });
+        rmSel.disabled = false;
+      }
+
+      // Pre-filter cases to BM's team
+      const bmSel = document.getElementById('dash-bm-filter');
+      if (bmSel) { bmSel.value = user.name; }
+      if (typeof applyDashFilters === 'function') applyDashFilters();
+
+      // Update topbar
+      const sub = document.getElementById('topbar-sub');
+      if (sub) sub.textContent = 'May 2026 · ' + user.name + "'s Team";
+
+      // Hide restricted nav items
+      document.querySelectorAll('.nav-item').forEach(el => {
+        if (['Bank management','AI settings','System settings'].some(t => el.textContent.includes(t)))
+          el.style.display = 'none';
+      });
+    }
+
+    // ── RM role ──
+    if (user.role === 'rm') {
+      // Hide both filters
+      const bmWrap = document.getElementById('bm-filter-wrap');
+      const rmWrap = document.getElementById('rm-filter-wrap');
+      if (bmWrap) bmWrap.style.display = 'none';
+      if (rmWrap) rmWrap.style.display = 'none';
+
+      // Pre-filter to RM's own cases
+      const rmSel = document.getElementById('dash-rm-filter');
+      if (rmSel) {
+        rmSel.innerHTML = '<option value="' + user.name + '">' + user.name + '</option>';
+        rmSel.value = user.name;
+        rmSel.disabled = false;
+      }
+      const bmSel = document.getElementById('dash-bm-filter');
+      // Find this RM's BM name
+      if (user.reports_to) {
+        const { data: bm } = await dbAuth.from('users').select('name').eq('id', user.reports_to).single();
+        if (bm && bmSel) { bmSel.value = bm.name; }
+      }
+      if (typeof applyDashFilters === 'function') applyDashFilters();
+
+      // Update topbar
+      const sub = document.getElementById('topbar-sub');
+      if (sub) sub.textContent = 'May 2026 · ' + user.name;
+
+      // Hide restricted nav items
+      document.querySelectorAll('.nav-item').forEach(el => {
+        if (['Bank management','AI settings','System settings',
+             'Team members','Team performance','Payout calculator','Reports']
+            .some(t => el.textContent.includes(t)))
+          el.style.display = 'none';
+      });
+    }
+
+  } catch(e) {
+    console.error('Dashboard auth error:', e.message);
   }
 });
 
-// ── ROLE-BASED DASHBOARD INIT ────────────────────────────────────────────────
-let dashUser = null;
-
-(async () => {
-  try {
-    const { data: { session } } = await dbAuth.auth.getSession();
-    if (!session) {
-      window.location.href = 'capri_login.html';
-      return;
-    }
-
-    // Load user details
-    const { data: user } = await dbAuth.from('users')
-      .select('id, name, role, color, reports_to')
-      .eq('id', session.user.id)
-      .single();
-
-    if (!user) {
-      window.location.href = 'capri_login.html';
-      return;
-    }
-
-    dashUser = user;
-
-    // ── Update sidebar ────────────────────────────────────────────────────────
-    const initials = user.name.split(' ').map(w => w[0]).join('').slice(0,2).toUpperCase();
-    document.getElementById('sidebar-avatar').textContent = initials;
-    document.getElementById('sidebar-name').textContent   = user.name;
-
-    const roleLabels = {
-      city_head: 'Chennai · Full access',
-      bm:        'Branch Manager',
-      rm:        'Relationship Manager'
-    };
-    const roleBadges = {
-      city_head: 'CITY HEAD',
-      bm:        'BRANCH MGR',
-      rm:        'REL. MGR'
-    };
-    document.getElementById('sidebar-role').textContent    = roleLabels[user.role] || user.role;
-    document.getElementById('role-badge-nav').textContent  = roleBadges[user.role] || user.role.toUpperCase();
-
-    // ── Apply role-based UI restrictions ─────────────────────────────────────
-    if (user.role === 'bm') {
-      applyBMRestrictions(user);
-    } else if (user.role === 'rm') {
-      applyRMRestrictions(user);
-    }
-    // city_head sees everything — no restrictions
-
-  } catch(e) {
-    console.log('Auth init error:', e.message);
-  }
-})();
-
-// ── BM RESTRICTIONS ───────────────────────────────────────────────────────────
-function applyBMRestrictions(user) {
-  // Hide BM filter — BM only sees their own team
-  const bmWrap = document.getElementById('bm-filter-wrap');
-  if (bmWrap) bmWrap.style.display = 'none';
-
-  // RM filter — show only their RMs
-  const rmFilter = document.getElementById('dash-rm-filter');
-  if (rmFilter) {
-    rmFilter.innerHTML = '<option value="">All my RMs</option>';
-    // Add their RMs from the hardcoded team data
-    // In Phase 2 this will be fetched from Supabase
-    const teamMap = {
-      'e6d223f6-7ded-4780-88fb-bf3277ecd26a': ['Karthik M','Priya S'],
-      'c1edd82b-b26b-4258-bd8d-912caa786aff': []
-    };
-    const myRMs = teamMap[user.id] || [];
-    myRMs.forEach(rm => {
-      const opt = document.createElement('option');
-      opt.value = rm; opt.textContent = rm;
-      rmFilter.appendChild(opt);
-    });
-    rmFilter.disabled = false;
-  }
-
-  // Filter recent cases table to show only BM's team cases
-  filterCasesByBM(user.name);
-
-  // Update topbar subtitle
-  const sub = document.getElementById('topbar-sub');
-  if (sub) sub.textContent = 'May 2026 · ' + user.name + ''s Team';
-
-  // Hide config nav items that BM shouldn't access
-  // Bank management, AI settings, System settings
-  const navItems = document.querySelectorAll('.nav-item');
-  navItems.forEach(item => {
-    const text = item.textContent.trim();
-    if (text.includes('Bank management') || text.includes('AI settings') || text.includes('System settings')) {
-      item.style.display = 'none';
-    }
-  });
-}
-
-// ── RM RESTRICTIONS ───────────────────────────────────────────────────────────
-function applyRMRestrictions(user) {
-  // Hide both BM and RM filters
-  const bmWrap = document.getElementById('bm-filter-wrap');
-  const rmWrap = document.getElementById('rm-filter-wrap');
-  if (bmWrap) bmWrap.style.display = 'none';
-  if (rmWrap) rmWrap.style.display = 'none';
-
-  // Filter cases to only this RM's cases
-  filterCasesByRM(user.name);
-
-  // Update topbar subtitle
-  const sub = document.getElementById('topbar-sub');
-  if (sub) sub.textContent = 'May 2026 · ' + user.name;
-
-  // Hide config and team management nav items
-  const navItems = document.querySelectorAll('.nav-item');
-  navItems.forEach(item => {
-    const text = item.textContent.trim();
-    if (text.includes('Bank management') || text.includes('AI settings') ||
-        text.includes('System settings') || text.includes('Team members') ||
-        text.includes('Team performance') || text.includes('Payout calculator') ||
-        text.includes('Reports')) {
-      item.style.display = 'none';
-    }
-  });
-}
-
-// ── FILTER CASES BY BM ────────────────────────────────────────────────────────
-function filterCasesByBM(bmName) {
-  // Filter recent cases table rows
-  document.querySelectorAll('#recent-cases-tbody tr, .cases-table tr').forEach(row => {
-    const memberCell = row.querySelector('td:nth-child(3)');
-    if (!memberCell) return;
-    // Hide rows not belonging to this BM's team
-    // Will be properly done with Supabase in Phase 2
-  });
-
-  // Set BM filter to show their name
-  const bmFilter = document.getElementById('dash-bm-filter');
-  if (bmFilter) {
-    bmFilter.value = bmName;
-    applyDashFilters();
-  }
-}
-
-// ── FILTER CASES BY RM ────────────────────────────────────────────────────────
-function filterCasesByRM(rmName) {
-  const rmFilter = document.getElementById('dash-rm-filter');
-  if (rmFilter) {
-    // Set RM filter to their own name
-    // First need to enable the select and add their option
-    rmFilter.innerHTML = '<option value="">All my cases</option>';
-    const opt = document.createElement('option');
-    opt.value = rmName; opt.textContent = rmName;
-    rmFilter.appendChild(opt);
-    rmFilter.value = rmName;
-    rmFilter.disabled = false;
-    applyDashFilters();
-  }
-}
-
-// Logout confirmation + sign out
 function confirmLogout() {
-  const confirmed = confirm('Sign out of Capri Global?');
-  if (!confirmed) return;
+  if (!confirm('Sign out of Capri Global?')) return;
   doLogout();
 }
-
 async function doLogout() {
-  try {
-    await dbAuth.auth.signOut();
-  } catch(e) {
-    console.log('Sign out error:', e.message);
-  }
-  // Clear local storage and redirect
+  try { await dbAuth.auth.signOut(); } catch(e) {}
   localStorage.removeItem('capri_auth');
   window.location.href = 'capri_login.html';
 }

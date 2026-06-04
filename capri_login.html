@@ -523,12 +523,8 @@ async function redirectByRole(userId, userData) {
   // Store in sessionStorage for other pages to read
   sessionStorage.setItem('capri_user', JSON.stringify(userData));
 
-  // Route by role
-  if (userData.role === 'city_head' || userData.role === 'bm') {
-    window.location.href = 'Capri_Global_CityHead_Dashboard_v2.html';
-  } else {
-    window.location.href = 'capri_customer_form.html';
-  }
+  // All roles go to dashboard first
+  window.location.href = 'Capri_Global_CityHead_Dashboard_v2.html';
 }
 
 // ── LISTEN FOR AUTH STATE CHANGES ─────────────────────────────────────────────

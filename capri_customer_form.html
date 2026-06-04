@@ -67,17 +67,9 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);fon
 .fp-step.active .fp-dot,.fp-step.done .fp-dot{opacity:1;}
 .fp-sep{width:1px;height:18px;background:var(--border);flex-shrink:0;}
 /* draft save chip — bottom right corner */
-.draft-fab{
-  position:fixed;bottom:80px;right:16px;z-index:150;
-  background:var(--accent);color:white;border:none;
-  border-radius:30px;padding:9px 14px;
-  font-size:12px;font-weight:500;font-family:inherit;
-  cursor:pointer;display:flex;align-items:center;gap:6px;
-  box-shadow:0 4px 16px rgba(26,79,58,.3);
-  transition:all .2s;
-}
-.draft-fab:hover{background:var(--accent2);transform:translateY(-1px);}
-.draft-fab .draft-time{font-size:10px;opacity:.65;}
+
+
+
 
 /* ── MAIN FORM AREA ── */
 .main{padding:68px 16px 100px;overflow-y:auto}
@@ -294,6 +286,37 @@ input[data-aadhaar]{font-family:'DM Mono',monospace;letter-spacing:.1em}
 ::-webkit-scrollbar{width:5px}
 ::-webkit-scrollbar-track{background:transparent}
 ::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
+
+/* ── FLASH MESSAGE ── */
+.flash-msg{
+  position:fixed;
+  bottom:90px;
+  left:50%;
+  transform:translateX(-50%) translateY(20px);
+  background:#1A4F3A;
+  color:white;
+  font-size:13px;
+  font-weight:500;
+  padding:10px 20px;
+  border-radius:30px;
+  box-shadow:0 4px 20px rgba(26,79,58,.35);
+  z-index:999;
+  display:flex;
+  align-items:center;
+  gap:8px;
+  opacity:0;
+  transition:all .25s ease;
+  pointer-events:none;
+  white-space:nowrap;
+}
+.flash-msg.show{
+  opacity:1;
+  transform:translateX(-50%) translateY(0);
+}
+.flash-msg.error{
+  background:#B91C1C;
+  box-shadow:0 4px 20px rgba(185,28,28,.35);
+}
 </style>
 </head>
 <body>
@@ -315,12 +338,7 @@ input[data-aadhaar]{font-family:'DM Mono',monospace;letter-spacing:.1em}
     </div>
   </div>
 
-  <!-- ══ DRAFT FAB ══ -->
-  <button class="draft-fab" onclick="saveDraft()">
-    <i class="ti ti-device-floppy"></i>
-    Save draft
-    <span class="draft-time" id="draft-time"></span>
-  </button>
+  
 
   <!-- ══ SHARE CIBIL MODAL ══ -->
   <div class="modal-back" id="share-modal" onclick="closeShareModal(event)">
@@ -1076,6 +1094,11 @@ input[data-aadhaar]{font-family:'DM Mono',monospace;letter-spacing:.1em}
         <div class="form-section-num">Section 3 of 3</div>
         <div class="form-section-title">Review &amp;<br>submit</div>
         <div class="form-section-desc">Review all details before final submission. Once submitted, case is locked.</div>
+        <div style="margin-top:10px;display:inline-flex;align-items:center;gap:8px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);padding:8px 14px;font-size:12px">
+          <i class="ti ti-hash" style="color:var(--accent);font-size:14px"></i>
+          <span style="color:var(--muted)">Case ID</span>
+          <span style="font-family:'DM Mono',monospace;font-weight:600;color:var(--accent)" id="display-case-id">Generating...</span>
+        </div>
       </div>
 
       <!-- SUMMARY -->
@@ -1163,6 +1186,12 @@ input[data-aadhaar]{font-family:'DM Mono',monospace;letter-spacing:.1em}
     </div>
 
   </main>
+<!-- FLASH MESSAGE -->
+<div class="flash-msg" id="flash-msg">
+  <i class="ti ti-check" id="flash-icon" style="font-size:15px"></i>
+  <span id="flash-txt">Draft saved</span>
+</div>
+
 <!-- PREVIEW LIGHTBOX -->
 <div class="lightbox" id="lightbox" onclick="closeLightbox(event)">
   <button class="lightbox-close" onclick="closeLightbox()"><i class="ti ti-x"></i></button>
@@ -1184,23 +1213,45 @@ let currentUser = null;
 let currentCaseId = null;
 let autoSaveTimer = null;
 
-// ── AUTH CHECK — redirect to login if not signed in ───────────────────────────
+// ── INIT — runs when form opens ──────────────────────────────────────────────
 (async () => {
-  const { data: { session } } = await db.auth.getSession();
-  if (!session) {
-    window.location.href = 'capri_login.html';
-    return;
+  try {
+    // 1. Get session
+    const { data: { session } } = await db.auth.getSession();
+    if (session) {
+      const { data: userData } = await db.from('users')
+        .select('id,name,role,color')
+        .eq('id', session.user.id)
+        .single();
+      currentUser = userData;
+    }
+  } catch(e) {
+    console.log('Session check:', e.message);
   }
-  // Load user from users table
-  const { data: userData } = await db.from('users').select('id,name,role,color').eq('id', session.user.id).single();
-  currentUser = userData;
-  // Show user name in draft FAB
-  const draftFab = document.querySelector('.draft-fab span:not(.draft-time)');
-  if (draftFab && userData) draftFab.textContent = 'Save draft';
-  // Start auto-save
-  autoSaveTimer = setInterval(autoSaveDraft, 60000);
-  // Load existing draft if any
+
+  // 2. Generate case ID immediately — autosave starts from here
+  if (!currentCaseId) {
+    try {
+      currentCaseId = await generateCaseId();
+    } catch(e) {
+      // Fallback local ID if Supabase unreachable
+      currentCaseId = 'CPG-LOCAL-' + Date.now();
+    }
+  }
+
+  // 3. Update case ID display in review section
+  const caseIdEl = document.getElementById('display-case-id');
+  if (caseIdEl) caseIdEl.textContent = currentCaseId;
+
+  // 4. Check for existing draft
   await loadExistingDraft();
+
+  // 5. Start auto-save every 60 seconds
+  autoSaveTimer = setInterval(() => autoSaveDraft(false), 60000);
+
+  // Show case ID in draft FAB
+  const timeEl = document.getElementById('draft-time');
+  if (timeEl) timeEl.textContent = currentCaseId;
 })();
 
 // ── GENERATE CASE ID ──────────────────────────────────────────────────────────
@@ -1271,60 +1322,100 @@ function collectFormData() {
 }
 
 // ── AUTO SAVE DRAFT ───────────────────────────────────────────────────────────
-async function autoSaveDraft() {
-  if (!currentUser) return;
+async function autoSaveDraft(showMsg = true) {
   const formData = collectFormData();
   const completionPct = Math.round((currentSection / totalSections) * 100);
+  const now = new Date();
+  const t = now.getHours().toString().padStart(2,'0') + ':' + now.getMinutes().toString().padStart(2,'0');
+
+  // Always save to localStorage as immediate fallback
   try {
-    if (currentCaseId) {
-      // Update existing draft
-      await db.from('case_drafts')
-        .update({ form_data: formData, section: currentSection, completion_pct: completionPct, last_saved_at: new Date().toISOString() })
-        .eq('case_id', currentCaseId);
-    } else {
-      // Create new case row (draft)
-      currentCaseId = await generateCaseId();
-      await db.from('cases').insert({
-        id: currentCaseId,
-        created_by: currentUser.id,
-        status: 'Draft',
-        ...formData
-      });
-      await db.from('case_drafts').insert({
-        case_id: currentCaseId,
-        created_by: currentUser.id,
-        form_data: formData,
-        section: currentSection,
-        completion_pct: completionPct
-      });
+    localStorage.setItem('capri_draft', JSON.stringify({
+      formData, section: currentSection, completionPct, savedAt: now.toISOString()
+    }));
+  } catch(e) {}
+
+  // Try to get session if currentUser not loaded yet
+  if (!currentUser) {
+    try {
+      const { data: { session } } = await db.auth.getSession();
+      if (session) {
+        const { data: userData } = await db.from('users').select('id,name,role,color').eq('id', session.user.id).single();
+        currentUser = userData;
+      }
+    } catch(e) {}
+  }
+
+  // Save to Supabase if we have a user
+  if (currentUser) {
+    try {
+      if (currentCaseId) {
+        await db.from('case_drafts')
+          .update({ form_data: formData, section: currentSection, completion_pct: completionPct, last_saved_at: now.toISOString() })
+          .eq('case_id', currentCaseId);
+        await db.from('cases')
+          .update({ ...formData, updated_at: now.toISOString() })
+          .eq('id', currentCaseId);
+      } else {
+        currentCaseId = await generateCaseId();
+        await db.from('cases').insert({
+          id: currentCaseId,
+          created_by: currentUser.id,
+          status: 'Draft',
+          ...formData
+        });
+        await db.from('case_drafts').insert({
+          case_id: currentCaseId,
+          created_by: currentUser.id,
+          form_data: formData,
+          section: currentSection,
+          completion_pct: completionPct
+        });
+      }
+      document.getElementById('draft-time').textContent = currentCaseId + ' · ' + t;
+      if (showMsg) showFlash('Draft saved — ' + currentCaseId);
+    } catch(e) {
+      console.error('Supabase save failed:', e);
+      document.getElementById('draft-time').textContent = currentCaseId + ' · ' + t;
+    if (showMsg) showFlash('Saved locally — ' + currentCaseId);
     }
-    const now = new Date();
-    const t = now.getHours().toString().padStart(2,'0') + ':' + now.getMinutes().toString().padStart(2,'0');
-    document.getElementById('draft-time').textContent = 'Saved ' + t;
-  } catch(e) {
-    console.error('Auto-save failed:', e);
+  } else {
+    document.getElementById('draft-time').textContent = 'Saved locally ' + t;
   }
 }
 
 // ── LOAD EXISTING DRAFT ───────────────────────────────────────────────────────
 async function loadExistingDraft() {
-  if (!currentUser) return;
-  try {
-    const { data: drafts } = await db.from('case_drafts')
-      .select('*, cases(id)')
-      .eq('created_by', currentUser.id)
-      .order('last_saved_at', { ascending: false })
-      .limit(1);
-    if (drafts && drafts.length > 0) {
-      const draft = drafts[0];
-      currentCaseId = draft.case_id;
-      restoreFormData(draft.form_data);
-      if (draft.section && draft.section !== currentSection) goTo(draft.section);
-      document.getElementById('draft-time').textContent = 'Draft restored';
+  // Try Supabase first
+  if (currentUser) {
+    try {
+      const { data: drafts } = await db.from('case_drafts')
+        .select('*')
+        .eq('created_by', currentUser.id)
+        .order('last_saved_at', { ascending: false })
+        .limit(1);
+      if (drafts && drafts.length > 0) {
+        const draft = drafts[0];
+        currentCaseId = draft.case_id;
+        restoreFormData(draft.form_data);
+        if (draft.section && draft.section !== currentSection) goTo(draft.section);
+        document.getElementById('draft-time').textContent = 'Draft restored';
+        return;
+      }
+    } catch(e) {
+      console.error('Draft load failed:', e);
     }
-  } catch(e) {
-    console.error('Draft load failed:', e);
   }
+  // Fallback: try localStorage
+  try {
+    const local = localStorage.getItem('capri_draft');
+    if (local) {
+      const { formData, section } = JSON.parse(local);
+      restoreFormData(formData);
+      if (section && section !== currentSection) goTo(section);
+      document.getElementById('draft-time').textContent = 'Local draft restored';
+    }
+  } catch(e) {}
 }
 
 // ── RESTORE FORM DATA FROM DRAFT ──────────────────────────────────────────────
@@ -1428,6 +1519,8 @@ function goTo(n) {
   updatePill(n);
   window.scrollTo({top:0, behavior:'smooth'});
   if (n === 3) populateSummary();
+  // Auto-save silently on section change
+  autoSaveDraft(false);
 }
 
 function tryGoTo(n) {
@@ -1716,9 +1809,26 @@ function populateSummary() {
 
 // ── DRAFT SAVE ────────────────────────────────────────────────────────────────
 function saveDraft() {
-  autoSaveDraft();
+  autoSaveDraft(true);
 }
 
+
+// ── FLASH MESSAGE ────────────────────────────────────────────────────────────
+let flashTimer = null;
+function showFlash(msg, isError = false) {
+  const el  = document.getElementById('flash-msg');
+  const txt = document.getElementById('flash-txt');
+  const ico = document.getElementById('flash-icon');
+  if (!el) return;
+  txt.textContent = msg;
+  el.className = 'flash-msg' + (isError ? ' error' : '');
+  ico.className = isError ? 'ti ti-alert-circle' : 'ti ti-check';
+  // Force reflow then show
+  void el.offsetWidth;
+  el.classList.add('show');
+  if (flashTimer) clearTimeout(flashTimer);
+  flashTimer = setTimeout(() => el.classList.remove('show'), 2800);
+}
 
 // ── DOB FORMAT dd/mm/yyyy ─────────────────────────────────────────────────────
 function fmtDOB(el) {
@@ -1813,7 +1923,24 @@ async function submitForm() {
   if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = 'Submitting...'; }
 
   try {
-    const formData = collectFormData();
+    // Try to get session if not loaded
+  if (!currentUser) {
+    try {
+      const { data: { session } } = await db.auth.getSession();
+      if (session) {
+        const { data: userData } = await db.from('users').select('id,name,role,color').eq('id', session.user.id).single();
+        currentUser = userData;
+      }
+    } catch(e) {}
+  }
+
+  if (!currentUser) {
+    alert('You are not signed in. Please log in first to submit a case.');
+    if (submitBtn) { submitBtn.disabled = false; submitBtn.innerHTML = '<i class=\'ti ti-send\'></i> Submit final case'; }
+    return;
+  }
+
+  const formData = collectFormData();
 
     // Generate case ID if not already created
     if (!currentCaseId) currentCaseId = await generateCaseId();

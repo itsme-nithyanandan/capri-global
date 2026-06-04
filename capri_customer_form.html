@@ -6,6 +6,7 @@
 <title>Capri Global — New Car Loan Application</title>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,300&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <style>
 :root {
   --bg:        #F2EFE8;
@@ -1171,6 +1172,178 @@ input[data-aadhaar]{font-family:'DM Mono',monospace;letter-spacing:.1em}
 </div>
 
 <script>
+// ── SUPABASE CONFIG ───────────────────────────────────────────────────────────
+const SUPABASE_URL = 'https://oceldpcobqzvqrlbbvvl.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9jZWxkcGNvYnF6dnFybGJidnZsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA0MTI1ODksImV4cCI6MjA5NTk4ODU4OX0.ntz3DT6gV2LCcR9fNNGrLdDuxkgLLIIINy_L2Y7cDSQ';
+const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
+  auth: { autoRefreshToken: true, persistSession: true, detectSessionInUrl: false, storageKey: 'capri_auth' }
+});
+
+// Current logged-in user — loaded on page init
+let currentUser = null;
+let currentCaseId = null;
+let autoSaveTimer = null;
+
+// ── AUTH CHECK — redirect to login if not signed in ───────────────────────────
+(async () => {
+  const { data: { session } } = await db.auth.getSession();
+  if (!session) {
+    window.location.href = 'capri_login.html';
+    return;
+  }
+  // Load user from users table
+  const { data: userData } = await db.from('users').select('id,name,role,color').eq('id', session.user.id).single();
+  currentUser = userData;
+  // Show user name in draft FAB
+  const draftFab = document.querySelector('.draft-fab span:not(.draft-time)');
+  if (draftFab && userData) draftFab.textContent = 'Save draft';
+  // Start auto-save
+  autoSaveTimer = setInterval(autoSaveDraft, 60000);
+  // Load existing draft if any
+  await loadExistingDraft();
+})();
+
+// ── GENERATE CASE ID ──────────────────────────────────────────────────────────
+async function generateCaseId() {
+  // Get current counter from system_settings
+  const { data } = await db.from('system_settings').select('value').eq('key', 'case_id_next').single();
+  const next = parseInt(data?.value || '1');
+  const prefix = 'CPG';
+  const caseId = prefix + '-' + String(next).padStart(3, '0');
+  // Increment counter
+  await db.from('system_settings').update({ value: String(next + 1) }).eq('key', 'case_id_next');
+  return caseId;
+}
+
+// ── COLLECT ALL FORM DATA ─────────────────────────────────────────────────────
+function collectFormData() {
+  const g = id => document.getElementById(id)?.value?.trim() || null;
+  const gn = id => { const v = parseFloat(document.getElementById(id)?.value); return isNaN(v) ? null : v; };
+
+  return {
+    // Customer
+    cust_name:        g('f-name'),
+    cust_dob:         g('f-dob'),
+    cust_gender:      g('f-gender'),
+    cust_pan:         g('f-pan'),
+    cust_aadhaar:     g('f-aadhaar'),
+    cust_mobile:      g('f-mobile'),
+    cust_email:       g('f-email'),
+    cust_marital:     g('f-marital'),
+    cust_dependants:  g('f-dependants'),
+    // Permanent address
+    perm_addr1:       g('p-addr1'),
+    perm_addr2:       g('p-addr2'),
+    perm_city:        g('p-city'),
+    perm_district:    g('p-dist'),
+    perm_state:       g('p-state'),
+    perm_pincode:     g('p-pin'),
+    // Current address
+    curr_same_as_perm: document.getElementById('same-chk')?.checked || false,
+    curr_addr1:       g('c-addr1'),
+    curr_addr2:       g('c-addr2'),
+    curr_city:        g('c-city'),
+    curr_district:    g('c-dist'),
+    curr_state:       g('c-state'),
+    curr_pincode:     g('c-pin'),
+    // Residence
+    res_type:         g('f-restype'),
+    // Dealer
+    dealer_name:      g('d-name'),
+    // Vehicle
+    car_model:        g('car-model'),
+    car_fuel:         g('v-fuel'),
+    // Loan
+    loan_amount:      gn('v-loan'),
+    loan_down_payment:gn('v-down'),
+    loan_tenure_months: parseInt(g('v-tenure')) || null,
+    cibil_score:      parseInt(g('v-cibil')) || null,
+    // Employment
+    emp_type:         g('emp-type'),
+    emp_company:      g('emp-company'),
+    emp_years:        g('emp-years'),
+    // Income
+    inc_net_monthly:  gn('inc-net'),
+    // Preferred bank & branch
+    preferred_bank_name:   document.getElementById('pref-bank')?.value || null,
+    preferred_branch_name: selectedBranch || null,
+  };
+}
+
+// ── AUTO SAVE DRAFT ───────────────────────────────────────────────────────────
+async function autoSaveDraft() {
+  if (!currentUser) return;
+  const formData = collectFormData();
+  const completionPct = Math.round((currentSection / totalSections) * 100);
+  try {
+    if (currentCaseId) {
+      // Update existing draft
+      await db.from('case_drafts')
+        .update({ form_data: formData, section: currentSection, completion_pct: completionPct, last_saved_at: new Date().toISOString() })
+        .eq('case_id', currentCaseId);
+    } else {
+      // Create new case row (draft)
+      currentCaseId = await generateCaseId();
+      await db.from('cases').insert({
+        id: currentCaseId,
+        created_by: currentUser.id,
+        status: 'Draft',
+        ...formData
+      });
+      await db.from('case_drafts').insert({
+        case_id: currentCaseId,
+        created_by: currentUser.id,
+        form_data: formData,
+        section: currentSection,
+        completion_pct: completionPct
+      });
+    }
+    const now = new Date();
+    const t = now.getHours().toString().padStart(2,'0') + ':' + now.getMinutes().toString().padStart(2,'0');
+    document.getElementById('draft-time').textContent = 'Saved ' + t;
+  } catch(e) {
+    console.error('Auto-save failed:', e);
+  }
+}
+
+// ── LOAD EXISTING DRAFT ───────────────────────────────────────────────────────
+async function loadExistingDraft() {
+  if (!currentUser) return;
+  try {
+    const { data: drafts } = await db.from('case_drafts')
+      .select('*, cases(id)')
+      .eq('created_by', currentUser.id)
+      .order('last_saved_at', { ascending: false })
+      .limit(1);
+    if (drafts && drafts.length > 0) {
+      const draft = drafts[0];
+      currentCaseId = draft.case_id;
+      restoreFormData(draft.form_data);
+      if (draft.section && draft.section !== currentSection) goTo(draft.section);
+      document.getElementById('draft-time').textContent = 'Draft restored';
+    }
+  } catch(e) {
+    console.error('Draft load failed:', e);
+  }
+}
+
+// ── RESTORE FORM DATA FROM DRAFT ──────────────────────────────────────────────
+function restoreFormData(data) {
+  if (!data) return;
+  const s = (id, val) => { const el = document.getElementById(id); if (el && val) el.value = val; };
+  s('f-name', data.cust_name); s('f-dob', data.cust_dob); s('f-gender', data.cust_gender);
+  s('f-pan', data.cust_pan); s('f-aadhaar', data.cust_aadhaar); s('f-mobile', data.cust_mobile);
+  s('f-email', data.cust_email); s('f-marital', data.cust_marital); s('f-dependants', data.cust_dependants);
+  s('p-addr1', data.perm_addr1); s('p-addr2', data.perm_addr2); s('p-city', data.perm_city);
+  s('p-dist', data.perm_district); s('p-state', data.perm_state); s('p-pin', data.perm_pincode);
+  s('c-addr1', data.curr_addr1); s('c-city', data.curr_city); s('c-pin', data.curr_pincode);
+  s('d-name', data.dealer_name); s('car-model', data.car_model); s('v-fuel', data.car_fuel);
+  s('v-loan', data.loan_amount); s('v-tenure', data.loan_tenure_months); s('v-cibil', data.cibil_score);
+  s('emp-type', data.emp_type); s('emp-company', data.emp_company); s('inc-net', data.inc_net_monthly);
+  if (data.emp_type) handleEmpType();
+  if (data.cibil_score >= 650) onCibilInput(data.cibil_score);
+}
+
 // ── STATE ─────────────────────────────────────────────────────────────────────
 let currentSection = 1;
 const totalSections = 3;
@@ -1543,13 +1716,8 @@ function populateSummary() {
 
 // ── DRAFT SAVE ────────────────────────────────────────────────────────────────
 function saveDraft() {
-  const now = new Date();
-  const t = now.getHours().toString().padStart(2,'0') + ':' + now.getMinutes().toString().padStart(2,'0');
-  document.getElementById('draft-time').textContent = 'Saved ' + t;
+  autoSaveDraft();
 }
-
-// Auto-save every 60s
-setInterval(saveDraft, 60000);
 
 
 // ── DOB FORMAT dd/mm/yyyy ─────────────────────────────────────────────────────
@@ -1634,30 +1802,64 @@ function selectBranch(el, branchName, bankName) {
 }
 
 // ── SUBMIT ────────────────────────────────────────────────────────────────────
-function submitForm() {
+async function submitForm() {
   const decl = document.getElementById('decl-chk').checked;
   if (!decl) { alert('Please read and agree to the declaration before submitting.'); return; }
   const name = document.getElementById('f-name')?.value?.trim();
   if (!name) { alert('Please fill the customer name in Section 1 before submitting.'); return; }
-  document.querySelector('.main').innerHTML = `
-    <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:80vh;text-align:center;padding:40px">
-      <div style="width:64px;height:64px;border-radius:50%;background:var(--green-bg);display:flex;align-items:center;justify-content:center;margin-bottom:20px">
-        <i class="ti ti-check" style="font-size:32px;color:var(--green-txt)"></i>
-      </div>
-      <div style="font-family:'Fraunces',serif;font-size:26px;font-weight:500;margin-bottom:8px">Case submitted</div>
-      <div style="font-size:14px;color:var(--muted);max-width:360px;line-height:1.7;margin-bottom:24px">
-        Case for <strong>${name}</strong> has been submitted successfully. City head has been notified. Case is now locked.
-      </div>
-      <div style="font-family:'DM Mono',monospace;font-size:13px;background:var(--surface2);padding:10px 20px;border-radius:var(--r-sm);border:1px solid var(--border);margin-bottom:24px">
-        Case ID: CPG-025
-      </div>
-      <div style="display:flex;gap:10px">
-        <button class="btn btn-primary" onclick="location.reload()">New case</button>
-        <button class="btn" onclick="alert('Opening case tracker...')">View in tracker</button>
-      </div>
-    </div>`;
-  document.getElementById('top-bar').style.width = '100%';
-  document.querySelectorAll('.step-item').forEach(s => { s.classList.add('done'); s.classList.remove('active'); });
+
+  // Disable submit button
+  const submitBtn = document.querySelector('[onclick="submitForm()"]');
+  if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = 'Submitting...'; }
+
+  try {
+    const formData = collectFormData();
+
+    // Generate case ID if not already created
+    if (!currentCaseId) currentCaseId = await generateCaseId();
+
+    // Upsert the case with final status
+    const { error } = await db.from('cases').upsert({
+      id: currentCaseId,
+      created_by: currentUser.id,
+      status: 'In process',
+      submitted_at: new Date().toISOString(),
+      locked: true,
+      ...formData
+    });
+
+    if (error) throw error;
+
+    // Delete the draft record (case is now submitted)
+    await db.from('case_drafts').delete().eq('case_id', currentCaseId);
+
+    // Clear auto-save timer
+    if (autoSaveTimer) clearInterval(autoSaveTimer);
+
+    // Show success screen
+    document.querySelector('.main').innerHTML = `
+      <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:80vh;text-align:center;padding:40px">
+        <div style="width:64px;height:64px;border-radius:50%;background:var(--green-bg);display:flex;align-items:center;justify-content:center;margin-bottom:20px">
+          <i class="ti ti-check" style="font-size:32px;color:var(--green-txt)"></i>
+        </div>
+        <div style="font-family:'Fraunces',serif;font-size:26px;font-weight:500;margin-bottom:8px">Case submitted</div>
+        <div style="font-size:14px;color:var(--muted);max-width:360px;line-height:1.7;margin-bottom:24px">
+          Case for <strong>${name}</strong> has been submitted successfully. City head has been notified. Case is now locked.
+        </div>
+        <div style="font-family:'DM Mono',monospace;font-size:13px;background:var(--surface2);padding:10px 20px;border-radius:var(--r-sm);border:1px solid var(--border);margin-bottom:24px">
+          Case ID: ${currentCaseId}
+        </div>
+        <div style="display:flex;gap:10px">
+          <button class="btn btn-primary" onclick="location.reload()">New case</button>
+          <button class="btn" onclick="window.location.href='Capri_Global_CityHead_Dashboard_v2.html'">View dashboard</button>
+        </div>
+      </div>`;
+
+  } catch(e) {
+    console.error('Submit failed:', e);
+    alert('Submission failed: ' + e.message + '\nPlease try again or save as draft.');
+    if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = 'Submit final case'; }
+  }
 }
 
 // ── KYC DOC CARD FUNCTIONS ───────────────────────────────────────────────────

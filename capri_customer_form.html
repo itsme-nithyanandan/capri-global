@@ -1219,6 +1219,17 @@ let currentUser = null;
 let currentCaseId = null;
 let autoSaveTimer = null;
 
+// ── EMBEDDED MODE — hide float-progress when inside dashboard iframe ─────────
+(function() {
+  const params = new URLSearchParams(window.location.search);
+  if (params.get('embedded') === '1') {
+    // Hide the floating progress pill — dashboard has its own topbar
+    const style = document.createElement('style');
+    style.textContent = '.float-progress { display: none !important; }';
+    document.head.appendChild(style);
+  }
+})();
+
 // ── INIT — runs when form opens ──────────────────────────────────────────────
 (async () => {
   try {
@@ -2016,8 +2027,8 @@ async function submitForm() {
           Case ID: ${currentCaseId}
         </div>
         <div style="display:flex;gap:10px">
-          <button class="btn btn-primary" onclick="location.reload()">New case</button>
-          <button class="btn" onclick="window.location.href='Capri_Global_CityHead_Dashboard_v2.html'">View dashboard</button>
+          <button class="btn btn-primary" onclick="startNewCase()">New case</button>
+          <button class="btn" onclick="goBackToDashboard()">View dashboard</button>
         </div>
       </div>`;
 
@@ -2105,6 +2116,24 @@ function openLightbox(imgId) {
 function closeLightbox(e) {
   if (!e || e.target === document.getElementById('lightbox') || e.target === document.querySelector('.lightbox-close')) {
     document.getElementById('lightbox').classList.remove('open');
+  }
+}
+
+// ── POST SUBMIT NAVIGATION ────────────────────────────────────────────────────
+function startNewCase() {
+  // If inside iframe, reload the iframe
+  if (window.parent !== window) {
+    window.location.href = 'capri_customer_form.html?embedded=1&t=' + Date.now();
+  } else {
+    location.reload();
+  }
+}
+function goBackToDashboard() {
+  if (window.parent !== window) {
+    // Tell parent to close the form panel and refresh
+    try { window.parent.closeFormPage(); } catch(e) {}
+  } else {
+    window.location.href = 'Capri_Global_CityHead_Dashboard_v2.html';
   }
 }
 

@@ -320,7 +320,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);fon
         <div class="brand-sub">Chennai Operations</div>
       </div>
     </div>
-    <div class="brand-badge"><i class="ti ti-shield-check" style="font-size:10px"></i> City Head</div>
+    <div class="brand-badge" id="brand-role-badge"><i class="ti ti-shield-check" style="font-size:10px"></i> City Head</div>
   </div>
   <nav class="sidebar-nav">
     <div class="nav-section">Overview</div>
@@ -3480,6 +3480,14 @@ window.addEventListener('DOMContentLoaded', async () => {
     if (roleEl)  roleEl.textContent  = roleLabel[user.role] || user.role;
     if (badgeEl) badgeEl.textContent = roleBadge[user.role] || user.role.toUpperCase();
 
+    // Update brand badge in sidebar top
+    const brandBadge = document.getElementById('brand-role-badge');
+    const brandIcons = { city_head:'ti-shield-check', bm:'ti-users', rm:'ti-user' };
+    if (brandBadge) {
+      const icon = brandIcons[user.role] || 'ti-user';
+      brandBadge.innerHTML = '<i class="ti ' + icon + '" style="font-size:10px"></i> ' + (roleBadge[user.role] || user.role);
+    }
+
     // ── BM role ──
     if (user.role === 'bm') {
       // Hide BM filter
@@ -3681,7 +3689,7 @@ async function doLogout() {
     <div class="form-topbar-title">New Car Loan Case</div>
     <div class="form-topbar-badge">New Case</div>
   </div>
-  <iframe id="form-iframe" src="capri_customer_form.html"></iframe>
+  <iframe id="form-iframe" src="capri_customer_form.html?embedded=1"></iframe>
 </div>
 
 <!-- FAB -->
@@ -3695,6 +3703,9 @@ async function doLogout() {
 
 <script>
 function openFormPage() {
+  // Reload iframe to get fresh form every time
+  const iframe = document.getElementById('form-iframe');
+  iframe.src = 'capri_customer_form.html?embedded=1&t=' + Date.now();
   document.getElementById('form-fullpage').classList.add('open');
   document.body.style.overflow = 'hidden';
 }

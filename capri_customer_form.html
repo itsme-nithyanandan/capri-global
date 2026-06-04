@@ -1,0 +1,1870 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Capri Global — New Car Loan Application</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,300&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+<style>
+:root {
+  --bg:        #F2EFE8;
+  --surface:   #FDFCF9;
+  --surface2:  #F7F4EE;
+  --border:    #E0DDD5;
+  --border2:   #CAC7BC;
+  --text:      #1C1A14;
+  --muted:     #7A7669;
+  --accent:    #1A4F3A;
+  --accent2:   #2E7D52;
+  --gold:      #C8A852;
+  --gold-bg:   #FBF6E8;
+  --green-bg:  #E8F5EE;
+  --green-txt: #155E35;
+  --amber-bg:  #FEF3C7;
+  --amber-txt: #924A0C;
+  --red-bg:    #FEE8E8;
+  --red-txt:   #B91C1C;
+  --blue-bg:   #EBF2FE;
+  --blue-txt:  #1E3A8A;
+  --r:         10px;
+  --r-sm:      6px;
+  --shadow:    0 1px 4px rgba(0,0,0,.05), 0 2px 12px rgba(0,0,0,.04);
+  --shadow-lg: 0 8px 32px rgba(0,0,0,.1), 0 2px 8px rgba(0,0,0,.06);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);font-size:14px;min-height:100vh}
+
+/* ── LAYOUT — full width, no sidebar ── */
+.shell{display:block;min-height:100vh;max-width:680px;margin:0 auto}
+.sidebar{display:none}
+
+/* ── FLOATING PROGRESS PILL ── */
+.float-progress{
+  position:fixed;top:12px;left:50%;transform:translateX(-50%);
+  z-index:200;
+  display:flex;align-items:center;gap:0;
+  background:rgba(255,255,255,.82);
+  backdrop-filter:blur(14px);
+  -webkit-backdrop-filter:blur(14px);
+  border:1px solid rgba(0,0,0,.08);
+  border-radius:40px;
+  padding:5px 6px;
+  box-shadow:0 4px 24px rgba(0,0,0,.10),0 1px 6px rgba(0,0,0,.06);
+}
+.fp-step{
+  display:flex;align-items:center;gap:6px;
+  padding:5px 14px;border-radius:30px;
+  font-size:12px;font-weight:500;
+  color:var(--muted);
+  transition:all .25s;
+  white-space:nowrap;cursor:pointer;
+}
+.fp-step.active{background:var(--accent);color:white;}
+.fp-step.done{background:var(--green-bg);color:var(--green-txt);}
+.fp-dot{width:7px;height:7px;border-radius:50%;background:currentColor;flex-shrink:0;opacity:.5;}
+.fp-step.active .fp-dot,.fp-step.done .fp-dot{opacity:1;}
+.fp-sep{width:1px;height:18px;background:var(--border);flex-shrink:0;}
+/* draft save chip — bottom right corner */
+.draft-fab{
+  position:fixed;bottom:80px;right:16px;z-index:150;
+  background:var(--accent);color:white;border:none;
+  border-radius:30px;padding:9px 14px;
+  font-size:12px;font-weight:500;font-family:inherit;
+  cursor:pointer;display:flex;align-items:center;gap:6px;
+  box-shadow:0 4px 16px rgba(26,79,58,.3);
+  transition:all .2s;
+}
+.draft-fab:hover{background:var(--accent2);transform:translateY(-1px);}
+.draft-fab .draft-time{font-size:10px;opacity:.65;}
+
+/* ── MAIN FORM AREA ── */
+.main{padding:68px 16px 100px;overflow-y:auto}
+@media(min-width:520px){.main{padding:68px 24px 100px;}}
+.form-header{margin-bottom:28px}
+.form-section-num{font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--accent);margin-bottom:6px}
+.form-section-title{font-family:'Fraunces',serif;font-size:28px;font-weight:500;color:var(--text);line-height:1.2;margin-bottom:6px}
+.form-section-desc{font-size:13px;color:var(--muted);line-height:1.6}
+
+/* ── PANELS ── */
+.form-panel{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);box-shadow:var(--shadow);padding:24px;margin-bottom:16px}
+.panel-title{font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:16px;display:flex;align-items:center;gap:8px}
+.panel-title i{font-size:15px;color:var(--accent)}
+.panel-divider{height:1px;background:var(--border);margin:20px 0}
+
+/* ── GRID ── */
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.g3{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.g4{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.gcustom{display:grid;gap:14px}
+
+/* ── FIELD ── */
+.field{display:flex;flex-direction:column;gap:5px}
+.field label{font-size:12px;font-weight:500;color:var(--text);display:flex;align-items:center;gap:5px}
+.field label .req{color:var(--red-txt)}
+.field label .badge-label{font-size:9px;font-weight:600;padding:2px 6px;border-radius:8px;letter-spacing:.04em;text-transform:uppercase}
+.field label .badge-new{background:var(--green-bg);color:var(--green-txt)}
+.field label .badge-cond{background:var(--amber-bg);color:var(--amber-txt)}
+.field-hint{font-size:11px;color:var(--muted);margin-top:2px;line-height:1.5}
+.field input,.field select,.field textarea{
+  padding:9px 12px;
+  border:1px solid var(--border);
+  border-radius:var(--r-sm);
+  font-size:13px;
+  background:var(--surface);
+  color:var(--text);
+  font-family:inherit;
+  width:100%;
+  transition:border-color .15s,box-shadow .15s;
+  appearance:none;
+}
+.field input:focus,.field select:focus,.field textarea:focus{
+  outline:none;
+  border-color:var(--accent);
+  box-shadow:0 0 0 3px rgba(26,79,58,.08);
+}
+.field input::placeholder,.field textarea::placeholder{color:var(--border2)}
+.field select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%237A7669' stroke-width='2'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center;padding-right:30px}
+.field textarea{resize:vertical;min-height:70px;line-height:1.5}
+.field input.error,.field select.error{border-color:var(--red-txt);box-shadow:0 0 0 3px rgba(185,28,28,.08)}
+.field .field-error{font-size:11px;color:var(--red-txt);margin-top:2px;display:none}
+.field .field-error.show{display:block}
+
+/* ── AADHAAR FORMAT ── */
+input[data-aadhaar]{font-family:'DM Mono',monospace;letter-spacing:.1em}
+
+/* ── UPLOAD ZONES ── */
+.upload-zone{border:1.5px dashed var(--border2);border-radius:var(--r);padding:20px 16px;text-align:center;cursor:pointer;transition:all .2s;background:var(--surface2)}
+.upload-zone:hover,.upload-zone.drag{border-color:var(--accent);background:var(--green-bg)}
+.upload-zone .uz-icon{font-size:24px;color:var(--muted);display:block;margin-bottom:6px}
+.upload-zone .uz-title{font-size:13px;font-weight:500;color:var(--text);margin-bottom:3px}
+.upload-zone .uz-sub{font-size:11px;color:var(--muted)}
+.upload-zone.uploaded{border-color:var(--green-txt);background:var(--green-bg);border-style:solid}
+.upload-zone.uploaded .uz-icon{color:var(--green-txt)}
+.upload-zone.uploaded .uz-title{color:var(--green-txt)}
+.upload-zone.uploaded .uz-sub{color:var(--green-txt);opacity:.7}
+.doc-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.doc-grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.doc-grid-2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.doc-label{font-size:11px;font-weight:500;color:var(--muted);margin-bottom:5px}
+
+/* ── MONTH SLOTS ── */
+.slot-list{display:flex;flex-direction:column;gap:6px}
+.slot-row{display:flex;align-items:center;gap:10px;padding:9px 12px;border:1px solid var(--border);border-radius:var(--r-sm);background:var(--surface);transition:all .15s}
+.slot-row:hover{background:var(--surface2)}
+.slot-row.done{border-color:var(--green-txt);background:var(--green-bg)}
+.slot-num{width:24px;height:24px;border-radius:50%;background:var(--surface2);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;color:var(--muted);flex-shrink:0}
+.slot-row.done .slot-num{background:var(--green-txt);color:white}
+.slot-name{font-size:13px;font-weight:500;flex:1}
+.slot-row.done .slot-name,.slot-row.done .slot-status{color:var(--green-txt)}
+.slot-status{font-size:11px;color:var(--muted)}
+.slot-btn{padding:5px 12px;border-radius:var(--r-sm);border:1px solid var(--border);background:var(--surface2);font-size:11px;font-weight:500;cursor:pointer;font-family:inherit;color:var(--text);white-space:nowrap;transition:all .15s}
+.slot-btn:hover{border-color:var(--accent);color:var(--accent)}
+.slot-btn.done{border-color:var(--green-txt);color:var(--green-txt);background:var(--green-bg)}
+.slot-placeholder{text-align:center;padding:16px;background:var(--surface2);border-radius:var(--r-sm);font-size:12px;color:var(--muted);border:1px dashed var(--border)}
+
+/* ── LTV BAR ── */
+.ltv-wrap{margin-top:12px;display:none}
+.ltv-vals{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:8px}
+.ltv-card{background:var(--surface2);border-radius:var(--r-sm);padding:10px 12px;text-align:center;border:1px solid var(--border)}
+.ltv-card-label{font-size:10px;color:var(--muted);margin-bottom:3px}
+.ltv-card-val{font-size:16px;font-weight:600;font-family:'DM Mono',monospace}
+.ltv-bar{height:6px;border-radius:3px;background:var(--border);overflow:hidden;margin-bottom:5px}
+.ltv-fill{height:100%;border-radius:3px;transition:width .4s ease}
+.ltv-hint{font-size:11px;padding:7px 10px;border-radius:var(--r-sm);margin-top:4px}
+
+/* ── ALERTS ── */
+.alert{padding:10px 14px;border-radius:var(--r-sm);font-size:12px;line-height:1.6;display:none;margin-top:8px}
+.alert.show{display:flex;align-items:flex-start;gap:8px}
+.alert-info{background:var(--blue-bg);border:1px solid #93C5FD;color:var(--blue-txt)}
+.alert-warn{background:var(--amber-bg);border:1px solid #FCD34D;color:var(--amber-txt)}
+.alert-success{background:var(--green-bg);border:1px solid #6EE7B7;color:var(--green-txt)}
+.alert i{font-size:15px;flex-shrink:0;margin-top:1px}
+
+/* ── SAME ADDRESS TOGGLE ── */
+.same-addr-toggle{display:flex;align-items:center;gap:8px;padding:10px 12px;background:var(--surface2);border-radius:var(--r-sm);cursor:pointer;margin-bottom:14px;border:1px solid var(--border);font-size:12px;font-weight:500;user-select:none}
+.same-addr-toggle input{width:14px;height:14px;accent-color:var(--accent);cursor:pointer}
+
+/* ── CONDITIONAL BLOCK ── */
+.cond-block{border:1px solid var(--border);border-radius:var(--r);padding:16px;background:var(--surface2);margin-top:10px;display:none}
+.cond-block.show{display:block}
+.cond-block-label{font-size:10px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:12px;display:flex;align-items:center;gap:6px}
+
+/* ── BOTTOM NAV ── */
+.form-footer{display:flex;align-items:center;justify-content:space-between;padding:20px 0;margin-top:8px;border-top:1px solid var(--border)}
+.footer-left{font-size:12px;color:var(--muted);display:flex;align-items:center;gap:6px}
+.footer-right{display:flex;gap:10px}
+.btn{padding:10px 20px;border-radius:var(--r-sm);border:1px solid var(--border);background:var(--surface2);cursor:pointer;font-size:13px;font-weight:500;font-family:inherit;color:var(--text);transition:all .15s;display:inline-flex;align-items:center;gap:6px}
+.btn:hover{background:var(--bg);border-color:var(--border2)}
+.btn-primary{background:var(--accent);color:white;border-color:var(--accent)}
+.btn-primary:hover{background:var(--accent2)}
+.btn-gold{background:var(--gold);color:#1C1A14;border-color:var(--gold)}
+.btn-ghost{background:transparent;border-color:transparent;color:var(--muted)}
+.btn-ghost:hover{background:var(--surface2);color:var(--text);border-color:var(--border)}
+
+/* ── PROGRESS BAR TOP ── */
+.top-progress{height:3px;background:var(--border);position:sticky;top:0;z-index:100}
+.top-progress-fill{height:100%;background:linear-gradient(90deg,var(--accent),var(--gold));transition:width .4s ease}
+
+/* ── SECTION TABS (hidden, shown via JS) ── */
+.form-section{display:none}
+.form-section.active{display:block;animation:fadeSlide .25s ease}
+@keyframes fadeSlide{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+
+/* ── COMPLETION CHIPS ── */
+.completion-strip{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:20px}
+.comp-chip{font-size:11px;padding:4px 10px;border-radius:20px;font-weight:500;display:flex;align-items:center;gap:4px}
+.comp-chip.done{background:var(--green-bg);color:var(--green-txt)}
+.comp-chip.pending{background:var(--surface2);color:var(--muted);border:1px solid var(--border)}
+.comp-chip.active{background:var(--gold-bg);color:#8B6914;border:1px solid var(--gold)}
+
+/* ── SUBMIT SUMMARY ── */
+.summary-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.summary-card{background:var(--surface2);border-radius:var(--r);padding:16px;border:1px solid var(--border)}
+.summary-card-title{font-size:10px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:10px}
+.summary-row{display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--border);font-size:12px}
+.summary-row:last-child{border-bottom:none}
+.summary-key{color:var(--muted)}
+.summary-val{font-weight:500;text-align:right}
+
+/* ── KYC DOC CARD ── */
+.doc-card{border:1.5px dashed var(--border2);border-radius:var(--r);overflow:hidden;background:var(--surface2);transition:all .2s}
+.doc-card.uploaded{border-style:solid;border-color:var(--green-txt);background:var(--green-bg)}
+.doc-card-top{padding:18px 12px 12px;text-align:center;cursor:pointer;position:relative}
+.doc-card-top:hover{background:rgba(0,0,0,.03)}
+.doc-card .uz-icon{font-size:22px;color:var(--muted);display:block;margin-bottom:6px}
+.doc-card.uploaded .uz-icon{color:var(--green-txt)}
+.doc-card-title{font-size:12px;font-weight:500;color:var(--text);margin-bottom:2px}
+.doc-card.uploaded .doc-card-title{color:var(--green-txt)}
+.doc-card-sub{font-size:10px;color:var(--muted)}
+.doc-card.uploaded .doc-card-sub{color:var(--green-txt);opacity:.75}
+.doc-card-preview{width:100%;height:70px;object-fit:cover;display:none;border-top:1px solid rgba(0,0,0,.06)}
+.doc-card.uploaded .doc-card-preview{display:block}
+.doc-card-actions{display:none;border-top:1px solid var(--green-txt);background:rgba(255,255,255,.6)}
+.doc-card.uploaded .doc-card-actions{display:flex}
+.doc-action-btn{flex:1;padding:7px 4px;border:none;background:transparent;font-family:inherit;font-size:11px;font-weight:500;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:4px;transition:background .15s}
+.doc-action-btn:hover{background:rgba(0,0,0,.06)}
+.doc-action-btn.view{color:var(--blue-txt)}
+.doc-action-btn.replace{color:var(--amber-txt)}
+.doc-action-btn.remove{color:var(--red-txt)}
+.doc-action-sep{width:1px;background:var(--green-txt);opacity:.3;flex-shrink:0}
+/* Aadhaar expand back */
+.aadhar-back-trigger{display:none;margin-top:8px;padding:8px 12px;border:1px dashed var(--border2);border-radius:var(--r-sm);text-align:center;font-size:12px;font-weight:500;color:var(--muted);cursor:pointer;transition:all .15s;background:var(--surface2)}
+.aadhar-back-trigger.show{display:block}
+.aadhar-back-trigger:hover{border-color:var(--accent);color:var(--accent);background:var(--green-bg)}
+.aadhar-back-wrap{display:none;margin-top:8px}
+.aadhar-back-wrap.show{display:block}
+/* DL back same */
+.dl-back-trigger{display:none;margin-top:8px;padding:8px 12px;border:1px dashed var(--border2);border-radius:var(--r-sm);text-align:center;font-size:12px;font-weight:500;color:var(--muted);cursor:pointer;transition:all .15s;background:var(--surface2)}
+.dl-back-trigger.show{display:block}
+.dl-back-trigger:hover{border-color:var(--accent);color:var(--accent);background:var(--green-bg)}
+.dl-back-wrap{display:none;margin-top:8px}
+.dl-back-wrap.show{display:block}
+/* Preview lightbox */
+.lightbox{position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:500;display:none;align-items:center;justify-content:center;padding:20px}
+.lightbox.open{display:flex}
+.lightbox-img{max-width:100%;max-height:85vh;border-radius:var(--r);box-shadow:0 8px 40px rgba(0,0,0,.4)}
+.lightbox-close{position:absolute;top:16px;right:16px;width:36px;height:36px;border-radius:50%;background:rgba(255,255,255,.15);border:none;color:white;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+
+/* ── VALIDATION ERROR ── */
+.field input.err,.field select.err{border-color:var(--red-txt)!important;box-shadow:0 0 0 3px rgba(185,28,28,.1)!important}
+.v-err{font-size:11px;color:var(--red-txt);margin-top:3px;display:none;font-weight:500}
+.v-err.show{display:block}
+
+/* ── SHARE MODAL ── */
+.modal-back{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:400;display:none;align-items:flex-end;justify-content:center}
+.modal-back.open{display:flex}
+.modal-sheet{background:var(--surface);border-radius:20px 20px 0 0;padding:24px 20px 36px;width:100%;max-width:480px;animation:slideUp .25s ease}
+@keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+.modal-handle{width:40px;height:4px;border-radius:2px;background:var(--border2);margin:0 auto 20px}
+.modal-title{font-family:'Fraunces',serif;font-size:18px;font-weight:500;margin-bottom:6px}
+.modal-sub{font-size:13px;color:var(--muted);margin-bottom:24px;line-height:1.5}
+.share-btn{display:flex;align-items:center;gap:14px;width:100%;padding:14px 16px;border:1px solid var(--border);border-radius:var(--r);background:var(--surface);cursor:pointer;font-family:inherit;font-size:14px;font-weight:500;color:var(--text);margin-bottom:10px;transition:all .15s;text-align:left}
+.share-btn:hover{background:var(--surface2);border-color:var(--border2)}
+.share-btn:last-of-type{margin-bottom:0}
+.share-icon{width:42px;height:42px;border-radius:var(--r-sm);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
+.share-wa{background:#25D36620;color:#25D366}
+.share-mail{background:var(--blue-bg);color:var(--blue-txt)}
+.share-btn-sub{font-size:11px;color:var(--muted);font-weight:400;margin-top:2px}
+.modal-cancel{width:100%;padding:12px;border:none;background:transparent;font-family:inherit;font-size:13px;font-weight:500;color:var(--muted);cursor:pointer;margin-top:14px;border-radius:var(--r-sm)}
+.modal-cancel:hover{background:var(--surface2)}
+
+/* ── SCROLLBAR ── */
+::-webkit-scrollbar{width:5px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
+</style>
+</head>
+<body>
+
+<div class="shell">
+
+  <!-- ══ FLOATING PROGRESS PILL ══ -->
+  <div class="float-progress" id="float-progress">
+    <div class="fp-step active" id="fp-1" onclick="tryGoTo(1)">
+      <span class="fp-dot"></span> Customer &amp; Vehicle
+    </div>
+    <div class="fp-sep"></div>
+    <div class="fp-step" id="fp-2" onclick="tryGoTo(2)">
+      <span class="fp-dot"></span> Employment &amp; Bank
+    </div>
+    <div class="fp-sep"></div>
+    <div class="fp-step" id="fp-3" onclick="tryGoTo(3)">
+      <span class="fp-dot"></span> Review
+    </div>
+  </div>
+
+  <!-- ══ DRAFT FAB ══ -->
+  <button class="draft-fab" onclick="saveDraft()">
+    <i class="ti ti-device-floppy"></i>
+    Save draft
+    <span class="draft-time" id="draft-time"></span>
+  </button>
+
+  <!-- ══ SHARE CIBIL MODAL ══ -->
+  <div class="modal-back" id="share-modal" onclick="closeShareModal(event)">
+    <div class="modal-sheet">
+      <div class="modal-handle"></div>
+      <div class="modal-title">Share CIBIL report request</div>
+      <div class="modal-sub">Send the customer a pre-drafted message with CIBIL instructions and a request to share PAN &amp; Aadhaar. Message adapts based on documents already uploaded.</div>
+      <button class="share-btn" onclick="shareViaWhatsApp()">
+        <div class="share-icon share-wa"><i class="ti ti-brand-whatsapp"></i></div>
+        <div>
+          <div>Share via WhatsApp</div>
+          <div class="share-btn-sub">Pre-drafted message · CIBIL link · KYC attachment request</div>
+        </div>
+        <i class="ti ti-chevron-right" style="margin-left:auto;color:var(--muted)"></i>
+      </button>
+      <button class="share-btn" onclick="shareViaMail()">
+        <div class="share-icon share-mail"><i class="ti ti-mail"></i></div>
+        <div>
+          <div>Share via Email</div>
+          <div class="share-btn-sub">Formal email draft · CIBIL steps · document checklist</div>
+        </div>
+        <i class="ti ti-chevron-right" style="margin-left:auto;color:var(--muted)"></i>
+      </button>
+      <button class="modal-cancel" onclick="closeShareModal()">Cancel</button>
+    </div>
+  </div>
+
+  <!-- ══ MAIN ══ -->
+  <main class="main">
+
+    <!-- ════════════════════════════════════ -->
+    <!-- SECTION 1: CUSTOMER & KYC          -->
+    <!-- ════════════════════════════════════ -->
+    <div class="form-section active" id="section-1">
+      <div class="form-header">
+        <div class="form-section-num">Section 1 of 3</div>
+        <div class="form-section-title">Customer, KYC<br>&amp; Vehicle</div>
+        <div class="form-section-desc">Personal details, identity documents, address, vehicle and loan details</div>
+      </div>
+
+      <!-- PERSONAL DETAILS -->
+      <div class="form-panel">
+        <div class="panel-title"><i class="ti ti-user"></i> Personal details</div>
+        <div class="g2" style="margin-bottom:14px">
+          <div class="field">
+            <label>Full name</label>
+            <input type="text" id="f-name" placeholder="As per Aadhaar / PAN">
+          </div>
+          <div class="field">
+            <label>Date of birth</label>
+            <input type="text" id="f-dob" placeholder="DD/MM/YYYY" maxlength="10" oninput="fmtDOB(this)">
+          </div>
+        </div>
+        <div class="g2" style="margin-bottom:14px">
+          <div class="field">
+            <label>Gender</label>
+            <select id="f-gender">
+              <option value="">Select</option>
+              <option>Male</option><option>Female</option><option>Other</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Mobile number</label>
+            <input type="tel" id="f-mobile" placeholder="10-digit number" maxlength="10" oninput="this.value=this.value.replace(/\D/g,'')">
+          </div>
+        </div>
+        <div class="g2" style="margin-bottom:14px">
+          <div class="field">
+            <label>PAN number</label>
+            <input type="text" id="f-pan" placeholder="ABCDE1234F" maxlength="10" oninput="this.value=this.value.toUpperCase()">
+          </div>
+          <div class="field">
+            <label>Aadhaar number</label>
+            <input type="text" id="f-aadhaar" data-aadhaar placeholder="XXXX XXXX XXXX" maxlength="14" oninput="fmtAadhaar(this)">
+            <span class="field-hint">Masked after entry — last 4 digits only shown</span>
+          </div>
+        </div>
+        <div class="g2" style="margin-bottom:14px">
+          <div class="field">
+            <label>Email address</label>
+            <input type="email" id="f-email" placeholder="customer@email.com">
+          </div>
+          <div class="field">
+            <label>Marital status</label>
+            <select id="f-marital">
+              <option value="">Select</option>
+              <option>Single</option>
+              <option>Married</option>
+              <option>Divorced</option>
+              <option>Widowed</option>
+            </select>
+          </div>
+        </div>
+        <div style="max-width:220px">
+          <div class="field">
+            <label>Number of dependants</label>
+            <select id="f-dependants">
+              <option value="">Select</option>
+              <option value="0">0 — None</option>
+              <option value="1">1</option>
+              <option value="2">2</option>
+              <option value="3">3</option>
+              <option value="4">4</option>
+              <option value="5+">5 or more</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- KYC DOCUMENTS -->
+      <div class="form-panel">
+        <div class="panel-title"><i class="ti ti-files"></i> KYC document upload</div>
+
+        <div style="font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-bottom:12px">Standard KYC — required for all profiles</div>
+
+        <!-- PAN -->
+        <div style="margin-bottom:16px">
+          <div class="doc-label">PAN card <span style="color:var(--red-txt)">*</span></div>
+          <div class="doc-card" id="dc-pan">
+            <div class="doc-card-top" onclick="triggerUpload('dc-pan','pan-sample.jpg','PAN uploaded ✓')">
+              <i class="ti ti-id-badge uz-icon"></i>
+              <div class="doc-card-title">Tap to upload PAN card</div>
+              <div class="doc-card-sub">JPG · PNG · PDF · Max 2MB</div>
+            </div>
+            <img class="doc-card-preview" id="pr-dc-pan" src="https://placehold.co/400x120/E8F5EE/155E35?text=PAN+Card" alt="PAN preview">
+            <div class="doc-card-actions">
+              <button class="doc-action-btn view" onclick="openLightbox('pr-dc-pan')"><i class="ti ti-eye" style="font-size:13px"></i> Preview</button>
+              <div class="doc-action-sep"></div>
+              <button class="doc-action-btn replace" onclick="triggerUpload('dc-pan','pan-sample.jpg','PAN uploaded ✓')"><i class="ti ti-refresh" style="font-size:13px"></i> Replace</button>
+              <div class="doc-action-sep"></div>
+              <button class="doc-action-btn remove" onclick="removeDoc('dc-pan')"><i class="ti ti-trash" style="font-size:13px"></i> Remove</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- AADHAAR — front only upload; back expands after front uploaded -->
+        <div style="margin-bottom:16px">
+          <div class="doc-label">Aadhaar card <span style="color:var(--red-txt)">*</span></div>
+          <div class="doc-card" id="dc-af">
+            <div class="doc-card-top" onclick="triggerUpload('dc-af','aadhar-front.jpg','Aadhaar front ✓')">
+              <i class="ti ti-id uz-icon"></i>
+              <div class="doc-card-title">Tap to upload Aadhaar front</div>
+              <div class="doc-card-sub">JPG · PNG · PDF · Max 2MB</div>
+            </div>
+            <img class="doc-card-preview" id="pr-dc-af" src="https://placehold.co/400x120/E8F5EE/155E35?text=Aadhaar+Front" alt="Aadhaar front">
+            <div class="doc-card-actions">
+              <button class="doc-action-btn view" onclick="openLightbox('pr-dc-af')"><i class="ti ti-eye" style="font-size:13px"></i> Preview</button>
+              <div class="doc-action-sep"></div>
+              <button class="doc-action-btn replace" onclick="triggerUpload('dc-af','aadhar-front.jpg','Aadhaar front ✓')"><i class="ti ti-refresh" style="font-size:13px"></i> Replace</button>
+              <div class="doc-action-sep"></div>
+              <button class="doc-action-btn remove" onclick="removeDoc('dc-af');hideAadhaarBack()"><i class="ti ti-trash" style="font-size:13px"></i> Remove</button>
+            </div>
+          </div>
+          <!-- Back side — appears after front is uploaded -->
+          <div class="aadhar-back-trigger" id="aadhar-back-trigger" onclick="showAadhaarBack()">
+            <i class="ti ti-plus" style="font-size:13px"></i> Also upload Aadhaar back side
+          </div>
+          <div class="aadhar-back-wrap" id="aadhar-back-wrap">
+            <div class="doc-label" style="margin-top:8px">Aadhaar card — back</div>
+            <div class="doc-card" id="dc-ab">
+              <div class="doc-card-top" onclick="triggerUpload('dc-ab','aadhar-back.jpg','Aadhaar back ✓')">
+                <i class="ti ti-id uz-icon"></i>
+                <div class="doc-card-title">Tap to upload Aadhaar back</div>
+                <div class="doc-card-sub">JPG · PNG · PDF · Max 2MB</div>
+              </div>
+              <img class="doc-card-preview" id="pr-dc-ab" src="https://placehold.co/400x120/E8F5EE/155E35?text=Aadhaar+Back" alt="Aadhaar back">
+              <div class="doc-card-actions">
+                <button class="doc-action-btn view" onclick="openLightbox('pr-dc-ab')"><i class="ti ti-eye" style="font-size:13px"></i> Preview</button>
+                <div class="doc-action-sep"></div>
+                <button class="doc-action-btn replace" onclick="triggerUpload('dc-ab','aadhar-back.jpg','Aadhaar back ✓')"><i class="ti ti-refresh" style="font-size:13px"></i> Replace</button>
+                <div class="doc-action-sep"></div>
+                <button class="doc-action-btn remove" onclick="removeDoc('dc-ab')"><i class="ti ti-trash" style="font-size:13px"></i> Remove</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- DRIVING LICENSE — front first, back on demand -->
+        <div style="margin-bottom:16px">
+          <div class="doc-label">Driving license <span style="font-size:10px;color:var(--muted)">(optional)</span></div>
+          <div class="doc-card" id="dc-dl">
+            <div class="doc-card-top" onclick="triggerUpload('dc-dl','dl-front.jpg','DL front ✓')">
+              <i class="ti ti-license uz-icon"></i>
+              <div class="doc-card-title">Tap to upload DL front</div>
+              <div class="doc-card-sub">JPG · PNG · PDF · Max 2MB</div>
+            </div>
+            <img class="doc-card-preview" id="pr-dc-dl" src="https://placehold.co/400x120/E8F5EE/155E35?text=Driving+License+Front" alt="DL front">
+            <div class="doc-card-actions">
+              <button class="doc-action-btn view" onclick="openLightbox('pr-dc-dl')"><i class="ti ti-eye" style="font-size:13px"></i> Preview</button>
+              <div class="doc-action-sep"></div>
+              <button class="doc-action-btn replace" onclick="triggerUpload('dc-dl','dl-front.jpg','DL front ✓')"><i class="ti ti-refresh" style="font-size:13px"></i> Replace</button>
+              <div class="doc-action-sep"></div>
+              <button class="doc-action-btn remove" onclick="removeDoc('dc-dl');hideDLBack()"><i class="ti ti-trash" style="font-size:13px"></i> Remove</button>
+            </div>
+          </div>
+          <!-- DL back -->
+          <div class="dl-back-trigger" id="dl-back-trigger" onclick="showDLBack()">
+            <i class="ti ti-plus" style="font-size:13px"></i> Also upload DL back side
+          </div>
+          <div class="dl-back-wrap" id="dl-back-wrap">
+            <div class="doc-label" style="margin-top:8px">Driving license — back</div>
+            <div class="doc-card" id="dc-dlb">
+              <div class="doc-card-top" onclick="triggerUpload('dc-dlb','dl-back.jpg','DL back ✓')">
+                <i class="ti ti-license uz-icon"></i>
+                <div class="doc-card-title">Tap to upload DL back</div>
+                <div class="doc-card-sub">JPG · PNG · PDF · Max 2MB</div>
+              </div>
+              <img class="doc-card-preview" id="pr-dc-dlb" src="https://placehold.co/400x120/E8F5EE/155E35?text=Driving+License+Back" alt="DL back">
+              <div class="doc-card-actions">
+                <button class="doc-action-btn view" onclick="openLightbox('pr-dc-dlb')"><i class="ti ti-eye" style="font-size:13px"></i> Preview</button>
+                <div class="doc-action-sep"></div>
+                <button class="doc-action-btn replace" onclick="triggerUpload('dc-dlb','dl-back.jpg','DL back ✓')"><i class="ti ti-refresh" style="font-size:13px"></i> Replace</button>
+                <div class="doc-action-sep"></div>
+                <button class="doc-action-btn remove" onclick="removeDoc('dc-dlb')"><i class="ti ti-trash" style="font-size:13px"></i> Remove</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="alert alert-info show" style="margin-top:10px">
+          <i class="ti ti-cpu"></i>
+          <div>Engine auto-reads name and DOB from all uploaded documents and cross-verifies with manually entered details. Any mismatch is flagged before submission.</div>
+        </div>
+      </div>
+
+      <!-- PERMANENT ADDRESS -->
+      <div class="form-panel">
+        <div class="panel-title"><i class="ti ti-map-pin"></i> Permanent address</div>
+        <div class="field" style="margin-bottom:14px">
+          <label>Address line 1</label>
+          <input type="text" id="p-addr1" placeholder="Door no., street name">
+        </div>
+        <div class="field" style="margin-bottom:14px">
+          <label>Address line 2</label>
+          <input type="text" id="p-addr2" placeholder="Area / locality / landmark">
+        </div>
+        <div class="g4">
+          <div class="field">
+            <label>City</label>
+            <input type="text" id="p-city" placeholder="Chennai">
+          </div>
+          <div class="field">
+            <label>District</label>
+            <input type="text" id="p-dist" placeholder="e.g. Thiruvallur">
+          </div>
+          <div class="field">
+            <label>State</label>
+            <select id="p-state">
+              <option value="">Select</option>
+              <option>Tamil Nadu</option><option>Karnataka</option><option>Kerala</option><option>Andhra Pradesh</option><option>Telangana</option><option>Maharashtra</option><option>Delhi</option><option>Other</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Pincode</label>
+            <input type="text" id="p-pin" placeholder="6-digit" maxlength="6" oninput="this.value=this.value.replace(/\D/g,'')" >
+          </div>
+        </div>
+      </div>
+
+      <!-- CURRENT ADDRESS -->
+      <div class="form-panel">
+        <div class="panel-title"><i class="ti ti-home"></i> Current / residential address</div>
+        <label class="same-addr-toggle">
+          <input type="checkbox" id="same-chk" onchange="toggleSameAddr()">
+          Same as permanent address
+        </label>
+        <div id="curr-addr-wrap">
+          <div class="field" style="margin-bottom:14px">
+            <label>Address line 1</label>
+            <input type="text" id="c-addr1" placeholder="Door no., street name">
+          </div>
+          <div class="field" style="margin-bottom:14px">
+            <label>Address line 2</label>
+            <input type="text" id="c-addr2" placeholder="Area / locality / landmark">
+          </div>
+          <div class="g4">
+            <div class="field"><label>City</label><input type="text" id="c-city" placeholder="Chennai"></div>
+            <div class="field"><label>District</label><input type="text" id="c-dist" placeholder="e.g. Chennai"></div>
+            <div class="field">
+              <label>State</label>
+              <select id="c-state"><option value="">Select</option><option>Tamil Nadu</option><option>Karnataka</option><option>Kerala</option><option>Andhra Pradesh</option><option>Telangana</option><option>Maharashtra</option><option>Delhi</option><option>Other</option></select>
+            </div>
+            <div class="field"><label>Pincode</label><input type="text" id="c-pin" placeholder="6-digit" maxlength="6" oninput="this.value=this.value.replace(/\D/g,'')" onblur="lookupPin('c')"></div>
+          </div>
+          <div class="alert alert-success" id="c-pin-alert"><i class="ti ti-map-pin"></i><span id="c-pin-txt"></span></div>
+        </div>
+
+        <div class="panel-divider"></div>
+        <div class="panel-title" style="margin-bottom:12px"><i class="ti ti-building"></i> Residence details</div>
+        <div class="g3">
+          <div class="field">
+            <label>Residence type</label>
+            <select id="f-restype" onchange="toggleRent()">
+              <option>Owned — self</option><option>Owned — family</option><option>Rented</option><option>Company provided</option><option>PG / Hostel</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Years at current address</label>
+            <select><option>Less than 1 year</option><option>1–2 years</option><option>2–5 years</option><option>More than 5 years</option></select>
+          </div>
+          <div class="field" id="rent-field" style="display:none">
+            <label>Monthly rent (₹)</label>
+            <input type="number" placeholder="e.g. 12000">
+          </div>
+        </div>
+      </div>
+
+      <!-- Vehicle panels follow (merged into section 1) -->
+
+      <div class="form-panel">
+        <div class="panel-title"><i class="ti ti-building-store"></i> Dealer details</div>
+        <div class="g2" style="margin-bottom:16px">
+          <div class="field">
+            <label>Dealer name</label>
+            <input type="text" id="d-name" placeholder="e.g. Kun Hyundai, Chennai">
+          </div>
+          <div class="field">
+            <label>Dealer location / area</label>
+            <input type="text" placeholder="e.g. Anna Nagar, Chennai">
+          </div>
+        </div>
+        <div class="panel-divider"></div>
+        <div class="panel-title" style="margin-bottom:12px"><i class="ti ti-file-invoice"></i> Performa invoice</div>
+        <div class="doc-card" id="dc-perf">
+          <div class="doc-card-top" onclick="triggerUpload('dc-perf','perf-sample.jpg','Performa uploaded ✓')">
+            <i class="ti ti-file-invoice uz-icon"></i>
+            <div class="doc-card-title">Tap to upload performa invoice</div>
+            <div class="doc-card-sub">PDF · JPG · PNG · Max 5MB — engine auto-reads on-road price &amp; car model</div>
+          </div>
+          <img class="doc-card-preview" id="pr-dc-perf" src="https://placehold.co/400x120/E8F5EE/155E35?text=Performa+Invoice" alt="Performa preview">
+          <div class="doc-card-actions">
+            <button class="doc-action-btn view" onclick="openLightbox('pr-dc-perf')"><i class="ti ti-eye" style="font-size:13px"></i> Preview</button>
+            <div class="doc-action-sep"></div>
+            <button class="doc-action-btn replace" onclick="triggerUpload('dc-perf','perf-sample.jpg','Performa uploaded ✓')"><i class="ti ti-refresh" style="font-size:13px"></i> Replace</button>
+            <div class="doc-action-sep"></div>
+            <button class="doc-action-btn remove" onclick="removeDoc('dc-perf')"><i class="ti ti-trash" style="font-size:13px"></i> Remove</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-panel">
+        <div class="panel-title"><i class="ti ti-car"></i> Vehicle details</div>
+        <div class="g3" style="margin-bottom:14px">
+          <div class="field">
+            <label>Car make & model</label>
+            <input type="text" id="car-model" placeholder="e.g. Hyundai Creta SX">
+          </div>
+          <div class="field">
+            <label>Variant</label>
+            <input type="text" placeholder="e.g. SX(O) Turbo DCT">
+          </div>
+          <div class="field">
+            <label>Fuel type</label>
+            <select id="v-fuel">
+              <option value="">Select</option>
+              <option>Petrol</option><option>Diesel</option><option>CNG</option><option>Electric</option><option>Hybrid</option>
+            </select>
+          </div>
+        </div>
+        <div class="g3">
+          <div class="field">
+            <label>Colour</label>
+            <input type="text" placeholder="e.g. Titan Grey">
+          </div>
+          <div class="field">
+            <label>Ex-showroom price (₹)</label>
+            <input type="number" id="v-exshow" placeholder="e.g. 1350000" oninput="calcLoan()">
+          </div>
+          <div class="field">
+            <label>On road price (₹)</label>
+            <input type="number" id="v-reg" placeholder="e.g. 230000" oninput="calcLoan()">
+          </div>
+        </div>
+      </div>
+
+      <div class="form-panel">
+        <div class="panel-title"><i class="ti ti-currency-rupee"></i> Loan details</div>
+        <input type="hidden" id="v-onroad">
+        <div class="g2" style="margin-bottom:14px;max-width:480px">
+          <div class="field">
+            <label>Loan amount required (₹)</label>
+            <input type="number" id="v-loan" placeholder="e.g. 1200000" oninput="calcDownPayment()">
+          </div>
+          <div class="field">
+            <label>Down payment by customer (₹)</label>
+            <input type="number" id="v-down" placeholder="Auto-calculated" readonly
+                   style="background:var(--surface2);color:var(--muted);cursor:not-allowed">
+            <span class="field-hint">Auto = On road price − Loan amount</span>
+          </div>
+        </div>
+        <div class="g2" style="max-width:480px">
+          <div class="field">
+            <label>Preferred tenure</label>
+            <select id="v-tenure">
+              <option value="">Select</option>
+              <option value="12">12 months</option><option value="24">24 months</option><option value="36">36 months</option>
+              <option value="48">48 months</option><option value="60" selected>60 months</option>
+              <option value="72">72 months</option><option value="84">84 months</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>CIBIL score</label>
+            <div style="display:flex;gap:8px;align-items:flex-start">
+              <input type="number" id="v-cibil" placeholder="e.g. 750" min="300" max="900" oninput="onCibilInput(this.value)" style="flex:1">
+              <button type="button" onclick="openShareModal()" style="flex-shrink:0;padding:9px 12px;border-radius:var(--r-sm);border:1px solid var(--accent);background:var(--green-bg);color:var(--accent);font-family:inherit;font-size:12px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:5px;white-space:nowrap;transition:all .15s" title="Share CIBIL request with customer">
+                <i class="ti ti-share" style="font-size:14px"></i> Get CIBIL
+              </button>
+            </div>
+            <span class="field-hint">Enter CIBIL score or use the button to request from customer</span>
+          </div>
+        </div>
+
+        <!-- BANK & BRANCH popup — shown after CIBIL ≥ 650 -->
+        <div id="bank-branch-wrap" style="display:none;margin-top:14px;border:1.5px solid var(--accent);border-radius:var(--r);overflow:hidden;animation:fadeSlide .2s ease">
+          <div style="background:var(--accent);padding:12px 16px;display:flex;align-items:center;justify-content:space-between">
+            <div style="font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:rgba(255,255,255,.7)">Select preferred bank &amp; nearby branch</div>
+            <span style="font-size:11px;color:var(--accent);background:var(--gold);padding:2px 9px;border-radius:10px;font-weight:600" id="cibil-tag"></span>
+          </div>
+          <div style="padding:16px;background:var(--surface)">
+            <div class="g2" style="margin-bottom:14px;max-width:520px">
+              <div class="field">
+                <label>Preferred bank</label>
+                <select id="pref-bank" onchange="onBankSelect()">
+                  <option value="">Select bank</option>
+                  <option>HDFC Bank</option><option>ICICI Bank</option><option>Axis Bank</option>
+                  <option>Kotak Bank</option><option>SBI</option><option>IndusInd Bank</option>
+                  <option>Tata Capital</option><option>Mahindra Finance</option><option>HDB Financial</option><option>Cholamandalam</option>
+                </select>
+              </div>
+              <div class="field">
+                <label>Customer current pincode</label>
+                <input type="text" id="branch-pin" placeholder="6-digit pincode" maxlength="6"
+                       oninput="this.value=this.value.replace(/\D/g,'')"
+                       onblur="loadBranches()">
+                <span class="field-hint">Branch list will appear below</span>
+              </div>
+            </div>
+            <div id="branch-list-wrap" style="display:none">
+              <div style="font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-bottom:8px">Nearby branches — select one <span style="font-weight:400;text-transform:none;letter-spacing:0">(within 10 km · empaneled branches shown first)</span></div>
+              <div id="branch-list"></div>
+            </div>
+            <div id="selected-branch-confirm" style="display:none;margin-top:10px;padding:10px 14px;background:var(--green-bg);border:1px solid #6EE7B7;border-radius:var(--r-sm);font-size:12px;color:var(--green-txt);display:flex;align-items:center;gap:6px">
+              <i class="ti ti-check" style="font-size:15px"></i>
+              <span id="selected-branch-txt"></span>
+            </div>
+          </div>
+        </div>
+
+        <!-- LTV Panel -->
+        <div class="ltv-wrap" id="ltv-wrap">
+          <div class="ltv-vals">
+            <div class="ltv-card"><div class="ltv-card-label">Loan amount</div><div class="ltv-card-val" id="ltv-loan">₹—</div></div>
+            <div class="ltv-card"><div class="ltv-card-label">LTV %</div><div class="ltv-card-val" id="ltv-pct">—%</div></div>
+            <div class="ltv-card"><div class="ltv-card-label">Status</div><div class="ltv-card-val" id="ltv-status" style="font-size:13px">—</div></div>
+          </div>
+          <div class="ltv-bar"><div class="ltv-fill" id="ltv-fill" style="width:0%"></div></div>
+          <div class="ltv-hint" id="ltv-hint"></div>
+        </div>
+      </div>
+
+
+
+      <div class="form-footer">
+        <div class="footer-left"><i class="ti ti-lock" style="font-size:14px"></i> Auto-saved as draft</div>
+        <div class="footer-right">
+          <button class="btn btn-ghost" onclick="saveDraft()">Save draft</button>
+          <button class="btn btn-primary" onclick="next()">Continue <i class="ti ti-arrow-right"></i></button>
+        </div>
+      </div>
+    </div>
+
+    <!-- SECTION 2: EMPLOYMENT + INCOME + BANK + CIC -->
+    <div class="form-section" id="section-2">
+      <div class="form-header">
+        <div class="form-section-num">Section 2 of 3</div>
+        <div class="form-section-title">Employment, Income<br>&amp; Bank Statement</div>
+        <div class="form-section-desc">Employment details, income documents, salary slips, Form 16, bank statement and CIC report</div>
+      </div>
+
+      <div class="form-panel">
+        <div class="panel-title"><i class="ti ti-briefcase"></i> Employment details</div>
+        <div class="g3" style="margin-bottom:14px">
+          <div class="field">
+            <label>Employment type</label>
+            <select id="emp-type" onchange="handleEmpType()">
+              <option value="">Select</option>
+              <option value="sal">Salaried</option>
+              <option value="self">Self-employed</option>
+              <option value="prof">Self-employed professional</option>
+              <option value="pen">Pensioner</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Company / Employer name</label>
+            <input type="text" id="emp-company" placeholder="e.g. Infosys Ltd">
+          </div>
+          <div class="field">
+            <label>Years with current employer</label>
+            <select id="emp-years">
+              <option value="">Select</option>
+              <option>Less than 1 year</option><option>1–2 years</option><option>2–5 years</option><option>More than 5 years</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="alert alert-info" id="alert-sal"><i class="ti ti-info-circle"></i><div><strong>Salaried profile</strong> — engine will verify salary is credited every month from the declared employer. Missing months, irregular dates or employer name mismatch will be flagged as rejection risks.</div></div>
+        <div class="alert alert-warn" id="alert-self"><i class="ti ti-alert-triangle"></i><div><strong>Self-employed profile</strong> — engine will average business inflows. Income stability trend analysed instead of fixed salary check.</div></div>
+        <div class="alert alert-warn" id="alert-pen"><i class="ti ti-alert-triangle"></i><div><strong>Pensioner profile</strong> — pension credit must be regular. Max tenure may be restricted to 60 months by some banks.</div></div>
+      </div>
+
+      <div class="form-panel">
+        <div class="panel-title"><i class="ti ti-currency-rupee"></i> Income details</div>
+        <div class="g3">
+          <div class="field">
+            <label>Net monthly income (₹)</label>
+            <input type="number" id="inc-net" placeholder="Take-home after all deductions">
+            <span class="field-hint">As credited to bank account</span>
+          </div>
+          <div class="field">
+            <label>Gross monthly income (₹)</label>
+            <input type="number" placeholder="Before deductions">
+          </div>
+          <div class="field">
+            <label>Other income per month (₹)</label>
+            <input type="number" placeholder="Rent / freelance / bonus">
+          </div>
+        </div>
+      </div>
+
+      <!-- SALARY SLIPS — salaried only -->
+      <div class="form-panel cond-block show" id="slip-panel" style="display:none;padding:24px">
+        <div class="panel-title"><i class="ti ti-file-invoice"></i> Salary slip upload <span class="badge-label badge-cond" style="margin-left:6px">Salaried only</span></div>
+        <div class="g2" style="margin-bottom:14px;max-width:480px">
+          <div class="field">
+            <label>Number of months</label>
+            <select id="slip-n" onchange="buildSlots('slip')">
+              <option value="">Select</option>
+              <option value="1">1 month</option><option value="2">2 months</option><option value="3">3 months</option><option value="6">6 months</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Starting from</label>
+            <select id="slip-from" onchange="buildSlots('slip')">
+              <option value="0">May 2026 (current)</option><option value="1">April 2026</option><option value="2">March 2026</option><option value="3">February 2026</option>
+            </select>
+          </div>
+        </div>
+        <div id="slip-slots"><div class="slot-placeholder"><i class="ti ti-arrow-up" style="font-size:13px"></i> Select number of months above to see upload slots</div></div>
+      </div>
+
+      <!-- FORM 16 — salaried only -->
+      <div class="form-panel" id="f16-panel" style="display:none">
+        <div class="panel-title"><i class="ti ti-file-certificate"></i> Form 16 upload <span class="badge-label badge-cond" style="margin-left:6px">Salaried only</span></div>
+        <div class="g2" style="margin-bottom:14px;max-width:480px">
+          <div class="field">
+            <label>Number of years</label>
+            <select id="f16-n" onchange="buildSlots('f16')">
+              <option value="">Select</option>
+              <option value="1">1 year</option><option value="2">2 years</option><option value="3">3 years</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Starting from financial year</label>
+            <select id="f16-from" onchange="buildSlots('f16')">
+              <option value="0">FY 2024–25</option><option value="1">FY 2023–24</option><option value="2">FY 2022–23</option>
+            </select>
+          </div>
+        </div>
+        <div id="f16-slots"><div class="slot-placeholder"><i class="ti ti-arrow-up" style="font-size:13px"></i> Select number of years above to see upload slots</div></div>
+      </div>
+
+      <!-- COMPANY ID — salaried only, after Form 16 -->
+      <div class="form-panel" id="company-id-panel" style="display:none">
+        <div class="panel-title"><i class="ti ti-credit-card"></i> Company ID card <span class="badge-label badge-cond" style="margin-left:6px">Salaried only</span></div>
+        <div class="doc-grid-2">
+          <div>
+            <div class="doc-label">Company ID — front <span style="color:var(--red-txt)">*</span></div>
+            <div class="upload-zone" id="uz-cid-f" onclick="markUpload('uz-cid-f','Company ID front ✓','Click to replace')">
+              <i class="ti ti-credit-card uz-icon"></i>
+              <div class="uz-title">Upload front</div>
+              <div class="uz-sub">JPG · PNG · PDF · 2MB</div>
+            </div>
+          </div>
+          <div>
+            <div class="doc-label">Company ID — back <span style="color:var(--red-txt)">*</span></div>
+            <div class="upload-zone" id="uz-cid-b" onclick="markUpload('uz-cid-b','Company ID back ✓','Click to replace')">
+              <i class="ti ti-credit-card uz-icon"></i>
+              <div class="uz-title">Upload back</div>
+              <div class="uz-sub">JPG · PNG · PDF · 2MB</div>
+            </div>
+          </div>
+        </div>
+        <div class="alert alert-info show" style="margin-top:10px"><i class="ti ti-info-circle"></i> Engine reads employer name from company ID and cross-verifies with declared employer and bank statement.</div>
+      </div>
+
+      <!-- ITR FULL SET — self-employed only -->
+      <div class="form-panel" id="itr-panel" style="display:none">
+        <div class="panel-title"><i class="ti ti-file-text"></i> ITR full set upload <span class="badge-label badge-cond" style="margin-left:6px">Self-employed only</span></div>
+        <div class="alert alert-info show" style="margin-bottom:14px"><i class="ti ti-info-circle"></i><div>Full set includes ITR V acknowledgement, computation of income, P&L and balance sheet where applicable.</div></div>
+        <div class="g2" style="margin-bottom:14px;max-width:480px">
+          <div class="field">
+            <label>Number of years</label>
+            <select id="itr-n" onchange="buildSlots('itr')">
+              <option value="">Select</option>
+              <option value="1">1 year</option><option value="2">2 years</option><option value="3">3 years</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Starting from financial year</label>
+            <select id="itr-from" onchange="buildSlots('itr')">
+              <option value="0">FY 2024–25</option><option value="1">FY 2023–24</option><option value="2">FY 2022–23</option>
+            </select>
+          </div>
+        </div>
+        <div id="itr-slots"><div class="slot-placeholder"><i class="ti ti-arrow-up" style="font-size:13px"></i> Select number of years above to see upload slots</div></div>
+
+        <div class="panel-divider"></div>
+        <div class="panel-title"><i class="ti ti-receipt"></i> GST returns (if applicable)</div>
+        <div class="upload-zone" id="uz-gst" onclick="markUpload('uz-gst','GST returns uploaded ✓','Click to replace')">
+          <i class="ti ti-receipt uz-icon"></i>
+          <div class="uz-title">Upload GST returns</div>
+          <div class="uz-sub">PDF · Max 5MB</div>
+        </div>
+      </div>
+
+      <!-- Bank statement panels continue in section 2 -->
+
+      <div class="form-panel">
+        <div class="panel-title"><i class="ti ti-building-bank"></i> Bank statement upload</div>
+        <div class="g2" style="margin-bottom:14px;max-width:480px">
+          <div class="field">
+            <label>Bank name</label>
+            <select>
+              <option value="">Select bank</option>
+              <option>HDFC Bank</option><option>ICICI Bank</option><option>SBI</option><option>Axis Bank</option><option>Kotak Bank</option><option>IndusInd Bank</option><option>Canara Bank</option><option>IOB</option><option>Federal Bank</option><option>Other</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Account type</label>
+            <select>
+              <option>Savings account</option><option>Current account</option><option>Salary account</option>
+            </select>
+          </div>
+        </div>
+        <div class="g2" style="margin-bottom:14px;max-width:480px">
+          <div class="field">
+            <label>Analysis period</label>
+            <select>
+              <option value="3">3 months</option><option value="6" selected>6 months</option><option value="12">12 months</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Statement password (if any)</label>
+            <input type="password" placeholder="Leave blank if not password-protected">
+          </div>
+        </div>
+        <div class="upload-zone" id="uz-stmt" onclick="markUpload('uz-stmt','Bank statement uploaded ✓','Click to replace')">
+          <i class="ti ti-upload uz-icon"></i>
+          <div class="uz-title">Click to upload PDF bank statement</div>
+          <div class="uz-sub">PDF only · Max 10MB · Password-protected accepted</div>
+        </div>
+        <div class="alert alert-info show" style="margin-top:10px">
+          <i class="ti ti-info-circle"></i>
+          <div>If customer has multiple accounts, upload each separately. Engine consolidates income across all accounts.</div>
+        </div>
+      </div>
+
+      <div class="form-panel">
+        <div class="panel-title"><i class="ti ti-report-analytics"></i> CIC / credit bureau report</div>
+        <div class="g2" style="margin-bottom:14px;max-width:480px">
+          <div class="field">
+            <label>Bureau type</label>
+            <select>
+              <option>CIBIL (TransUnion)</option><option>Experian</option><option>Equifax</option><option>CRIF High Mark</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Report date</label>
+            <input type="date">
+          </div>
+        </div>
+        <div class="upload-zone" id="uz-cic" onclick="simulateCIC()">
+          <i class="ti ti-report-analytics uz-icon"></i>
+          <div class="uz-title">Click to upload CIC report (PDF)</div>
+          <div class="uz-sub">PDF only · Max 10MB — engine auto-extracts all loan accounts, EMIs and flags risk keywords</div>
+        </div>
+
+        <!-- CIC result — shown after upload -->
+        <div id="cic-result" style="display:none;margin-top:14px">
+          <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:12px">
+            <div class="ltv-card"><div class="ltv-card-label">Total accounts</div><div class="ltv-card-val">6</div></div>
+            <div class="ltv-card"><div class="ltv-card-label">Active EMIs</div><div class="ltv-card-val" style="color:var(--amber-txt)">3</div></div>
+            <div class="ltv-card"><div class="ltv-card-label">Total EMI/month</div><div class="ltv-card-val" style="font-size:14px">₹46,500</div></div>
+            <div class="ltv-card"><div class="ltv-card-label">Flagged</div><div class="ltv-card-val" style="color:var(--red-txt)">2</div></div>
+          </div>
+          <div class="alert alert-warn show" style="margin-bottom:10px">
+            <i class="ti ti-alert-triangle"></i>
+            <div><strong>2 risk keywords detected</strong> — Bajaj Finance: Written Off &nbsp;·&nbsp; Tata Capital: Settlement. Most banks will reject on these flags. Discuss with city head before submitting.</div>
+          </div>
+          <div style="overflow-x:auto">
+            <table style="width:100%;border-collapse:collapse;font-size:12px">
+              <thead>
+                <tr style="background:var(--surface2)">
+                  <th style="padding:7px 10px;border-bottom:1px solid var(--border);text-align:left;font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em">#</th>
+                  <th style="padding:7px 10px;border-bottom:1px solid var(--border);text-align:left;font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em">Lender</th>
+                  <th style="padding:7px 10px;border-bottom:1px solid var(--border);text-align:left;font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em">Type</th>
+                  <th style="padding:7px 10px;border-bottom:1px solid var(--border);text-align:left;font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em">Sanctioned</th>
+                  <th style="padding:7px 10px;border-bottom:1px solid var(--border);text-align:left;font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em">Outstanding</th>
+                  <th style="padding:7px 10px;border-bottom:1px solid var(--border);text-align:left;font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em">EMI/mo</th>
+                  <th style="padding:7px 10px;border-bottom:1px solid var(--border);text-align:left;font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em">Flag</th>
+                </tr>
+              </thead>
+              <tbody id="cic-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- FOIR MATCHER -->
+      <div class="form-panel" id="foir-panel" style="display:none">
+        <div class="panel-title"><i class="ti ti-adjustments"></i> FOIR matcher — per preferred bank</div>
+        <div class="g2" style="margin-bottom:14px;max-width:420px">
+          <div class="field">
+            <label>Net monthly income (₹)</label>
+            <input type="number" id="foir-income" placeholder="From Section 3" oninput="runFOIR()">
+          </div>
+          <div class="field">
+            <label>Preferred bank</label>
+            <select id="foir-bank" onchange="runFOIR()">
+              <option value="all">All banks</option>
+              <option>HDFC Bank</option><option>ICICI Bank</option><option>Axis Bank</option>
+              <option>Kotak Bank</option><option>SBI</option><option>IndusInd Bank</option>
+              <option>Tata Capital</option><option>Mahindra Finance</option><option>Cholamandalam</option>
+            </select>
+          </div>
+        </div>
+        <div id="foir-results"></div>
+      </div>
+
+      <div class="form-footer">
+        <div class="footer-left"><i class="ti ti-lock" style="font-size:14px"></i> Auto-saved</div>
+        <div class="footer-right">
+          <button class="btn btn-ghost" onclick="prev()"><i class="ti ti-arrow-left"></i> Back</button>
+          <button class="btn btn-ghost" onclick="saveDraft()">Save draft</button>
+          <button class="btn btn-primary" onclick="next()">Review &amp; submit <i class="ti ti-arrow-right"></i></button>
+        </div>
+      </div>
+    </div>
+
+    <!-- SECTION 3: REVIEW & SUBMIT -->
+    <div class="form-section" id="section-3">
+      <div class="form-header">
+        <div class="form-section-num">Section 3 of 3</div>
+        <div class="form-section-title">Review &amp;<br>submit</div>
+        <div class="form-section-desc">Review all details before final submission. Once submitted, case is locked.</div>
+      </div>
+
+      <!-- SUMMARY -->
+      <div class="form-panel">
+        <div class="panel-title"><i class="ti ti-list-check"></i> Application summary</div>
+        <div class="summary-grid" id="summary-grid">
+          <div class="summary-card">
+            <div class="summary-card-title">Customer details</div>
+            <div class="summary-row"><span class="summary-key">Name</span><span class="summary-val" id="s-name">—</span></div>
+            <div class="summary-row"><span class="summary-key">PAN</span><span class="summary-val" id="s-pan">—</span></div>
+            <div class="summary-row"><span class="summary-key">Mobile</span><span class="summary-val" id="s-mobile">—</span></div>
+            <div class="summary-row"><span class="summary-key">Pincode</span><span class="summary-val" id="s-pin">—</span></div>
+          </div>
+          <div class="summary-card">
+            <div class="summary-card-title">Vehicle & loan</div>
+            <div class="summary-row"><span class="summary-key">Car</span><span class="summary-val" id="s-car">—</span></div>
+            <div class="summary-row"><span class="summary-key">Dealer</span><span class="summary-val" id="s-dealer">—</span></div>
+            <div class="summary-row"><span class="summary-key">Loan amount</span><span class="summary-val" id="s-loan">—</span></div>
+            <div class="summary-row"><span class="summary-key">LTV</span><span class="summary-val" id="s-ltv">—</span></div>
+          </div>
+          <div class="summary-card">
+            <div class="summary-card-title">Employment</div>
+            <div class="summary-row"><span class="summary-key">Type</span><span class="summary-val" id="s-emp">—</span></div>
+            <div class="summary-row"><span class="summary-key">Employer</span><span class="summary-val" id="s-company">—</span></div>
+            <div class="summary-row"><span class="summary-key">Net income</span><span class="summary-val" id="s-income">—</span></div>
+            <div class="summary-row"><span class="summary-key">CIBIL</span><span class="summary-val" id="s-cibil">—</span></div>
+          </div>
+          <div class="summary-card">
+            <div class="summary-card-title">Documents</div>
+            <div id="s-docs"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- CO-APPLICANT -->
+      <div class="form-panel">
+        <div style="display:flex;align-items:center;justify-content:space-between">
+          <div class="panel-title" style="margin-bottom:0"><i class="ti ti-user-plus"></i> Co-applicant (optional)</div>
+          <label style="display:flex;align-items:center;gap:7px;font-size:12px;cursor:pointer;font-weight:500">
+            <input type="checkbox" id="co-chk" onchange="toggleCo()" style="width:14px;height:14px;accent-color:var(--accent)">
+            Add co-applicant
+          </label>
+        </div>
+        <div class="cond-block" id="co-block">
+          <div class="cond-block-label">Co-applicant details</div>
+          <div class="g3" style="margin-bottom:14px">
+            <div class="field"><label>Full name</label><input type="text" placeholder="Co-applicant full name"></div>
+            <div class="field"><label>Relationship</label><select><option>Spouse</option><option>Parent</option><option>Sibling</option><option>Child</option></select></div>
+            <div class="field"><label>Employment type</label><select><option>Salaried</option><option>Self-employed</option><option>Pensioner</option></select></div>
+          </div>
+          <div class="upload-zone" onclick="markUpload('uz-co','Co-applicant statement uploaded ✓','Click to replace')" id="uz-co">
+            <i class="ti ti-upload uz-icon"></i>
+            <div class="uz-title">Upload co-applicant bank statement</div>
+            <div class="uz-sub">PDF · Max 10MB</div>
+          </div>
+          <div class="alert alert-info show" style="margin-top:10px"><i class="ti ti-info-circle"></i> Co-applicant income merged automatically — combined FOIR and max loan eligibility recalculated.</div>
+        </div>
+      </div>
+
+      <!-- DECLARATION -->
+      <div class="form-panel">
+        <div class="panel-title"><i class="ti ti-shield-check"></i> Declaration</div>
+        <div style="background:var(--surface2);border-radius:var(--r-sm);padding:14px;font-size:12px;color:var(--muted);line-height:1.8;margin-bottom:14px">
+          I hereby confirm that all information provided in this application is true and accurate to the best of my knowledge. I authorise Capri Global Capital to verify the details submitted and share with the relevant financial institution for processing this loan application.
+        </div>
+        <label style="display:flex;align-items:flex-start;gap:9px;font-size:13px;cursor:pointer">
+          <input type="checkbox" id="decl-chk" style="width:15px;height:15px;accent-color:var(--accent);margin-top:2px;flex-shrink:0">
+          <span>I have read and agree to the declaration above. I confirm all documents uploaded are genuine.</span>
+        </label>
+      </div>
+
+      <div class="form-footer">
+        <div class="footer-left" style="flex-direction:column;align-items:flex-start;gap:4px">
+          <div style="display:flex;align-items:center;gap:6px"><i class="ti ti-lock" style="font-size:14px;color:var(--red-txt)"></i> <span style="font-size:12px;color:var(--red-txt);font-weight:500">Once submitted, case is locked and cannot be edited</span></div>
+          <div style="font-size:11px;color:var(--muted)">City head can unlock if correction is needed</div>
+        </div>
+        <div class="footer-right">
+          <button class="btn btn-ghost" onclick="prev()"><i class="ti ti-arrow-left"></i> Back</button>
+          <button class="btn btn-ghost" onclick="saveDraft()">Save draft</button>
+          <button class="btn btn-primary" style="background:#166534;border-color:#166534" onclick="submitForm()">
+            <i class="ti ti-send"></i> Submit final case
+          </button>
+        </div>
+      </div>
+    </div>
+
+  </main>
+<!-- PREVIEW LIGHTBOX -->
+<div class="lightbox" id="lightbox" onclick="closeLightbox(event)">
+  <button class="lightbox-close" onclick="closeLightbox()"><i class="ti ti-x"></i></button>
+  <img class="lightbox-img" id="lightbox-img" src="" alt="Document preview">
+</div>
+
+</div>
+
+<script>
+// ── STATE ─────────────────────────────────────────────────────────────────────
+let currentSection = 1;
+const totalSections = 3;
+const slotDone = {};
+
+const MONTHS = ['May 2026','Apr 2026','Mar 2026','Feb 2026','Jan 2026','Dec 2025','Nov 2025','Oct 2025','Sep 2025','Aug 2025','Jul 2025','Jun 2025'];
+const FY     = ['FY 2024–25','FY 2023–24','FY 2022–23'];
+
+const BANKS_FOIR = [
+  {n:'HDFC Bank',    limit:50},
+  {n:'ICICI Bank',   limit:55},
+  {n:'Axis Bank',    limit:55},
+  {n:'Kotak Bank',   limit:50},
+  {n:'SBI',          limit:60},
+  {n:'IndusInd Bank',limit:60},
+  {n:'Tata Capital', limit:65},
+  {n:'Mahindra Finance',limit:65},
+  {n:'Cholamandalam',limit:70},
+];
+
+const CIC_DATA = [
+  {lender:'HDFC Bank',    type:'Home Loan',   sanctioned:3500000, outstanding:2100000, emi:32000, status:'Active',  flag:''},
+  {lender:'Bajaj Finance',type:'Personal Loan',sanctioned:200000,  outstanding:0,       emi:0,     status:'Closed',  flag:'Written Off'},
+  {lender:'ICICI Bank',   type:'Credit Card', sanctioned:150000,  outstanding:45000,   emi:5000,  status:'Active',  flag:''},
+  {lender:'Tata Capital', type:'Consumer',    sanctioned:80000,   outstanding:0,       emi:0,     status:'Closed',  flag:'Settlement'},
+  {lender:'Axis Bank',    type:'Auto Loan',   sanctioned:450000,  outstanding:180000,  emi:9500,  status:'Active',  flag:''},
+];
+
+const fmt = n => '₹' + Number(Math.round(n)).toLocaleString('en-IN');
+
+// ── MANDATORY FIELDS PER SECTION ────────────────────────────────────────────
+// Mandatory validation not yet finalized — all sections open
+const REQUIRED = { 1: [], 2: [], 3: [] };
+
+function validateSection(n) {
+  const fields = REQUIRED[n] || [];
+  let firstErr = null;
+  let allOk = true;
+  fields.forEach(f => {
+    const el = document.getElementById(f.id);
+    if (!el) return;
+    // remove previous error
+    el.classList.remove('err');
+    let errEl = el.parentElement.querySelector('.v-err');
+    if (!errEl) {
+      errEl = document.createElement('span');
+      errEl.className = 'v-err';
+      el.parentElement.appendChild(errEl);
+    }
+    errEl.classList.remove('show');
+    const val = el.value.trim();
+    if (!val) {
+      el.classList.add('err');
+      errEl.textContent = f.label + ' is required';
+      errEl.classList.add('show');
+      if (!firstErr) firstErr = el;
+      allOk = false;
+    }
+  });
+  if (firstErr) {
+    firstErr.scrollIntoView({behavior:'smooth', block:'center'});
+    firstErr.focus();
+  }
+  return allOk;
+}
+
+// ── NAVIGATION ────────────────────────────────────────────────────────────────
+function updatePill(n) {
+  for (let i = 1; i <= totalSections; i++) {
+    const el = document.getElementById('fp-' + i);
+    if (!el) continue;
+    el.classList.remove('active','done');
+    if (i < n) el.classList.add('done');
+    else if (i === n) el.classList.add('active');
+  }
+}
+
+function goTo(n) {
+  document.getElementById('section-' + currentSection).classList.remove('active');
+  currentSection = n;
+  document.getElementById('section-' + n).classList.add('active');
+  updatePill(n);
+  window.scrollTo({top:0, behavior:'smooth'});
+  if (n === 3) populateSummary();
+}
+
+function tryGoTo(n) {
+  // allow going back freely, going forward only if current section is valid
+  if (n < currentSection) { goTo(n); return; }
+  if (n === currentSection) return;
+  // must validate all sections up to n-1
+  for (let i = currentSection; i < n; i++) {
+    if (!validateSection(i)) return;
+  }
+  goTo(n);
+}
+
+function next() {
+  if (!validateSection(currentSection)) return;
+  if (currentSection < totalSections) goTo(currentSection + 1);
+}
+function prev() { if (currentSection > 1) goTo(currentSection - 1); }
+
+// ── AADHAAR FORMAT ────────────────────────────────────────────────────────────
+function fmtAadhaar(el) {
+  let v = el.value.replace(/\D/g,'').slice(0,12);
+  el.value = v.replace(/(\d{4})(?=\d)/g,'$1 ').trim();
+}
+
+// ── UPLOAD ZONES ──────────────────────────────────────────────────────────────
+function markUpload(id, title, sub) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.classList.add('uploaded');
+  el.querySelector('.uz-icon').className = 'ti ti-check uz-icon';
+  el.querySelector('.uz-title').textContent = title;
+  el.querySelector('.uz-sub').textContent = sub;
+}
+
+// ── PIN LOOKUP ────────────────────────────────────────────────────────────────
+const pinMap = {'600001':'Parrys · Chennai North','600004':'Nungambakkam','600006':'Egmore','600010':'Aminjikarai','600011':'Kilpauk','600017':'T Nagar','600020':'Adyar','600028':'Velachery','600034':'Anna Nagar','600040':'Tambaram','600045':'Porur','600058':'Ambattur','600073':'Perungudi','600096':'Sholinganallur · OMR'};
+
+function lookupPin(pre) {
+  const pin = document.getElementById(pre + '-pin').value;
+  const alert = document.getElementById(pre + '-pin-alert');
+  const txt   = document.getElementById(pre + '-pin-txt');
+  if (!alert || !txt) return;
+  if (pin.length === 6) {
+    const area = pinMap[pin] || 'Area identified';
+    txt.textContent = ' ' + area + ' — nearest branch will be auto-mapped';
+    alert.classList.add('show');
+  } else {
+    alert.classList.remove('show');
+  }
+}
+
+// ── SAME ADDRESS ──────────────────────────────────────────────────────────────
+function toggleSameAddr() {
+  const on = document.getElementById('same-chk').checked;
+  const wrap = document.getElementById('curr-addr-wrap');
+  wrap.style.opacity = on ? '0.4' : '1';
+  wrap.style.pointerEvents = on ? 'none' : 'auto';
+  if (on) {
+    document.getElementById('c-addr1').value = document.getElementById('p-addr1').value;
+    document.getElementById('c-addr2').value = document.getElementById('p-addr2').value;
+    document.getElementById('c-city').value  = document.getElementById('p-city').value;
+    document.getElementById('c-pin').value   = document.getElementById('p-pin').value;
+  }
+}
+
+// ── RENT FIELD ────────────────────────────────────────────────────────────────
+function toggleRent() {
+  const v = document.getElementById('f-restype').value;
+  document.getElementById('rent-field').style.display = v === 'Rented' ? 'block' : 'none';
+}
+
+// ── LTV CALC ──────────────────────────────────────────────────────────────────
+function calcLoan() {
+  // Called when ex-showroom or on-road price changes
+  const exshow = parseFloat(document.getElementById('v-exshow').value) || 0;
+  const reg    = parseFloat(document.getElementById('v-reg').value) || 0;
+  const onroad = exshow + reg;
+  if (onroad > 0) {
+    document.getElementById('v-onroad').value = onroad;
+  }
+  calcDownPayment();
+}
+
+function calcDownPayment() {
+  // Down payment = On road price − Loan amount required (auto-calculated, read-only)
+  const onroad = parseFloat(document.getElementById('v-onroad').value) ||
+                 (parseFloat(document.getElementById('v-exshow').value)||0) +
+                 (parseFloat(document.getElementById('v-reg').value)||0);
+  const loan   = parseFloat(document.getElementById('v-loan').value) || 0;
+  const down   = document.getElementById('v-down');
+  if (onroad > 0 && loan > 0) {
+    const dp = Math.max(onroad - loan, 0);
+    down.value = dp > 0 ? dp : '';
+    showLTV(loan, onroad);
+  } else {
+    down.value = '';
+    document.getElementById('ltv-wrap').style.display = 'none';
+  }
+}
+
+function calcLTVManual() {
+  calcDownPayment();
+}
+
+function showLTV(loan, onroad) {
+  if (!onroad) return;
+  const pct = Math.round((loan / onroad) * 100);
+  const wrap = document.getElementById('ltv-wrap');
+  wrap.style.display = 'block';
+  document.getElementById('ltv-loan').textContent = fmt(loan);
+  document.getElementById('ltv-pct').textContent  = pct + '%';
+  const fill   = document.getElementById('ltv-fill');
+  const status = document.getElementById('ltv-status');
+  const hint   = document.getElementById('ltv-hint');
+  fill.style.width = Math.min(pct, 100) + '%';
+  if (pct <= 80) {
+    fill.style.background = 'var(--green-txt)';
+    status.style.color = 'var(--green-txt)'; status.textContent = 'Good';
+    hint.style.cssText = 'background:var(--green-bg);border:1px solid #6EE7B7;color:var(--green-txt)';
+    hint.innerHTML = '<i class="ti ti-check" style="font-size:12px"></i> LTV within limit — most banks approve up to 85% on-road.';
+  } else if (pct <= 85) {
+    fill.style.background = 'var(--amber-txt)';
+    status.style.color = 'var(--amber-txt)'; status.textContent = 'Borderline';
+    hint.style.cssText = 'background:var(--amber-bg);border:1px solid #FCD34D;color:var(--amber-txt)';
+    hint.innerHTML = '<i class="ti ti-alert-triangle" style="font-size:12px"></i> LTV 80–85% — select banks will approve. Consider increasing down payment.';
+  } else {
+    fill.style.background = 'var(--red-txt)';
+    status.style.color = 'var(--red-txt)'; status.textContent = 'High';
+    hint.style.cssText = 'background:var(--red-bg);border:1px solid #FCA5A5;color:var(--red-txt)';
+    hint.innerHTML = '<i class="ti ti-x" style="font-size:12px"></i> LTV above 85% — most banks will reject. Customer must increase down payment.';
+  }
+}
+
+// ── EMPLOYMENT TYPE ───────────────────────────────────────────────────────────
+function handleEmpType() {
+  const v = document.getElementById('emp-type').value;
+  ['alert-sal','alert-self','alert-pen'].forEach(id => document.getElementById(id).classList.remove('show'));
+  if (v === 'sal') document.getElementById('alert-sal').classList.add('show');
+  if (v === 'self' || v === 'prof') document.getElementById('alert-self').classList.add('show');
+  if (v === 'pen') document.getElementById('alert-pen').classList.add('show');
+
+  document.getElementById('slip-panel').style.display = v === 'sal' ? 'block' : 'none';
+  document.getElementById('f16-panel').style.display  = v === 'sal' ? 'block' : 'none';
+  document.getElementById('itr-panel').style.display  = (v === 'self' || v === 'prof') ? 'block' : 'none';
+  document.getElementById('company-id-panel').style.display = v === 'sal' ? 'block' : 'none';
+}
+
+// ── SLOT BUILDER (salary slips / Form 16 / ITR) ───────────────────────────────
+function buildSlots(type) {
+  const configs = {
+    slip: { nId:'slip-n', fromId:'slip-from', slotsId:'slip-slots', labels:MONTHS, btnTxt:'Upload slip', prefix:'sl-' },
+    f16:  { nId:'f16-n',  fromId:'f16-from',  slotsId:'f16-slots',  labels:FY,     btnTxt:'Upload Form 16', prefix:'f16-' },
+    itr:  { nId:'itr-n',  fromId:'itr-from',  slotsId:'itr-slots',  labels:FY,     btnTxt:'Upload ITR set', prefix:'itr-' },
+  };
+  const cfg = configs[type];
+  const n    = parseInt(document.getElementById(cfg.nId).value) || 0;
+  const from = parseInt(document.getElementById(cfg.fromId).value) || 0;
+  const container = document.getElementById(cfg.slotsId);
+  if (!n) {
+    container.innerHTML = '<div class="slot-placeholder"><i class="ti ti-arrow-up" style="font-size:13px"></i> Select number above to see upload slots</div>';
+    return;
+  }
+  let html = '<div class="slot-list">';
+  for (let i = 0; i < n; i++) {
+    const key  = cfg.prefix + (from + i);
+    const done = slotDone[key];
+    html += `<div class="slot-row ${done ? 'done' : ''}" id="slot-${key}">
+      <div class="slot-num">${done ? '<i class="ti ti-check" style="font-size:11px"></i>' : i + 1}</div>
+      <div class="slot-name">${cfg.labels[from + i] || 'Item ' + (i + 1)}</div>
+      <div class="slot-status" id="sst-${key}">${done ? 'Uploaded' : 'Pending'}</div>
+      <button class="slot-btn ${done ? 'done' : ''}" onclick="doSlot('${key}')">${done ? 'Uploaded ✓' : cfg.btnTxt}</button>
+    </div>`;
+  }
+  html += '</div>';
+  container.innerHTML = html;
+}
+
+function doSlot(key) {
+  slotDone[key] = true;
+  const row = document.getElementById('slot-' + key);
+  const sst = document.getElementById('sst-' + key);
+  if (row) {
+    row.classList.add('done');
+    const numEl = row.querySelector('.slot-num');
+    if (numEl) numEl.innerHTML = '<i class="ti ti-check" style="font-size:11px"></i>';
+    const btn = row.querySelector('.slot-btn');
+    if (btn) { btn.textContent = 'Uploaded ✓'; btn.classList.add('done'); }
+  }
+  if (sst) sst.textContent = 'Uploaded';
+}
+
+// ── CIC SIMULATION ────────────────────────────────────────────────────────────
+function simulateCIC() {
+  markUpload('uz-cic', 'CIC report uploaded ✓', 'Click to replace');
+  document.getElementById('cic-result').style.display = 'block';
+  document.getElementById('foir-panel').style.display = 'block';
+
+  const tbody = document.getElementById('cic-tbody');
+  tbody.innerHTML = CIC_DATA.map((r, i) => {
+    let flagHtml = '<span style="font-size:11px;padding:2px 8px;border-radius:10px;background:var(--green-bg);color:var(--green-txt);font-weight:500">Clean</span>';
+    if (r.flag === 'Written Off') flagHtml = '<span style="font-size:11px;padding:2px 8px;border-radius:10px;background:var(--red-bg);color:var(--red-txt);font-weight:500">⚠ Written Off</span>';
+    else if (r.flag === 'Settlement') flagHtml = '<span style="font-size:11px;padding:2px 8px;border-radius:10px;background:var(--amber-bg);color:var(--amber-txt);font-weight:500">⚠ Settlement</span>';
+    const bg = i % 2 === 0 ? '' : 'background:var(--surface2)';
+    return `<tr style="${bg}">
+      <td style="padding:8px 10px;border-bottom:1px solid var(--border);font-weight:500">${r.lender}</td>
+      <td style="padding:8px 10px;border-bottom:1px solid var(--border);color:var(--muted)">${r.type}</td>
+      <td style="padding:8px 10px;border-bottom:1px solid var(--border);font-family:'DM Mono',monospace">${fmt(r.sanctioned)}</td>
+      <td style="padding:8px 10px;border-bottom:1px solid var(--border);font-family:'DM Mono',monospace">${r.outstanding > 0 ? fmt(r.outstanding) : 'Nil'}</td>
+      <td style="padding:8px 10px;border-bottom:1px solid var(--border);font-family:'DM Mono',monospace">${r.emi > 0 ? fmt(r.emi) : '—'}</td>
+      <td style="padding:8px 10px;border-bottom:1px solid var(--border)">${flagHtml}</td>
+    </tr>`;
+  }).join('');
+
+  // pre-fill FOIR income from section 3
+  const inc = document.getElementById('inc-net')?.value;
+  if (inc) document.getElementById('foir-income').value = inc;
+  runFOIR();
+}
+
+// ── FOIR MATCHER ──────────────────────────────────────────────────────────────
+function runFOIR() {
+  const income = parseFloat(document.getElementById('foir-income').value) || 0;
+  const pref   = document.getElementById('foir-bank').value;
+  if (!income) { document.getElementById('foir-results').innerHTML = '<div style="font-size:12px;color:var(--muted);padding:10px">Enter net monthly income above to see FOIR results.</div>'; return; }
+  const totalEMI = CIC_DATA.filter(r => r.status === 'Active').reduce((s, r) => s + r.emi, 0);
+  const foirPct  = Math.round((totalEMI / income) * 100);
+  const banks = pref === 'all' ? BANKS_FOIR : BANKS_FOIR.filter(b => b.n === pref);
+  document.getElementById('foir-results').innerHTML = `
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;padding:10px 12px;background:var(--surface2);border-radius:var(--r-sm);font-size:12px">
+      <span style="color:var(--muted)">Existing EMI total</span>
+      <strong style="font-family:'DM Mono',monospace">${fmt(totalEMI)}/month</strong>
+      <span style="color:var(--muted);margin-left:8px">Current FOIR</span>
+      <strong style="font-family:'DM Mono',monospace;color:${foirPct<=50?'var(--green-txt)':foirPct<=65?'var(--amber-txt)':'var(--red-txt)'}">${foirPct}%</strong>
+    </div>
+    ${banks.map(b => {
+      const pass = foirPct <= b.limit;
+      return `<div style="display:flex;align-items:center;gap:10px;padding:9px 12px;border:1px solid ${pass?'#6EE7B7':'#FCA5A5'};border-radius:var(--r-sm);background:${pass?'var(--green-bg)':'var(--red-bg)'};margin-bottom:6px;font-size:12px">
+        <div style="font-weight:500;flex:1;color:${pass?'var(--green-txt)':'var(--red-txt)'}">${b.n}</div>
+        <div style="font-size:11px;color:${pass?'var(--green-txt)':'var(--red-txt)'}">Limit ${b.limit}% · Customer ${foirPct}%</div>
+        <span style="font-size:11px;padding:2px 9px;border-radius:10px;font-weight:600;background:${pass?'#D1FAE5':'#FEE2E2'};color:${pass?'#166534':'var(--red-txt)'}">${pass?'Pass':'Fail'}</span>
+      </div>`;
+    }).join('')}`;
+}
+
+// ── CO-APPLICANT ──────────────────────────────────────────────────────────────
+function toggleCo() {
+  const on = document.getElementById('co-chk').checked;
+  document.getElementById('co-block').classList.toggle('show', on);
+}
+
+// ── SUMMARY ───────────────────────────────────────────────────────────────────
+function populateSummary() {
+  const g = id => document.getElementById(id)?.value || '—';
+  document.getElementById('s-name').textContent   = g('f-name');
+  document.getElementById('s-pan').textContent    = g('f-pan') || '—';
+  document.getElementById('s-mobile').textContent = g('f-mobile') || '—';
+  document.getElementById('s-pin').textContent    = g('p-pin') || '—';
+  document.getElementById('s-car').textContent    = g('car-model');
+  document.getElementById('s-dealer').textContent = g('d-name');
+  const loan = g('v-loan');
+  document.getElementById('s-loan').textContent   = loan !== '—' ? '₹' + Number(loan).toLocaleString('en-IN') : '—';
+  const onroad = parseFloat(g('v-onroad')) || 0;
+  const loanAmt = parseFloat(g('v-loan')) || 0;
+  document.getElementById('s-ltv').textContent    = onroad > 0 ? Math.round((loanAmt/onroad)*100) + '%' : '—';
+  const empMap = {sal:'Salaried',self:'Self-employed',prof:'Self-employed professional',pen:'Pensioner'};
+  document.getElementById('s-emp').textContent     = empMap[g('emp-type')] || '—';
+  document.getElementById('s-company').textContent = g('emp-company');
+  const inc = g('inc-net');
+  document.getElementById('s-income').textContent  = inc !== '—' ? '₹' + Number(inc).toLocaleString('en-IN') : '—';
+  document.getElementById('s-cibil').textContent   = g('v-cibil');
+
+  const uploadedDocs = [
+    ['uz-pan','PAN card'],['uz-af','Aadhaar front'],['uz-ab','Aadhaar back'],
+    ['uz-dl','Driving license'],['uz-stmt','Bank statement'],['uz-cic','CIC report'],
+    ['uz-perf','Performa invoice'],
+  ];
+  document.getElementById('s-docs').innerHTML = uploadedDocs.map(([id, label]) => {
+    const uploaded = document.getElementById(id)?.classList.contains('uploaded');
+    return `<div class="summary-row">
+      <span class="summary-key">${label}</span>
+      <span class="summary-val" style="color:${uploaded?'var(--green-txt)':'var(--muted)'}">${uploaded?'✓ Uploaded':'Not uploaded'}</span>
+    </div>`;
+  }).join('');
+}
+
+// ── DRAFT SAVE ────────────────────────────────────────────────────────────────
+function saveDraft() {
+  const now = new Date();
+  const t = now.getHours().toString().padStart(2,'0') + ':' + now.getMinutes().toString().padStart(2,'0');
+  document.getElementById('draft-time').textContent = 'Saved ' + t;
+}
+
+// Auto-save every 60s
+setInterval(saveDraft, 60000);
+
+
+// ── DOB FORMAT dd/mm/yyyy ─────────────────────────────────────────────────────
+function fmtDOB(el) {
+  let v = el.value.replace(/\D/g, '');
+  if (v.length > 2) v = v.slice(0,2) + '/' + v.slice(2);
+  if (v.length > 5) v = v.slice(0,5) + '/' + v.slice(5,9);
+  el.value = v;
+}
+
+// ── CIBIL → show bank+branch popup ───────────────────────────────────────────
+function onCibilInput(val) {
+  const n    = parseInt(val) || 0;
+  const wrap = document.getElementById('bank-branch-wrap');
+  const tag  = document.getElementById('cibil-tag');
+  if (n >= 650) {
+    wrap.style.display = 'block';
+    const tier = n >= 780 ? 'Excellent' : n >= 740 ? 'Good' : n >= 700 ? 'Average' : 'Below avg';
+    tag.textContent = 'CIBIL ' + n + ' · ' + tier;
+  } else {
+    wrap.style.display = 'none';
+  }
+}
+
+function onBankSelect() {
+  const pin = document.getElementById('branch-pin').value;
+  if (pin.length === 6) loadBranches();
+}
+
+// Branch data keyed by pincode
+const PIN_BRANCHES = {
+  '600017':[{name:'T Nagar Branch',area:'T Nagar',dist:'0.8 km',emp:true},{name:'Pondy Bazaar Branch',area:'T Nagar',dist:'1.4 km',emp:false}],
+  '600034':[{name:'Anna Nagar Branch',area:'Anna Nagar',dist:'1.1 km',emp:true},{name:'2nd Avenue Branch',area:'Anna Nagar',dist:'2.6 km',emp:false}],
+  '600020':[{name:'Adyar Branch',area:'Adyar',dist:'0.9 km',emp:true},{name:'Besant Nagar Branch',area:'Adyar',dist:'3.1 km',emp:false}],
+  '600028':[{name:'Velachery Branch',area:'Velachery',dist:'1.4 km',emp:true},{name:'100 Feet Road Branch',area:'Velachery',dist:'2.8 km',emp:false}],
+  '600040':[{name:'Tambaram Branch',area:'Tambaram',dist:'1.2 km',emp:true},{name:'West Tambaram Branch',area:'Tambaram',dist:'2.5 km',emp:false}],
+  '600058':[{name:'Ambattur Branch',area:'Ambattur',dist:'1.0 km',emp:false},{name:'SIDCO Branch',area:'Ambattur',dist:'2.2 km',emp:false}],
+};
+
+function loadBranches() {
+  const bank = document.getElementById('pref-bank').value;
+  const pin  = document.getElementById('branch-pin').value;
+  if (!bank || pin.length !== 6) return;
+  const wrap     = document.getElementById('branch-list-wrap');
+  const listEl   = document.getElementById('branch-list');
+  const branches = PIN_BRANCHES[pin] || [
+    {name:bank + ' · ' + pin + ' Branch', area:'Nearby area', dist:'< 5 km', emp:false},
+    {name:bank + ' · City Branch', area:'City centre', dist:'< 10 km', emp:false},
+  ];
+  wrap.style.display = 'block';
+  listEl.innerHTML = branches.map((b, i) => `
+    <div class="branch-opt" id="bropt-${i}"
+         onclick="selectBranch(this, '${b.name}', '${bank}')"
+         style="display:flex;align-items:center;gap:10px;padding:11px 14px;
+                border:1px solid var(--border);border-radius:var(--r-sm);
+                margin-bottom:7px;cursor:pointer;transition:all .15s;
+                background:var(--surface)">
+      <div style="width:32px;height:32px;border-radius:50%;background:var(--green-bg);
+                  display:flex;align-items:center;justify-content:center;
+                  font-size:13px;flex-shrink:0;color:var(--green-txt)">
+        <i class="ti ti-map-pin"></i>
+      </div>
+      <div style="flex:1">
+        <div style="font-size:13px;font-weight:500;margin-bottom:2px">${b.name}</div>
+        <div style="font-size:11px;color:var(--muted)">${bank} · ${b.area} · ${b.dist}</div>
+      </div>
+      ${b.emp ? '<span style="font-size:10px;padding:2px 8px;border-radius:10px;background:var(--green-bg);color:var(--green-txt);font-weight:600;white-space:nowrap">Empaneled ★</span>' : ''}
+    </div>`).join('');
+}
+
+function selectBranch(el, branchName, bankName) {
+  document.querySelectorAll('.branch-opt').forEach(b => {
+    b.style.borderColor = 'var(--border)';
+    b.style.background  = 'var(--surface)';
+  });
+  el.style.borderColor = 'var(--accent)';
+  el.style.background  = 'var(--green-bg)';
+  const confirm = document.getElementById('selected-branch-confirm');
+  document.getElementById('selected-branch-txt').textContent =
+    ' ' + bankName + ' — ' + branchName + ' selected';
+  confirm.style.display = 'flex';
+}
+
+// ── SUBMIT ────────────────────────────────────────────────────────────────────
+function submitForm() {
+  const decl = document.getElementById('decl-chk').checked;
+  if (!decl) { alert('Please read and agree to the declaration before submitting.'); return; }
+  const name = document.getElementById('f-name')?.value?.trim();
+  if (!name) { alert('Please fill the customer name in Section 1 before submitting.'); return; }
+  document.querySelector('.main').innerHTML = `
+    <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:80vh;text-align:center;padding:40px">
+      <div style="width:64px;height:64px;border-radius:50%;background:var(--green-bg);display:flex;align-items:center;justify-content:center;margin-bottom:20px">
+        <i class="ti ti-check" style="font-size:32px;color:var(--green-txt)"></i>
+      </div>
+      <div style="font-family:'Fraunces',serif;font-size:26px;font-weight:500;margin-bottom:8px">Case submitted</div>
+      <div style="font-size:14px;color:var(--muted);max-width:360px;line-height:1.7;margin-bottom:24px">
+        Case for <strong>${name}</strong> has been submitted successfully. City head has been notified. Case is now locked.
+      </div>
+      <div style="font-family:'DM Mono',monospace;font-size:13px;background:var(--surface2);padding:10px 20px;border-radius:var(--r-sm);border:1px solid var(--border);margin-bottom:24px">
+        Case ID: CPG-025
+      </div>
+      <div style="display:flex;gap:10px">
+        <button class="btn btn-primary" onclick="location.reload()">New case</button>
+        <button class="btn" onclick="alert('Opening case tracker...')">View in tracker</button>
+      </div>
+    </div>`;
+  document.getElementById('top-bar').style.width = '100%';
+  document.querySelectorAll('.step-item').forEach(s => { s.classList.add('done'); s.classList.remove('active'); });
+}
+
+// ── KYC DOC CARD FUNCTIONS ───────────────────────────────────────────────────
+// Simulate upload — in production this triggers a real file input
+const DOC_SAMPLES = {
+  'pan-sample.jpg':    'https://placehold.co/400x250/E8F5EE/155E35?text=PAN+Card+Document',
+  'aadhar-front.jpg':  'https://placehold.co/400x250/E8F5EE/155E35?text=Aadhaar+Front',
+  'aadhar-back.jpg':   'https://placehold.co/400x250/E8F5EE/155E35?text=Aadhaar+Back',
+  'dl-front.jpg':      'https://placehold.co/400x250/E8F5EE/155E35?text=Driving+License+Front',
+  'dl-back.jpg':       'https://placehold.co/400x250/E8F5EE/155E35?text=Driving+License+Back',
+};
+
+function triggerUpload(cardId, sampleFile, successTitle) {
+  const card = document.getElementById(cardId);
+  if (!card) return;
+  // Simulate: mark as uploaded, show preview image
+  card.classList.add('uploaded');
+  const titleEl = card.querySelector('.doc-card-title');
+  const subEl   = card.querySelector('.doc-card-sub');
+  if (titleEl) titleEl.textContent = successTitle;
+  if (subEl)   subEl.textContent   = 'Tap Preview to view · Replace or Remove below';
+  // Show preview thumbnail
+  const imgId = 'pr-' + cardId;
+  const img   = document.getElementById(imgId);
+  if (img) img.src = DOC_SAMPLES[sampleFile] || DOC_SAMPLES['pan-sample.jpg'];
+  // Show Aadhaar back trigger after front uploaded
+  if (cardId === 'dc-af') {
+    document.getElementById('aadhar-back-trigger').classList.add('show');
+  }
+  // Show DL back trigger after DL front uploaded
+  if (cardId === 'dc-dl') {
+    document.getElementById('dl-back-trigger').classList.add('show');
+  }
+}
+
+function removeDoc(cardId) {
+  const card = document.getElementById(cardId);
+  if (!card) return;
+  card.classList.remove('uploaded');
+  const titleEl = card.querySelector('.doc-card-title');
+  const subEl   = card.querySelector('.doc-card-sub');
+  const icons   = {'dc-pan':'ti-id-badge','dc-af':'ti-id','dc-ab':'ti-id','dc-dl':'ti-license','dc-dlb':'ti-license'};
+  const titles  = {'dc-pan':'Tap to upload PAN card','dc-af':'Tap to upload Aadhaar front','dc-ab':'Tap to upload Aadhaar back','dc-dl':'Tap to upload DL front','dc-dlb':'Tap to upload DL back','dc-perf':'Tap to upload performa invoice'};
+  if (titleEl) titleEl.textContent = titles[cardId] || 'Tap to upload';
+  if (subEl)   subEl.textContent   = 'JPG · PNG · PDF · Max 2MB';
+}
+
+// Aadhaar back show/hide
+function showAadhaarBack() {
+  document.getElementById('aadhar-back-trigger').style.display = 'none';
+  document.getElementById('aadhar-back-wrap').classList.add('show');
+}
+function hideAadhaarBack() {
+  document.getElementById('aadhar-back-trigger').classList.remove('show');
+  document.getElementById('aadhar-back-wrap').classList.remove('show');
+  removeDoc('dc-ab');
+}
+
+// DL back show/hide
+function showDLBack() {
+  document.getElementById('dl-back-trigger').style.display = 'none';
+  document.getElementById('dl-back-wrap').classList.add('show');
+}
+function hideDLBack() {
+  document.getElementById('dl-back-trigger').classList.remove('show');
+  document.getElementById('dl-back-wrap').classList.remove('show');
+  removeDoc('dc-dlb');
+}
+
+// Lightbox
+function openLightbox(imgId) {
+  const src = document.getElementById(imgId)?.src;
+  if (!src) return;
+  document.getElementById('lightbox-img').src = src;
+  document.getElementById('lightbox').classList.add('open');
+}
+function closeLightbox(e) {
+  if (!e || e.target === document.getElementById('lightbox') || e.target === document.querySelector('.lightbox-close')) {
+    document.getElementById('lightbox').classList.remove('open');
+  }
+}
+
+// ── SHARE CIBIL MODAL ────────────────────────────────────────────────────────
+function openShareModal() {
+  document.getElementById('share-modal').classList.add('open');
+}
+function closeShareModal(e) {
+  if (!e || e.target === document.getElementById('share-modal')) {
+    document.getElementById('share-modal').classList.remove('open');
+  }
+}
+
+function getCustomerDetails() {
+  const name   = document.getElementById('f-name')?.value.trim() || 'Customer';
+  const mobile = document.getElementById('f-mobile')?.value.trim() || '';
+  const pan    = document.getElementById('f-pan')?.value.trim() || '';
+  const panUploaded  = document.getElementById('dc-pan')?.classList.contains('uploaded') || false;
+  const aadharUploaded = document.getElementById('dc-af')?.classList.contains('uploaded') || false;
+  return {name, mobile, pan, panUploaded, aadharUploaded};
+}
+
+function shareViaWhatsApp() {
+  const {name, mobile, pan, panUploaded, aadharUploaded} = getCustomerDetails();
+
+  // Build attachment instruction based on what is uploaded
+  let attachNote = '';
+  if (panUploaded && aadharUploaded) {
+    attachNote = '📎 We have your PAN and Aadhaar on file. Please share your CIBIL PDF report in reply to this message.';
+  } else if (panUploaded) {
+    attachNote = '📎 We have your PAN on file. Please also share a clear photo of your Aadhaar card (front and back) along with your CIBIL report.';
+  } else if (aadharUploaded) {
+    attachNote = '📎 We have your Aadhaar on file. Please also share a clear photo of your PAN card along with your CIBIL report.';
+  } else {
+    attachNote = '📎 Please share the following documents with your CIBIL report:\n   • PAN card (clear photo — front)\n   • Aadhaar card (front and back)';
+  }
+
+  const panLine = pan ? '\n   PAN number: ' + pan : '';
+
+  const msg = encodeURIComponent(
+    'Dear ' + name + ',\n\n' +
+    'Greetings from *Capri Global Capital — Chennai* 🏦\n\n' +
+    'We are processing your *New Car Loan* application.' + panLine + '\n\n' +
+    'To proceed, we need your *CIBIL Credit Report*. Please follow these steps:\n\n' +
+    '*Step 1 — Get your free CIBIL report:*\n' +
+    '👉 https://www.cibil.com/freecreditscore\n' +
+    '(Register / Login → Download PDF report)\n\n' +
+    '*Step 2 — Alternate bureaus:*\n' +
+    '• Experian India: https://www.experian.in\n' +
+    '• CRIF High Mark: https://www.crifhighmark.com\n\n' +
+    '*Step 3 — Share the report:*\n' +
+    attachNote + '\n\n' +
+    'Please share at the earliest so we can process your application quickly.\n\n' +
+    'For any queries, contact your relationship manager directly.\n\n' +
+    'Regards,\n*Capri Global Capital*\nChennai Operations Team'
+  );
+
+  const url = mobile
+    ? 'https://wa.me/91' + mobile.replace(/\s/g,'') + '?text=' + msg
+    : 'https://wa.me/?text=' + msg;
+  window.open(url, '_blank');
+  closeShareModal();
+}
+
+function shareViaMail() {
+  const {name, mobile, pan, panUploaded, aadharUploaded} = getCustomerDetails();
+
+  // Build attachment instruction
+  let attachLines = '';
+  if (panUploaded && aadharUploaded) {
+    attachLines =
+      'We already have your PAN card and Aadhaar card on file from your application.\n' +
+      'No additional KYC documents are needed — please only attach your CIBIL report PDF.';
+  } else if (panUploaded) {
+    attachLines =
+      'We have your PAN card on file. Please attach the following to your reply:\n' +
+      '  1. CIBIL credit report (PDF)\n' +
+      '  2. Aadhaar card — front side (clear photo / scan)\n' +
+      '  3. Aadhaar card — back side (clear photo / scan)';
+  } else if (aadharUploaded) {
+    attachLines =
+      'We have your Aadhaar card on file. Please attach the following to your reply:\n' +
+      '  1. CIBIL credit report (PDF)\n' +
+      '  2. PAN card — front side (clear photo / scan)';
+  } else {
+    attachLines =
+      'Please attach the following documents to your reply email:\n' +
+      '  1. CIBIL credit report (PDF)\n' +
+      '  2. PAN card — front side (clear photo / scan)\n' +
+      '  3. Aadhaar card — front side (clear photo / scan)\n' +
+      '  4. Aadhaar card — back side (clear photo / scan)';
+  }
+
+  const panLine = pan ? '\nPAN Number on file: ' + pan : '';
+  const subject = encodeURIComponent('Action Required: CIBIL Report — Capri Global Capital Car Loan Application');
+
+  const body = encodeURIComponent(
+    'Dear ' + name + ',' + panLine + '\n\n' +
+    'Thank you for applying for a New Car Loan with Capri Global Capital, Chennai.\n\n' +
+    'To evaluate and process your loan application, we require your CIBIL credit report. ' +
+    'Please obtain and share your report at the earliest convenience.\n\n' +
+    '─────────────────────────────────\n' +
+    'HOW TO GET YOUR FREE CIBIL REPORT\n' +
+    '─────────────────────────────────\n' +
+    'Option 1 — CIBIL (TransUnion)\n' +
+    '  Visit: https://www.cibil.com/freecreditscore\n' +
+    '  Steps: Register / Login → View score → Download PDF\n\n' +
+    'Option 2 — Experian India\n' +
+    '  Visit: https://www.experian.in\n\n' +
+    'Option 3 — CRIF High Mark\n' +
+    '  Visit: https://www.crifhighmark.com\n\n' +
+    '─────────────────────────────────\n' +
+    'DOCUMENTS TO ATTACH IN YOUR REPLY\n' +
+    '─────────────────────────────────\n' +
+    attachLines + '\n\n' +
+    'Please reply to this email with the above attachments, or WhatsApp them to your ' +
+    'relationship manager directly.\n\n' +
+    'This helps us fast-track your loan approval and get you the best rate.\n\n' +
+    'Warm regards,\n' +
+    'Capri Global Capital\n' +
+    'Chennai Operations Team\n' +
+    'New Car Loans Division'
+  );
+
+  window.location.href = 'mailto:?subject=' + subject + '&body=' + body;
+  closeShareModal();
+}
+
+</script>
+</body>
+</html>

@@ -442,7 +442,7 @@ async function doLogin() {
     }
 
     // 2. Get user role from users table
-    const { data: userData, error: userErr } = await supabase
+    const { data: userData, error: userErr } = await db
       .from('users')
       .select('id, name, role, color')
       .eq('id', authData.user.id)
@@ -511,7 +511,7 @@ function showSuccess(user) {
 async function redirectByRole(userId, userData) {
   // If userData not passed, fetch it
   if (!userData) {
-    const { data } = await supabase
+    const { data } = await db
       .from('users')
       .select('id, name, role, color')
       .eq('id', userId)

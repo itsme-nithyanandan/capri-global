@@ -365,10 +365,10 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);fon
   </nav>
   <div class="sidebar-footer">
     <div class="user-row">
-      <div class="user-avatar">CK</div>
+      <div class="user-avatar" id="sidebar-avatar">--</div>
       <div>
-        <div class="user-name">City Head</div>
-        <div class="user-role">Chennai · Full access</div>
+        <div class="user-name" id="sidebar-name">Loading...</div>
+        <div class="user-role" id="sidebar-role">Chennai</div>
       </div>
     </div>
   </div>
@@ -427,12 +427,12 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);fon
           </select>
         </div>
 
-        <div style="display:flex;align-items:center;gap:7px">
+        <div id="bm-filter-wrap" style="display:flex;align-items:center;gap:7px">
           <label style="font-size:11px;font-weight:600;color:var(--muted2);white-space:nowrap;letter-spacing:.04em;text-transform:uppercase">BM</label>
           <select class="filter-select" id="dash-bm-filter" onchange="onBMChange()" style="font-size:12.5px;padding:5px 10px;min-width:130px"><option value="">All BMs</option><option value="Anand R">Anand R</option><option value="Divya L">Divya L</option></select>
         </div>
 
-        <div style="display:flex;align-items:center;gap:7px">
+        <div id="rm-filter-wrap" style="display:flex;align-items:center;gap:7px">
           <label style="font-size:11px;font-weight:600;color:var(--muted2);white-space:nowrap;letter-spacing:.04em;text-transform:uppercase">RM</label>
           <select class="filter-select" id="dash-rm-filter" onchange="applyDashFilters()" style="font-size:12.5px;padding:5px 10px;min-width:140px" disabled="">
             <option value="">— Select BM first —</option>
@@ -3460,32 +3460,165 @@ const dbAuth = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
   }
 });
 
-// Load user name into topbar avatar
+// ── ROLE-BASED DASHBOARD INIT ────────────────────────────────────────────────
+let dashUser = null;
+
 (async () => {
   try {
     const { data: { session } } = await dbAuth.auth.getSession();
-    if (session) {
-      const { data: user } = await dbAuth.from('users')
-        .select('name, role')
-        .eq('id', session.user.id)
-        .single();
-      if (user) {
-        // Update avatar initials
-        const avatar = document.querySelector('.user-avatar');
-        if (avatar) {
-          const initials = user.name.split(' ').map(w => w[0]).join('').slice(0,2).toUpperCase();
-          avatar.textContent = initials;
-          avatar.title = user.name + ' · ' + user.role;
-        }
-      }
-    } else {
-      // No session — redirect to login
+    if (!session) {
       window.location.href = 'capri_login.html';
+      return;
     }
+
+    // Load user details
+    const { data: user } = await dbAuth.from('users')
+      .select('id, name, role, color, reports_to')
+      .eq('id', session.user.id)
+      .single();
+
+    if (!user) {
+      window.location.href = 'capri_login.html';
+      return;
+    }
+
+    dashUser = user;
+
+    // ── Update sidebar ────────────────────────────────────────────────────────
+    const initials = user.name.split(' ').map(w => w[0]).join('').slice(0,2).toUpperCase();
+    document.getElementById('sidebar-avatar').textContent = initials;
+    document.getElementById('sidebar-name').textContent   = user.name;
+
+    const roleLabels = {
+      city_head: 'Chennai · Full access',
+      bm:        'Branch Manager',
+      rm:        'Relationship Manager'
+    };
+    const roleBadges = {
+      city_head: 'CITY HEAD',
+      bm:        'BRANCH MGR',
+      rm:        'REL. MGR'
+    };
+    document.getElementById('sidebar-role').textContent    = roleLabels[user.role] || user.role;
+    document.getElementById('role-badge-nav').textContent  = roleBadges[user.role] || user.role.toUpperCase();
+
+    // ── Apply role-based UI restrictions ─────────────────────────────────────
+    if (user.role === 'bm') {
+      applyBMRestrictions(user);
+    } else if (user.role === 'rm') {
+      applyRMRestrictions(user);
+    }
+    // city_head sees everything — no restrictions
+
   } catch(e) {
-    console.log('Auth check:', e.message);
+    console.log('Auth init error:', e.message);
   }
 })();
+
+// ── BM RESTRICTIONS ───────────────────────────────────────────────────────────
+function applyBMRestrictions(user) {
+  // Hide BM filter — BM only sees their own team
+  const bmWrap = document.getElementById('bm-filter-wrap');
+  if (bmWrap) bmWrap.style.display = 'none';
+
+  // RM filter — show only their RMs
+  const rmFilter = document.getElementById('dash-rm-filter');
+  if (rmFilter) {
+    rmFilter.innerHTML = '<option value="">All my RMs</option>';
+    // Add their RMs from the hardcoded team data
+    // In Phase 2 this will be fetched from Supabase
+    const teamMap = {
+      'e6d223f6-7ded-4780-88fb-bf3277ecd26a': ['Karthik M','Priya S'],
+      'c1edd82b-b26b-4258-bd8d-912caa786aff': []
+    };
+    const myRMs = teamMap[user.id] || [];
+    myRMs.forEach(rm => {
+      const opt = document.createElement('option');
+      opt.value = rm; opt.textContent = rm;
+      rmFilter.appendChild(opt);
+    });
+    rmFilter.disabled = false;
+  }
+
+  // Filter recent cases table to show only BM's team cases
+  filterCasesByBM(user.name);
+
+  // Update topbar subtitle
+  const sub = document.getElementById('topbar-sub');
+  if (sub) sub.textContent = 'May 2026 · ' + user.name + ''s Team';
+
+  // Hide config nav items that BM shouldn't access
+  // Bank management, AI settings, System settings
+  const navItems = document.querySelectorAll('.nav-item');
+  navItems.forEach(item => {
+    const text = item.textContent.trim();
+    if (text.includes('Bank management') || text.includes('AI settings') || text.includes('System settings')) {
+      item.style.display = 'none';
+    }
+  });
+}
+
+// ── RM RESTRICTIONS ───────────────────────────────────────────────────────────
+function applyRMRestrictions(user) {
+  // Hide both BM and RM filters
+  const bmWrap = document.getElementById('bm-filter-wrap');
+  const rmWrap = document.getElementById('rm-filter-wrap');
+  if (bmWrap) bmWrap.style.display = 'none';
+  if (rmWrap) rmWrap.style.display = 'none';
+
+  // Filter cases to only this RM's cases
+  filterCasesByRM(user.name);
+
+  // Update topbar subtitle
+  const sub = document.getElementById('topbar-sub');
+  if (sub) sub.textContent = 'May 2026 · ' + user.name;
+
+  // Hide config and team management nav items
+  const navItems = document.querySelectorAll('.nav-item');
+  navItems.forEach(item => {
+    const text = item.textContent.trim();
+    if (text.includes('Bank management') || text.includes('AI settings') ||
+        text.includes('System settings') || text.includes('Team members') ||
+        text.includes('Team performance') || text.includes('Payout calculator') ||
+        text.includes('Reports')) {
+      item.style.display = 'none';
+    }
+  });
+}
+
+// ── FILTER CASES BY BM ────────────────────────────────────────────────────────
+function filterCasesByBM(bmName) {
+  // Filter recent cases table rows
+  document.querySelectorAll('#recent-cases-tbody tr, .cases-table tr').forEach(row => {
+    const memberCell = row.querySelector('td:nth-child(3)');
+    if (!memberCell) return;
+    // Hide rows not belonging to this BM's team
+    // Will be properly done with Supabase in Phase 2
+  });
+
+  // Set BM filter to show their name
+  const bmFilter = document.getElementById('dash-bm-filter');
+  if (bmFilter) {
+    bmFilter.value = bmName;
+    applyDashFilters();
+  }
+}
+
+// ── FILTER CASES BY RM ────────────────────────────────────────────────────────
+function filterCasesByRM(rmName) {
+  const rmFilter = document.getElementById('dash-rm-filter');
+  if (rmFilter) {
+    // Set RM filter to their own name
+    // First need to enable the select and add their option
+    rmFilter.innerHTML = '<option value="">All my cases</option>';
+    const opt = document.createElement('option');
+    opt.value = rmName; opt.textContent = rmName;
+    rmFilter.appendChild(opt);
+    rmFilter.value = rmName;
+    rmFilter.disabled = false;
+    applyDashFilters();
+  }
+}
 
 // Logout confirmation + sign out
 function confirmLogout() {

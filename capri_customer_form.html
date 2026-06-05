@@ -1219,11 +1219,13 @@ let currentUser = null;
 let currentCaseId = null;
 let autoSaveTimer = null;
 
-// ── EMBEDDED MODE — hide float-progress when inside dashboard iframe ─────────
+// ── EMBEDDED MODE ────────────────────────────────────────────────────────────
+const _params     = new URLSearchParams(window.location.search);
+const _isEmbedded = _params.get('embedded') === '1';
+const _freshLoad  = !!_params.get('t'); // timestamp = always fresh, skip draft restore
+
 (function() {
-  const params = new URLSearchParams(window.location.search);
-  if (params.get('embedded') === '1') {
-    // Hide the floating progress pill — dashboard has its own topbar
+  if (_isEmbedded) {
     const style = document.createElement('style');
     style.textContent = '.float-progress { display: none !important; }';
     document.head.appendChild(style);
@@ -1265,8 +1267,14 @@ let autoSaveTimer = null;
   const caseIdEl = document.getElementById('display-case-id');
   if (caseIdEl) caseIdEl.textContent = currentCaseId;
 
-  // 4. Check for existing draft
-  await loadExistingDraft();
+  // 4. Check for existing draft — skip if fresh load (new case from dashboard)
+  if (_freshLoad) {
+    // Clear any previous draft from localStorage so form is clean
+    try { localStorage.removeItem('capri_draft'); } catch(e) {}
+    console.log('Fresh form — skipping draft restore');
+  } else {
+    await loadExistingDraft();
+  }
 
   // 5. Start auto-save every 60 seconds
   autoSaveTimer = setInterval(() => autoSaveDraft(false), 60000);

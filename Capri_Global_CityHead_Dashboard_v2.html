@@ -3687,7 +3687,8 @@ async function loadLiveCases(user) {
 
     // Filter by role
     if (user.role === 'bm') {
-      query = query.eq('bm_id', user.id);
+      // BM sees cases they created + cases their RMs created (bm_id = their id)
+      query = query.or('created_by.eq.' + user.id + ',bm_id.eq.' + user.id);
     } else if (user.role === 'rm') {
       query = query.eq('created_by', user.id);
     }

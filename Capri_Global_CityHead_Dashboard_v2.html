@@ -2275,12 +2275,12 @@ const cases=[
 ];
 
 let teamMembers=[
-  {id:1,name:'Anand R',  role:'BM',reportsTo:'',   phone:'9876541001',email:'anand.r@capriglobal.in',   files:8,sanctioned:5,target:10,color:'#1A4F3A',aiAccess:true},
-  {id:2,name:'Priya S',  role:'RM',reportsTo:'Anand R', phone:'9876541002',email:'priya.s@capriglobal.in',   files:7,sanctioned:4,target:8, color:'#1E40AF',aiAccess:true},
-  {id:3,name:'Karthik M',role:'RM',reportsTo:'Anand R', phone:'9876541003',email:'karthik.m@capriglobal.in', files:5,sanctioned:3,target:8, color:'#5B21B6',aiAccess:false},
-  {id:4,name:'Divya L',  role:'BM',reportsTo:'',   phone:'9876541004',email:'divya.l@capriglobal.in',   files:4,sanctioned:2,target:8, color:'#B45309',aiAccess:true},
-  {id:5,name:'Ravi T',   role:'RM',reportsTo:'Divya L', phone:'9876541005',email:'ravi.t@capriglobal.in',    files:2,sanctioned:1,target:8, color:'#0F766E',aiAccess:false},
-  {id:6,name:'Sneha K',  role:'RM',reportsTo:'Divya L', phone:'9876541006',email:'sneha.k@capriglobal.in',   files:1,sanctioned:1,target:8, color:'#7C3AED',aiAccess:true},
+  {id:1,name:'Anand R',  role:'BM',reportsTo:'',   phone:'9876541001',email:'anand.r@capriglobal.in',   uid:'e6d223f6-7ded-4780-88fb-bf3277ecd26a',files:8,sanctioned:5,target:10,color:'#1A4F3A',aiAccess:true},
+  {id:2,name:'Priya S',  role:'RM',reportsTo:'Anand R', phone:'9876541002',email:'priya.s@capriglobal.in',   uid:'6353e7f6-cae6-4186-8b9c-289090871940',files:7,sanctioned:4,target:8, color:'#1E40AF',aiAccess:true},
+  {id:3,name:'Karthik M',role:'RM',reportsTo:'Anand R', phone:'9876541003',email:'karthik.m@capriglobal.in', uid:'c8591d35-f276-4e2c-a35b-66b3cc1e0b62',files:5,sanctioned:3,target:8, color:'#5B21B6',aiAccess:false},
+  {id:4,name:'Divya L',  role:'BM',reportsTo:'',   phone:'9876541004',email:'divya.l@capriglobal.in',   uid:'c1edd82b-b26b-4258-bd8d-912caa786aff',files:4,sanctioned:2,target:8, color:'#B45309',aiAccess:true},
+  {id:5,name:'Ravi T',   role:'RM',reportsTo:'Divya L', phone:'9876541005',email:'ravi.t@capriglobal.in',    uid:'',files:2,sanctioned:1,target:8, color:'#0F766E',aiAccess:false},
+  {id:6,name:'Sneha K',  role:'RM',reportsTo:'Divya L', phone:'9876541006',email:'sneha.k@capriglobal.in',   uid:'',files:1,sanctioned:1,target:8, color:'#7C3AED',aiAccess:true},
 ];
 let nextMemberId = 7;
 
@@ -3524,6 +3524,9 @@ window.addEventListener('DOMContentLoaded', async () => {
       });
     }
 
+    // ── Load live cases from Supabase ────────────────────────────────────────
+    await loadLiveCases(user);
+
     // ── RM role ──
     if (user.role === 'rm') {
       // Hide both filters
@@ -3565,6 +3568,104 @@ window.addEventListener('DOMContentLoaded', async () => {
   }
 });
 
+// ── LOAD LIVE CASES FROM SUPABASE ────────────────────────────────────────────
+async function loadLiveCases(user) {
+  try {
+    // Build query based on role
+    let query = dbAuth.from('cases')
+      .select('id,cust_name,cust_mobile,car_model,preferred_bank_name,loan_amount,status,payout_amount,cibil_score,created_at,created_by,bm_id,emp_type,inc_net_monthly')
+      .not('status', 'eq', 'Draft')
+      .order('created_at', { ascending: false });
+
+    // BM: only their team cases
+    if (user.role === 'bm') {
+      query = query.eq('bm_id', user.id);
+    }
+    // RM: only their own cases
+    else if (user.role === 'rm') {
+      query = query.eq('created_by', user.id);
+    }
+    // city_head: all cases — no filter
+
+    const { data: liveCases, error } = await query;
+    if (error) { console.error('Cases fetch error:', error.message); return; }
+    if (!liveCases || liveCases.length === 0) return;
+
+    // Convert Supabase rows to dashboard case format
+    const liveFormatted = liveCases.map(c => {
+      // Find member name from teamMembers array
+      const memberName = c.created_by ? getMemberName(c.created_by) : 'Unknown';
+      return {
+        id:      c.id,
+        date:    c.created_at ? c.created_at.slice(0,10) : new Date().toISOString().slice(0,10),
+        cust:    c.cust_name || 'Customer',
+        car:     c.car_model || '—',
+        bank:    c.preferred_bank_name || '—',
+        loan:    c.loan_amount || 0,
+        member:  memberName,
+        cibil:   c.cibil_score || 0,
+        status:  c.status || 'In process',
+        payout:  c.payout_amount || 0,
+        _live:   true  // flag to identify live cases
+      };
+    });
+
+    // Remove any existing live cases and prepend new ones
+    const staticCases = cases.filter(c => !c._live);
+    // Replace cases array with live data first, then static as fallback
+    cases.length = 0;
+    liveFormatted.forEach(c => cases.push(c));
+    // Add static cases that don't conflict with live IDs
+    const liveIds = new Set(liveFormatted.map(c => c.id));
+    staticCases.filter(c => !liveIds.has(c.id)).forEach(c => cases.push(c));
+
+    // Update caseOrgMap for live cases
+    liveFormatted.forEach(c => {
+      if (!caseOrgMap[c.id]) {
+        caseOrgMap[c.id] = { bm: getMemberNameById(c._bm_id), rm: c.member };
+      }
+    });
+
+    // Update All Cases badge count
+    const badge = document.querySelector('.nav-item .nav-badge');
+    if (badge) badge.textContent = cases.length;
+
+    // Re-render dashboard with live data
+    applyDashFilters();
+    renderRecentTable();
+    renderAllCases();
+    renderTeamSnapshot();
+    renderBankPayoutList();
+
+    console.log('Live cases loaded:', liveFormatted.length, 'cases');
+  } catch(e) {
+    console.error('loadLiveCases error:', e.message);
+  }
+}
+
+// Helper: get member name from users table (cached)
+const _memberCache = {};
+async function fetchMemberCache() {
+  if (Object.keys(_memberCache).length > 0) return;
+  try {
+    const { data } = await dbAuth.from('users').select('id,name,color');
+    if (data) data.forEach(u => { _memberCache[u.id] = { name: u.name, color: u.color }; });
+  } catch(e) {}
+}
+
+function getMemberName(userId) {
+  // Check teamMembers uid mapping first
+  const tm = teamMembers.find(m => m.uid === userId);
+  if (tm) return tm.name;
+  // Check cache
+  if (_memberCache[userId]) return _memberCache[userId].name;
+  return 'Team Member';
+}
+function getMemberNameById(id) {
+  if (_memberCache[id]) return _memberCache[id].name;
+  return '';
+}
+
 function confirmLogout() {
   if (!confirm('Sign out of Capri Global?')) return;
   doLogout();
@@ -3573,6 +3674,107 @@ async function doLogout() {
   try { await dbAuth.auth.signOut(); } catch(e) {}
   localStorage.removeItem('capri_auth');
   window.location.href = 'capri_login.html';
+}
+
+// ── LIVE DATA LOADER ──────────────────────────────────────────────────────────
+async function loadLiveCases(user) {
+  try {
+    // Build query based on role
+    let query = dbAuth.from('cases')
+      .select('id,cust_name,cust_mobile,car_model,preferred_bank_name,loan_amount,status,created_by,bm_id,cibil_score,submitted_at,created_at,payout_amount,inc_net_monthly,emp_type,curr_pincode,perm_pincode')
+      .neq('status', 'Draft')
+      .order('created_at', { ascending: false });
+
+    // Filter by role
+    if (user.role === 'bm') {
+      query = query.eq('bm_id', user.id);
+    } else if (user.role === 'rm') {
+      query = query.eq('created_by', user.id);
+    }
+    // city_head sees all
+
+    const { data: liveCases, error } = await query;
+    if (error) { console.error('Cases fetch error:', error.message); return; }
+    if (!liveCases || liveCases.length === 0) return;
+
+    // ── Load team member names for created_by mapping ─────────────────────────
+    const userIds = [...new Set(liveCases.map(c => c.created_by).filter(Boolean))];
+    const { data: members } = await dbAuth.from('users').select('id,name,color,role,reports_to').in('id', userIds);
+    const memberMap = {};
+    (members || []).forEach(m => { memberMap[m.id] = m; });
+
+    // Also load BM names
+    const bmIds = [...new Set(liveCases.map(c => c.bm_id).filter(Boolean))];
+    const { data: bms } = bmIds.length > 0
+      ? await dbAuth.from('users').select('id,name').in('id', bmIds)
+      : { data: [] };
+    const bmMap = {};
+    (bms || []).forEach(b => { bmMap[b.id] = b.name; });
+
+    // ── Convert to dashboard case format ──────────────────────────────────────
+    const liveMapped = liveCases.map(c => {
+      const member = memberMap[c.created_by];
+      const bmName = bmMap[c.bm_id] || '—';
+      const rmName = member?.name || '—';
+      return {
+        id:      c.id,
+        date:    c.submitted_at ? c.submitted_at.slice(0,10) : c.created_at.slice(0,10),
+        cust:    c.cust_name || '(No name)',
+        car:     c.car_model || '—',
+        bank:    c.preferred_bank_name || '—',
+        loan:    c.loan_amount || 0,
+        member:  rmName,
+        bm:      bmName,
+        cibil:   c.cibil_score || 0,
+        status:  c.status,
+        payout:  c.payout_amount || 0,
+        mobile:  c.cust_mobile || '',
+        pincode: c.curr_pincode || c.perm_pincode || '',
+        income:  c.inc_net_monthly || 0,
+        emp:     c.emp_type || '',
+        isLive:  true   // flag to distinguish from sample data
+      };
+    });
+
+    // ── Merge: prepend live cases, keep sample cases for history context ───────
+    // Remove sample cases that conflict with live IDs
+    const liveIds = new Set(liveMapped.map(c => c.id));
+    const filteredSample = cases.filter(c => !liveIds.has(c.id));
+
+    // Update global cases array
+    cases.length = 0;
+    liveMapped.forEach(c => cases.push(c));
+    filteredSample.forEach(c => cases.push(c));
+
+    // ── Update caseOrgMap for live cases ──────────────────────────────────────
+    liveMapped.forEach(c => {
+      caseOrgMap[c.id] = { bm: c.bm, rm: c.member };
+    });
+
+    // ── Update All Cases badge count ──────────────────────────────────────────
+    const allCasesBadge = document.querySelector('.nav-item .nav-badge');
+    if (allCasesBadge) allCasesBadge.textContent = cases.length;
+
+    // ── Re-render all dashboard components with merged data ───────────────────
+    if (typeof applyDashFilters === 'function') applyDashFilters();
+    if (typeof renderTeamSnapshot === 'function') renderTeamSnapshot();
+    if (typeof renderBankPayoutList === 'function') renderBankPayoutList();
+    if (typeof renderAllCases === 'function') renderAllCases();
+
+    // ── Update All Cases nav badge ─────────────────────────────────────────────
+    const navBadges = document.querySelectorAll('.nav-item');
+    navBadges.forEach(el => {
+      if (el.textContent.includes('All cases')) {
+        const badge = el.querySelector('.nav-badge');
+        if (badge) badge.textContent = cases.length;
+      }
+    });
+
+    console.log('Live cases loaded:', liveMapped.length, '| Total with sample:', cases.length);
+
+  } catch(e) {
+    console.error('loadLiveCases error:', e.message);
+  }
 }
 </script>
 

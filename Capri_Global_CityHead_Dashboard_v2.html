@@ -2070,18 +2070,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);fon
 
 <script>
 // ── DATA ──────────────────────────────────────────────────────────────────────
-const cases=[
-  {id:'CPG-024',date:'2026-05-31',cust:'Senthil Rajan',car:'Hyundai Tucson',bank:'ICICI Bank',loan:1650000,member:'Anand R',cibil:772,status:'In process',payout:7838},
-  {id:'CPG-023',date:'2026-05-30',cust:'Meenakshi Devi',car:'Tata Nexon EV',bank:'HDFC Bank',loan:1420000,member:'Priya S',cibil:748,status:'Sanctioned',payout:7100},
-  {id:'CPG-022',date:'2026-05-29',cust:'Balaji Krishnan',car:'Maruti Brezza ZXI',bank:'SBI',loan:1100000,member:'Karthik M',cibil:691,status:'Disbursed',payout:2000},
-  {id:'CPG-021',date:'2026-05-28',cust:'Lavanya Subramanian',car:'Honda City V',bank:'IndusInd Bank',loan:1280000,member:'Divya L',cibil:734,status:'In process',payout:7040},
-  {id:'CPG-020',date:'2026-05-27',cust:'Raj Kumar',car:'Kia Seltos HTX+',bank:'HDFC Bank',loan:1500000,member:'Anand R',cibil:761,status:'Disbursed',payout:7500},
-  {id:'CPG-019',date:'2026-05-26',cust:'Suresh Pillai',car:'Maruti Ertiga VXI',bank:'Axis Bank',loan:950000,member:'Karthik M',cibil:712,status:'Sanctioned',payout:4275},
-  {id:'CPG-018',date:'2026-05-25',cust:'Priya Nair',car:'Tata Punch Creative',bank:'Kotak Bank',loan:820000,member:'Priya S',cibil:758,status:'Rejected',payout:0},
-  {id:'CPG-017',date:'2026-05-24',cust:'Arun Balasubramanian',car:'Hyundai Creta SX',bank:'HDFC Bank',loan:1350000,member:'Divya L',cibil:745,status:'Disbursed',payout:6750},
-  {id:'CPG-016',date:'2026-05-23',cust:'Vijay Thiyagarajan',car:'MG Astor ST',bank:'ICICI Bank',loan:1180000,member:'Anand R',cibil:729,status:'Sanctioned',payout:5605},
-  {id:'CPG-015',date:'2026-05-22',cust:'Deepika Rajan',car:'Toyota Urban Cruiser',bank:'IndusInd Bank',loan:1050000,member:'Priya S',cibil:743,status:'Disbursed',payout:5775},
-];
+const cases=[];  // Populated from Supabase on load
 
 let teamMembers=[
   {id:1,name:'Anand R',  role:'BM',reportsTo:'',   phone:'9876541001',email:'anand.r@capriglobal.in',   uid:'e6d223f6-7ded-4780-88fb-bf3277ecd26a',files:8,sanctioned:5,target:10,color:'#1A4F3A',aiAccess:true},
@@ -2113,18 +2102,7 @@ const orgHierarchy=[
 
 // Cases now include rm field — map existing cases to BM/RM structure
 // Anand R is BM; Priya S & Karthik M are his RMs; Divya L is BM with her own RMs
-const caseOrgMap={
-  'CPG-024':{bm:'Anand R',rm:'Priya S'},
-  'CPG-023':{bm:'Anand R',rm:'Priya S'},
-  'CPG-022':{bm:'Anand R',rm:'Karthik M'},
-  'CPG-021':{bm:'Divya L',rm:'Ravi T'},
-  'CPG-020':{bm:'Anand R',rm:'Karthik M'},
-  'CPG-019':{bm:'Anand R',rm:'Karthik M'},
-  'CPG-018':{bm:'Anand R',rm:'Priya S'},
-  'CPG-017':{bm:'Divya L',rm:'Sneha K'},
-  'CPG-016':{bm:'Anand R',rm:'Priya S'},
-  'CPG-015':{bm:'Divya L',rm:'Ravi T'},
-};
+const caseOrgMap={};  // Populated from Supabase on load
 
 const banks=[
   {name:'HDFC Bank',  type:'PVT Bank',minCibil:720,foir:50,ltv:85,payout:0.50,minRoi:8.50,slabs:[{label:'750+',roi:'8.50–9.25%'},{label:'720–749',roi:'9.25–10.00%'},{label:'700–719',roi:'10.00–10.50%'}],active:true},
@@ -3236,7 +3214,7 @@ function renderCDMDocContent(key,el){
 function closeCaseDetailModal(){document.getElementById('case-detail-modal').classList.remove('open');}
 const tabTitles={
   overview:['Dashboard','May 2026 · Chennai Operations'],
-  cases:['All Cases','Complete pipeline view · city head'],
+  cases:['New Car Loan','New car loan pipeline'],
   team:['Team Performance','Individual targets and actuals'],
   members:['Team Members','Manage BMs, RMs and access controls'],
   rto:['Online Leads','Digital lead pipeline'],

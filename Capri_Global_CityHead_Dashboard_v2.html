@@ -3785,7 +3785,7 @@ async function loadLiveCases(user) {
   align-items: center;
   gap: 10px;
   padding: 13px 22px;
-  background: linear-gradient(135deg, #C8A852 0%, #E8C96A 50%, #C8A852 100%);
+  background: rgba(200,168,82,.5);
   color: #1A1200;
   border: none;
   border-radius: 40px;
@@ -3793,30 +3793,45 @@ async function loadLiveCases(user) {
   font-size: 13px;
   font-weight: 700;
   cursor: pointer;
-  box-shadow: 0 4px 20px rgba(200,168,82,.55), 0 2px 6px rgba(0,0,0,.15);
+  box-shadow: 0 4px 20px rgba(200,168,82,.25);
   transition: all .2s ease;
-  animation: fab-pulse 3s ease-in-out infinite;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
 }
 .fab-new-case:hover {
-  transform: translateY(-3px) scale(1.03);
-  box-shadow: 0 8px 28px rgba(200,168,82,.65);
-  animation: none;
+  background: rgba(200,168,82,.85);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 28px rgba(200,168,82,.45);
 }
 .fab-icon {
   width: 28px; height: 28px;
-  background: rgba(0,0,0,.12);
+  background: rgba(0,0,0,.10);
   border-radius: 50%;
   display: flex; align-items: center; justify-content: center;
-  font-size: 15px; flex-shrink: 0;
+  font-size: 16px; flex-shrink: 0;
   transition: transform .2s;
 }
 .fab-new-case:hover .fab-icon { transform: rotate(90deg); }
 .fab-label { display: flex; flex-direction: column; line-height: 1.2; }
 .fab-label-main { font-size: 13px; font-weight: 700; }
 .fab-label-sub  { font-size: 10px; font-weight: 500; opacity: .65; }
-@keyframes fab-pulse {
-  0%,100% { box-shadow: 0 4px 20px rgba(200,168,82,.55); }
-  50%      { box-shadow: 0 4px 28px rgba(200,168,82,.80); }
+
+@media (max-width: 768px) {
+  .fab-new-case {
+    left: 16px;
+    bottom: 20px;
+    padding: 0;
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    justify-content: center;
+  }
+  .fab-label { display: none; }
+  .fab-icon {
+    width: auto; height: auto;
+    background: transparent;
+    font-size: 22px;
+  }
 }
 
 /* Full page form wrapper */

@@ -440,6 +440,79 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);fon
   .topbar-sub { display: none; }
 }
 
+
+/* ── MOBILE CASE CARDS (shown only on mobile) ── */
+.case-cards { display: none; }
+
+@media (max-width: 768px) {
+  /* Hide desktop table */
+  #all-cases-table { display: none !important; }
+  /* Show mobile cards */
+  .case-cards { display: flex; flex-direction: column; gap: 10px; padding: 4px 0; }
+
+  .case-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 14px;
+    box-shadow: var(--shadow-sm);
+  }
+  .case-card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+  }
+  .case-card-id {
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--accent);
+  }
+  .case-card-date {
+    font-size: 11px;
+    color: var(--muted);
+  }
+  .case-card-customer {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 10px;
+  }
+  .case-card-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-bottom: 12px;
+  }
+  .case-card-field { display: flex; flex-direction: column; gap: 2px; }
+  .case-card-label {
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    color: var(--muted2);
+  }
+  .case-card-value {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text);
+  }
+  .case-card-actions {
+    display: flex;
+    gap: 8px;
+    border-top: 1px solid var(--border);
+    padding-top: 10px;
+    margin-top: 2px;
+  }
+  .case-card-actions .btn {
+    flex: 1;
+    justify-content: center;
+    font-size: 12px;
+    padding: 8px 10px;
+  }
+}
+
 </style>
 </head>
 <body>
@@ -833,6 +906,8 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);fon
           <tbody id="all-cases-tbody"><tr><td colspan="13" style="text-align:center;padding:40px;color:var(--muted);font-size:13px"><i class="ti ti-loader" style="font-size:18px;display:block;margin-bottom:8px"></i>Loading cases...</td></tr></tbody>
         </table>
       </div>
+      <!-- MOBILE CASE CARDS -->
+      <div class="case-cards" id="all-cases-cards"></div>
     </div>
 
     <!-- ══ TAB: TEAM PERFORMANCE ══ -->
@@ -2495,33 +2570,98 @@ function renderBankPayoutList(){
 // ── RENDER: ALL CASES ─────────────────────────────────────────────────────────
 function renderAllCases(data){
   const d=data||cases;
-  const tbody = document.getElementById('all-cases-tbody');
+  const tbody   = document.getElementById('all-cases-tbody');
+  const cards   = document.getElementById('all-cases-cards');
   const countEl = document.getElementById('cases-count');
   if (countEl) countEl.textContent=`${d.length} case${d.length!==1?'s':''}`;
-  if (!tbody) return;  // tab not visible yet — skip render
-  tbody.innerHTML=d.length===0
-    ?`<tr><td colspan="13"><div class="empty-state" style="padding:28px"><i class="ti ti-search-off"></i><span>No cases match your filters</span></div></td></tr>`
-    :d.map(c=>{
-      const org=caseOrgMap[c.id]||{bm:'—',rm:'—'};
-      return `<tr>
-      <td><span style="font-family:'DM Mono',monospace;font-size:11px">${c.id}</span></td>
-      <td style="font-size:11px;color:var(--muted)">${fmtDate(c.date)}</td>
-      <td style="font-weight:500">${c.cust}</td>
-      <td style="font-size:12px;color:var(--muted)">${c.car}</td>
-      <td style="font-size:12.5px">${c.bank}</td>
-      <td style="font-family:'DM Mono',monospace;font-size:12px">${fmt(c.loan)}</td>
-      <td style="font-size:12px;font-weight:500">${org.bm}</td>
-      <td style="font-size:12px">${org.rm}</td>
-      <td style="font-family:'DM Mono',monospace;font-size:12px;color:${cibilColor(c.cibil)}">${c.cibil}</td>
-      <td><span class="badge ${statusColor(c.status)}">${c.status}</span></td>
-      <td style="font-family:'DM Mono',monospace;font-size:12px;color:var(--green-text);font-weight:600">${c.payout>0?fmt(c.payout):'—'}</td>
-      <td><button class="btn btn-xs" onclick="event.stopPropagation();openDocModal('${c.id}')"><i class="ti ti-files" style="font-size:11px"></i> View</button></td>
-      <td style="white-space:nowrap">
-        <button class="btn btn-sm" onclick="openCaseDetailModal('${c.id}')">View</button>
-        ${c.status!=='Draft'?`<button class="btn btn-sm" onclick="event.stopPropagation();openUnlockModal()" style="margin-left:4px"><i class="ti ti-lock-open" style="font-size:11px"></i></button>`:''}
-      </td>
-    </tr>`;
-    }).join('');
+
+  const emptyMsg = d.length===0;
+
+  // ── Desktop table ──
+  if (tbody) {
+    tbody.innerHTML = emptyMsg
+      ? `<tr><td colspan="13"><div class="empty-state" style="padding:28px"><i class="ti ti-search-off"></i><span>No cases found</span></div></td></tr>`
+      : d.map(c=>{
+          const org=caseOrgMap[c.id]||{bm:'—',rm:'—'};
+          return `<tr>
+          <td><span style="font-family:'DM Mono',monospace;font-size:11px">${c.id}</span></td>
+          <td style="font-size:11px;color:var(--muted)">${fmtDate(c.date)}</td>
+          <td style="font-weight:500">${c.cust}</td>
+          <td style="font-size:12px;color:var(--muted)">${c.car||'—'}</td>
+          <td style="font-size:12.5px">${c.bank||'—'}</td>
+          <td style="font-family:'DM Mono',monospace;font-size:12px">${fmt(c.loan)}</td>
+          <td style="font-size:12px;font-weight:500">${org.bm}</td>
+          <td style="font-size:12px">${org.rm}</td>
+          <td style="font-family:'DM Mono',monospace;font-size:12px;color:${cibilColor(c.cibil)}">${c.cibil||'—'}</td>
+          <td><span class="badge ${statusColor(c.status)}">${c.status}</span></td>
+          <td style="font-family:'DM Mono',monospace;font-size:12px;color:var(--green-text);font-weight:600">${c.payout>0?fmt(c.payout):'—'}</td>
+          <td><button class="btn btn-xs" onclick="event.stopPropagation();openDocModal('${c.id}')"><i class="ti ti-files" style="font-size:11px"></i> View</button></td>
+          <td style="white-space:nowrap">
+            <button class="btn btn-sm" onclick="openCaseDetailModal('${c.id}')">View</button>
+            ${c.status!=='Draft'?`<button class="btn btn-sm" onclick="event.stopPropagation();openUnlockModal()" style="margin-left:4px"><i class="ti ti-lock-open" style="font-size:11px"></i></button>`:''}
+          </td>
+        </tr>`;
+        }).join('');
+  }
+
+  // ── Mobile cards ──
+  if (cards) {
+    cards.innerHTML = emptyMsg
+      ? `<div style="text-align:center;padding:40px;color:var(--muted);font-size:13px"><i class="ti ti-search-off" style="font-size:20px;display:block;margin-bottom:8px"></i>No cases found</div>`
+      : d.map(c=>{
+          const org = caseOrgMap[c.id]||{bm:'—',rm:'—'};
+          return `<div class="case-card">
+            <div class="case-card-header">
+              <span class="case-card-id">${c.id}</span>
+              <span class="case-card-date">${fmtDate(c.date)}</span>
+            </div>
+            <div class="case-card-customer">${c.cust}</div>
+            <div class="case-card-grid">
+              <div class="case-card-field">
+                <span class="case-card-label">Bank</span>
+                <span class="case-card-value">${c.bank||'—'}</span>
+              </div>
+              <div class="case-card-field">
+                <span class="case-card-label">Loan</span>
+                <span class="case-card-value">${fmt(c.loan)}</span>
+              </div>
+              <div class="case-card-field">
+                <span class="case-card-label">Status</span>
+                <span class="case-card-value"><span class="badge ${statusColor(c.status)}">${c.status}</span></span>
+              </div>
+              <div class="case-card-field">
+                <span class="case-card-label">CIBIL</span>
+                <span class="case-card-value" style="color:${cibilColor(c.cibil)};font-family:'DM Mono',monospace">${c.cibil||'—'}</span>
+              </div>
+              <div class="case-card-field">
+                <span class="case-card-label">Car</span>
+                <span class="case-card-value">${c.car||'—'}</span>
+              </div>
+              <div class="case-card-field">
+                <span class="case-card-label">Payout</span>
+                <span class="case-card-value" style="color:var(--green-text)">${c.payout>0?fmt(c.payout):'—'}</span>
+              </div>
+              <div class="case-card-field">
+                <span class="case-card-label">BM</span>
+                <span class="case-card-value">${org.bm}</span>
+              </div>
+              <div class="case-card-field">
+                <span class="case-card-label">RM</span>
+                <span class="case-card-value">${org.rm}</span>
+              </div>
+            </div>
+            <div class="case-card-actions">
+              <button class="btn btn-sm" onclick="openCaseDetailModal('${c.id}')">
+                <i class="ti ti-eye" style="font-size:13px"></i> View details
+              </button>
+              <button class="btn btn-xs" onclick="openDocModal('${c.id}')">
+                <i class="ti ti-files" style="font-size:12px"></i> Docs
+              </button>
+              ${c.status!=='Draft'?`<button class="btn btn-xs" onclick="openUnlockModal()"><i class="ti ti-lock-open" style="font-size:12px"></i></button>`:''}
+            </div>
+          </div>`;
+        }).join('');
+  }
 }
 
 function filterCases(){

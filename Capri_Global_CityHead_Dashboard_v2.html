@@ -355,12 +355,12 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);fon
   .content { padding: 14px 12px 100px; }
 
   /* ── KPI GRID: 2 columns on mobile ── */
-  .kpi-grid {
+  #kpi-grid {
     grid-template-columns: 1fr 1fr !important;
     gap: 10px !important;
   }
-  .kpi-card { padding: 14px 12px !important; }
-  .kpi-val { font-size: 22px !important; }
+  .kpi { padding: 14px 12px !important; }
+  .kpi-value { font-size: 20px !important; }
 
   /* ── OVERVIEW GRID: stack vertically ── */
   .overview-grid {
@@ -432,7 +432,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);fon
 
 @media (max-width: 480px) {
   /* ── KPI: full width on very small ── */
-  .kpi-grid { grid-template-columns: 1fr 1fr !important; }
+  #kpi-grid { grid-template-columns: 1fr 1fr !important; }
   .kpi-val { font-size: 20px !important; }
   .content { padding: 10px 10px 90px; }
   .topbar { height: 52px; }
@@ -632,7 +632,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);fon
       </div>
 
       <!-- KPI ROW -->
-      <div style="display:grid;grid-template-columns:repeat(6,1fr);gap:13px;margin-bottom:18px">
+      <div id="kpi-grid" style="display:grid;grid-template-columns:repeat(6,1fr);gap:13px;margin-bottom:18px">
 
         <!-- 1. Total Files -->
         <div class="kpi">
@@ -3861,6 +3861,18 @@ function openFormPage() {
 function closeFormPage() {
   document.getElementById('form-fullpage').classList.remove('open');
   document.body.style.overflow = '';
+}
+
+// ── FILTER TOGGLE ─────────────────────────────────────────────────────────────
+function toggleDashFilters() {
+  const panel   = document.getElementById('dash-filter-panel');
+  const chevron = document.getElementById('filter-chevron');
+  const btn     = document.getElementById('filter-toggle-btn');
+  if (!panel) return;
+  const isOpen  = panel.style.display !== 'none';
+  panel.style.display = isOpen ? 'none' : 'block';
+  if (chevron) chevron.style.transform = isOpen ? 'rotate(0deg)' : 'rotate(180deg)';
+  if (btn) btn.style.background = isOpen ? 'var(--surface)' : 'var(--surface2)';
 }
 </script>
 

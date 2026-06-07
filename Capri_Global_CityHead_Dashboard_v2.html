@@ -901,9 +901,9 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);fon
       <div class="card">
         <table class="data-table" id="all-cases-table">
           <thead>
-            <tr><th>Case ID</th><th>Date</th><th>Customer</th><th>Car</th><th>Bank</th><th>Loan (₹)</th><th>BM</th><th>RM</th><th>CIBIL</th><th>Status</th><th>Payout</th><th>Docs</th><th>Action</th></tr>
+            <tr><th>Case ID</th><th>Date</th><th>Customer</th><th>Car</th><th>Bank</th><th>Loan (₹)</th><th>BM</th><th>RM</th><th>CIBIL</th><th>Status</th><th>Payout</th><th>Action</th></tr>
           </thead>
-          <tbody id="all-cases-tbody"><tr><td colspan="13" style="text-align:center;padding:40px;color:var(--muted);font-size:13px"><i class="ti ti-loader" style="font-size:18px;display:block;margin-bottom:8px"></i>Loading cases...</td></tr></tbody>
+          <tbody id="all-cases-tbody"><tr><td colspan="12" style="text-align:center;padding:40px;color:var(--muted);font-size:13px"><i class="ti ti-loader" style="font-size:18px;display:block;margin-bottom:8px"></i>Loading cases...</td></tr></tbody>
         </table>
       </div>
       <!-- MOBILE CASE CARDS -->
@@ -2580,7 +2580,7 @@ function renderAllCases(data){
   // ── Desktop table ──
   if (tbody) {
     tbody.innerHTML = emptyMsg
-      ? `<tr><td colspan="13"><div class="empty-state" style="padding:28px"><i class="ti ti-search-off"></i><span>No cases found</span></div></td></tr>`
+      ? `<tr><td colspan="12"><div class="empty-state" style="padding:28px"><i class="ti ti-search-off"></i><span>No cases found</span></div></td></tr>`
       : d.map(c=>{
           const org=caseOrgMap[c.id]||{bm:'—',rm:'—'};
           return `<tr>
@@ -2595,7 +2595,6 @@ function renderAllCases(data){
           <td style="font-family:'DM Mono',monospace;font-size:12px;color:${cibilColor(c.cibil)}">${c.cibil||'—'}</td>
           <td><span class="badge ${statusColor(c.status)}">${c.status}</span></td>
           <td style="font-family:'DM Mono',monospace;font-size:12px;color:var(--green-text);font-weight:600">${c.payout>0?fmt(c.payout):'—'}</td>
-          <td><button class="btn btn-xs" onclick="event.stopPropagation();openDocModal('${c.id}')"><i class="ti ti-files" style="font-size:11px"></i> View</button></td>
           <td style="white-space:nowrap">
             <button class="btn btn-sm" onclick="openCaseDetailModal('${c.id}')">View</button>
             ${c.status!=='Draft'?`<button class="btn btn-sm" onclick="event.stopPropagation();openUnlockModal()" style="margin-left:4px"><i class="ti ti-lock-open" style="font-size:11px"></i></button>`:''}
@@ -2654,9 +2653,7 @@ function renderAllCases(data){
               <button class="btn btn-sm" onclick="openCaseDetailModal('${c.id}')">
                 <i class="ti ti-eye" style="font-size:13px"></i> View details
               </button>
-              <button class="btn btn-xs" onclick="openDocModal('${c.id}')">
-                <i class="ti ti-files" style="font-size:12px"></i> Docs
-              </button>
+
               ${c.status!=='Draft'?`<button class="btn btn-xs" onclick="openUnlockModal()"><i class="ti ti-lock-open" style="font-size:12px"></i></button>`:''}
             </div>
           </div>`;
@@ -3303,7 +3300,15 @@ function renderCDMTab(tab,c){
         </div>
       </div>`;
   } else if(tab==='docs'){
-    body.innerHTML=`<div class="itabs" id="cdm-doc-tabs"></div><div id="cdm-doc-content"></div>`;
+    body.innerHTML=`
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+        <div class="itabs" id="cdm-doc-tabs" style="margin-bottom:0;border-bottom:none;flex:1"></div>
+        <button class="btn btn-sm btn-primary" onclick="shareCDMDocs('${c.id}','${c.cust}')" style="flex-shrink:0;margin-left:12px">
+          <i class="ti ti-share" style="font-size:12px"></i> Share all
+        </button>
+      </div>
+      <div style="height:1px;background:var(--border);margin-bottom:14px"></div>
+      <div id="cdm-doc-content"></div>`;
     document.getElementById('cdm-doc-tabs').innerHTML=docTypes.map((t,i)=>`
       <div class="itab ${i===0?'active':''}" onclick="switchCDMDocTab('${t.key}',this)">${t.label}
         ${t.docs.length?`<span style="font-size:9px;background:var(--accent);color:white;border-radius:8px;padding:1px 5px;margin-left:3px">${t.docs.length}</span>`:''}
@@ -3995,6 +4000,30 @@ function showOnlyLiveCases() {
 }
 
 
+
+// ── SHARE ALL DOCS FROM CASE DETAIL MODAL ─────────────────────────────────────
+function shareCDMDocs(caseId, custName) {
+  // Count total uploaded docs
+  const total = docTypes.reduce((s,t) => s + t.docs.length, 0);
+  if (total === 0) {
+    alert('No documents uploaded for this case yet.');
+    return;
+  }
+  // Open share options
+  const msg = encodeURIComponent(
+    'Dear Team,\n\n' +
+    'Please find all documents for case ' + caseId + ' — ' + custName + ':\n\n' +
+    docTypes.filter(t => t.docs.length > 0)
+      .map(t => '• ' + t.label + ': ' + t.docs.join(', ')).join('\n') +
+    '\n\nTotal: ' + total + ' document(s)\n\nCapri Global Capital — Chennai'
+  );
+  const choice = confirm('Share all ' + total + ' documents?\n\nOK = WhatsApp\nCancel = Email');
+  if (choice) {
+    window.open('https://wa.me/?text=' + msg, '_blank');
+  } else {
+    window.location.href = 'mailto:?subject=Case ' + caseId + ' Documents&body=' + msg;
+  }
+}
 </script>
 
 </body></html>

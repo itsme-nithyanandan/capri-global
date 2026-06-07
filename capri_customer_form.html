@@ -2057,33 +2057,69 @@ const DOC_SAMPLES = {
   'dl-back.jpg':       'https://placehold.co/400x250/E8F5EE/155E35?text=Driving+License+Back',
 };
 
+// Store selected files in memory per card
+const uploadedFiles = {};
+
 function triggerUpload(cardId, sampleFile, successTitle) {
-  const card = document.getElementById(cardId);
-  if (!card) return;
-  // Simulate: mark as uploaded, show preview image
-  card.classList.add('uploaded');
-  const titleEl = card.querySelector('.doc-card-title');
-  const subEl   = card.querySelector('.doc-card-sub');
-  if (titleEl) titleEl.textContent = successTitle;
-  if (subEl)   subEl.textContent   = 'Tap Preview to view · Replace or Remove below';
-  // Show preview thumbnail
-  const imgId = 'pr-' + cardId;
-  const img   = document.getElementById(imgId);
-  if (img) img.src = DOC_SAMPLES[sampleFile] || DOC_SAMPLES['pan-sample.jpg'];
-  // Show Aadhaar back trigger after front uploaded
-  if (cardId === 'dc-af') {
-    document.getElementById('aadhar-back-trigger').classList.add('show');
-  }
-  // Show DL back trigger after DL front uploaded
-  if (cardId === 'dc-dl') {
-    document.getElementById('dl-back-trigger').classList.add('show');
-  }
+  // Create a hidden file input and click it
+  const input = document.createElement('input');
+  input.type = 'file';
+  input.accept = 'image/jpeg,image/png,image/jpg,application/pdf';
+  input.style.display = 'none';
+
+  input.onchange = function(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    // Validate size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      showFlash('File too large — max 5MB', true);
+      return;
+    }
+
+    // Store file reference
+    uploadedFiles[cardId] = file;
+
+    const card = document.getElementById(cardId);
+    if (!card) return;
+    card.classList.add('uploaded');
+
+    const titleEl = card.querySelector('.doc-card-title');
+    const subEl   = card.querySelector('.doc-card-sub');
+    if (titleEl) titleEl.textContent = successTitle;
+    if (subEl)   subEl.textContent   = file.name + ' · ' + (file.size/1024).toFixed(0) + ' KB';
+
+    // Show real preview
+    const img = document.getElementById('pr-' + cardId);
+    if (img) {
+      if (file.type === 'application/pdf') {
+        // PDF — show generic PDF icon preview
+        img.src = 'data:image/svg+xml,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="400" height="120" viewBox="0 0 400 120"><rect fill="#E8F5EE" width="400" height="120"/><text x="200" y="55" font-family="sans-serif" font-size="16" fill="#155E35" text-anchor="middle" font-weight="bold">PDF Document</text><text x="200" y="78" font-family="sans-serif" font-size="11" fill="#155E35" text-anchor="middle">' + file.name.slice(0,40) + '</text></svg>');
+      } else {
+        // Image — show actual preview
+        const reader = new FileReader();
+        reader.onload = ev => { img.src = ev.target.result; };
+        reader.readAsDataURL(file);
+      }
+    }
+
+    // Show Aadhaar / DL back triggers
+    if (cardId === 'dc-af') document.getElementById('aadhar-back-trigger').classList.add('show');
+    if (cardId === 'dc-dl') document.getElementById('dl-back-trigger').classList.add('show');
+
+    showFlash('Document uploaded');
+  };
+
+  document.body.appendChild(input);
+  input.click();
+  setTimeout(() => document.body.removeChild(input), 1000);
 }
 
 function removeDoc(cardId) {
   const card = document.getElementById(cardId);
   if (!card) return;
   card.classList.remove('uploaded');
+  delete uploadedFiles[cardId];
   const titleEl = card.querySelector('.doc-card-title');
   const subEl   = card.querySelector('.doc-card-sub');
   const icons   = {'dc-pan':'ti-id-badge','dc-af':'ti-id','dc-ab':'ti-id','dc-dl':'ti-license','dc-dlb':'ti-license'};

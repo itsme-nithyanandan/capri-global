@@ -2495,8 +2495,11 @@ function renderBankPayoutList(){
 // ── RENDER: ALL CASES ─────────────────────────────────────────────────────────
 function renderAllCases(data){
   const d=data||cases;
-  document.getElementById('cases-count').textContent=`${d.length} case${d.length!==1?'s':''}`;
-  document.getElementById('all-cases-tbody').innerHTML=d.length===0
+  const tbody = document.getElementById('all-cases-tbody');
+  const countEl = document.getElementById('cases-count');
+  if (countEl) countEl.textContent=`${d.length} case${d.length!==1?'s':''}`;
+  if (!tbody) return;  // tab not visible yet — skip render
+  tbody.innerHTML=d.length===0
     ?`<tr><td colspan="13"><div class="empty-state" style="padding:28px"><i class="ti ti-search-off"></i><span>No cases match your filters</span></div></td></tr>`
     :d.map(c=>{
       const org=caseOrgMap[c.id]||{bm:'—',rm:'—'};
@@ -2540,7 +2543,7 @@ function filterCases(){
     if(search && !c.cust.toLowerCase().includes(search)&&!c.id.toLowerCase().includes(search)) return false;
     return true;
   });
-  renderAllCases(filtered);
+  if(document.getElementById('all-cases-tbody')) renderAllCases(filtered);
 }
 
 function onCasesBMChange(){
@@ -3837,13 +3840,28 @@ function showOnlyLiveCases() {
   const badge = document.getElementById('nav-cases-badge');
   if (badge) badge.textContent = cases.length;
 
-  // Update count
+  // Update count label
   const count = document.getElementById('cases-count');
   if (count) count.textContent = cases.length + ' case' + (cases.length !== 1 ? 's' : '');
 
-  // Re-render table
-  if (typeof filterCases === 'function') filterCases();
-  else if (typeof renderAllCases === 'function') renderAllCases();
+  // Only render if the cases tab tbody is visible in DOM
+  const tbody = document.getElementById('all-cases-tbody');
+  if (tbody) {
+    if (typeof filterCases === 'function') filterCases();
+  }
+  // If tab not open yet, data will render correctly when user opens the tab
+  // because renderAllCases always reads from the cases array
+}
+
+// Override showTab to re-render cases when tab is opened
+const _origShowTab = typeof showTab === 'function' ? showTab : null;
+function showTab(id, el) {
+  if (_origShowTab) _origShowTab(id, el);
+  if (id === 'cases') {
+    setTimeout(() => {
+      if (typeof filterCases === 'function') filterCases();
+    }, 50);
+  }
 }
 </script>
 

@@ -3230,6 +3230,7 @@ const tabTitles={
 };
 
 function showTab(id,el){
+  if(id==='cases'){setTimeout(()=>{if(typeof filterCases==='function')filterCases();},80);}
   document.querySelectorAll('.tab-pane').forEach(p=>p.classList.remove('on'));
   document.querySelectorAll('.nav-item').forEach(b=>b.classList.remove('active'));
   document.getElementById('tab-'+id).classList.add('on');
@@ -3853,16 +3854,7 @@ function showOnlyLiveCases() {
   // because renderAllCases always reads from the cases array
 }
 
-// Override showTab to re-render cases when tab is opened
-const _origShowTab = typeof showTab === 'function' ? showTab : null;
-function showTab(id, el) {
-  if (_origShowTab) _origShowTab(id, el);
-  if (id === 'cases') {
-    setTimeout(() => {
-      if (typeof filterCases === 'function') filterCases();
-    }, 50);
-  }
-}
+
 </script>
 
 </body></html>

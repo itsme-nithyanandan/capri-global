@@ -733,8 +733,6 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);fon
 
       </div>
 
-      </div>
-
 
     </div>
 
@@ -3853,20 +3851,21 @@ function resetCasesFilters() {
 function showOnlyLiveCases() {
   // Filter out sample cases (non-live) from the cases array
   const liveCasesOnly = cases.filter(c => c.isLive);
-  if (liveCasesOnly.length > 0) {
-    // Replace global cases with live only
-    cases.length = 0;
-    liveCasesOnly.forEach(c => cases.push(c));
-  }
+  // Replace global cases with live only — even if empty
+  cases.length = 0;
+  liveCasesOnly.forEach(c => cases.push(c));
+
   // Update nav badge
   const badge = document.getElementById('nav-cases-badge');
   if (badge) badge.textContent = cases.length;
+
   // Update count
   const count = document.getElementById('cases-count');
   if (count) count.textContent = cases.length + ' case' + (cases.length !== 1 ? 's' : '');
-  // Re-render
-  if (typeof renderAllCases === 'function') renderAllCases();
+
+  // Re-render table
   if (typeof filterCases === 'function') filterCases();
+  else if (typeof renderAllCases === 'function') renderAllCases();
 }
 </script>
 

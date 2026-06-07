@@ -464,9 +464,10 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);fon
     <div class="nav-item active" onclick="showTab(&#39;overview&#39;,this)">
       <i class="ti ti-layout-dashboard"></i> Dashboard
     </div>
+    <div class="nav-section">Products</div>
     <div class="nav-item" onclick="showTab(&#39;cases&#39;,this)">
-      <i class="ti ti-files"></i> All cases
-      <span class="nav-badge">24</span>
+      <i class="ti ti-car"></i> New Car
+      <span class="nav-badge" id="nav-cases-badge">—</span>
     </div>
     <div class="nav-item" onclick="showTab(&#39;team&#39;,this)">
       <i class="ti ti-users"></i> Team performance
@@ -739,45 +740,91 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);fon
 
     <!-- ══ TAB: ALL CASES ══ -->
     <div class="tab-pane" id="tab-cases">
-      <!-- Filter Bar -->
-      <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:12px 16px;box-shadow:var(--shadow-sm);flex-wrap:wrap">
-        <i class="ti ti-filter" style="font-size:15px;color:var(--muted);flex-shrink:0"></i>
-        <input class="filter-input" placeholder="Search customer, case ID..." style="width:200px" id="cases-search" oninput="filterCases()">
+      <!-- All Cases header row -->
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">
+        <button onclick="toggleCasesFilters()" id="cases-filter-btn"
+          style="display:flex;align-items:center;gap:7px;padding:8px 14px;
+                 border-radius:var(--radius-sm);border:1px solid var(--border);
+                 background:var(--surface);cursor:pointer;font-family:inherit;
+                 font-size:12.5px;font-weight:500;color:var(--text);
+                 transition:all .15s;box-shadow:var(--shadow-sm)">
+          <i class="ti ti-filter" style="font-size:14px;color:var(--muted)"></i>
+          Filters
+          <i class="ti ti-chevron-down" id="cases-filter-chevron"
+             style="font-size:12px;color:var(--muted);transition:transform .2s"></i>
+        </button>
+        <!-- Search always visible -->
+        <input class="filter-input" placeholder="Search customer, case ID..."
+               style="flex:1;max-width:260px" id="cases-search" oninput="filterCases()">
+        <span id="cases-count" style="font-size:12px;color:var(--muted);margin-left:4px">— cases</span>
+        <button class="btn btn-sm" onclick="exportCases()" style="margin-left:auto">
+          <i class="ti ti-download" style="font-size:12px"></i> Export
+        </button>
+      </div>
 
-        <div style="width:1px;height:20px;background:var(--border);flex-shrink:0"></div>
+      <!-- Collapsible filter panel -->
+      <div id="cases-filter-panel" style="display:none;background:var(--surface);
+           border:1px solid var(--border);border-radius:var(--radius);
+           padding:14px 16px;margin-bottom:12px;box-shadow:var(--shadow-sm);
+           animation:fadeSlide .2s ease">
+        <div style="display:flex;flex-wrap:wrap;gap:12px;align-items:flex-end">
 
-        <div style="display:flex;align-items:center;gap:6px">
-          <label style="font-size:11px;font-weight:600;color:var(--muted2);white-space:nowrap;letter-spacing:.04em;text-transform:uppercase">BM</label>
-          <select class="filter-select" id="cases-bm-filter" onchange="onCasesBMChange()" style="font-size:12px;padding:5px 9px;min-width:120px"><option value="">All BMs</option><option>Anand R</option><option>Divya L</option></select>
+          <div id="cases-bm-wrap" style="display:flex;flex-direction:column;gap:4px">
+            <label style="font-size:10px;font-weight:600;color:var(--muted2);letter-spacing:.06em;text-transform:uppercase">BM</label>
+            <select class="filter-select" id="cases-bm-filter" onchange="onCasesBMChange()" style="font-size:12px;padding:6px 10px;min-width:130px">
+              <option value="">All BMs</option><option>Anand R</option><option>Divya L</option>
+            </select>
+          </div>
+
+          <div id="cases-rm-wrap" style="display:flex;flex-direction:column;gap:4px">
+            <label style="font-size:10px;font-weight:600;color:var(--muted2);letter-spacing:.06em;text-transform:uppercase">RM</label>
+            <select class="filter-select" id="cases-rm-filter" onchange="filterCases()" style="font-size:12px;padding:6px 10px;min-width:130px" disabled="">
+              <option value="">— Select BM first —</option>
+            </select>
+          </div>
+
+          <div style="display:flex;flex-direction:column;gap:4px">
+            <label style="font-size:10px;font-weight:600;color:var(--muted2);letter-spacing:.06em;text-transform:uppercase">Status</label>
+            <select class="filter-select" id="cases-status-filter" onchange="filterCases()" style="font-size:12px;padding:6px 10px;min-width:130px">
+              <option value="">All statuses</option>
+              <option>In process</option><option>Sanctioned</option><option>Disbursed</option><option>Rejected</option>
+            </select>
+          </div>
+
+          <div style="display:flex;flex-direction:column;gap:4px">
+            <label style="font-size:10px;font-weight:600;color:var(--muted2);letter-spacing:.06em;text-transform:uppercase">Bank</label>
+            <select class="filter-select" id="cases-bank-filter" onchange="filterCases()" style="font-size:12px;padding:6px 10px;min-width:140px">
+              <option value="">All banks</option>
+              <option>HDFC Bank</option><option>ICICI Bank</option><option>Axis Bank</option>
+              <option>Kotak Bank</option><option>SBI</option><option>IndusInd Bank</option>
+              <option>Tata Capital</option><option>Mahindra Finance</option><option>Cholamandalam</option>
+            </select>
+          </div>
+
+          <div style="display:flex;flex-direction:column;gap:4px">
+            <label style="font-size:10px;font-weight:600;color:var(--muted2);letter-spacing:.06em;text-transform:uppercase">Period</label>
+            <select class="filter-select" id="cases-period-filter" onchange="onCasesPeriodChange()" style="font-size:12px;padding:6px 10px;min-width:160px">
+              <option value="">All time</option>
+              <option value="today">Today</option><option value="thisweek">This Week</option>
+              <option value="thismonth">This Month</option>
+              <option value="lastmonth">Last Month</option>
+              <option value="custom">Custom Range…</option>
+            </select>
+          </div>
+
+          <div id="cases-custom-range" style="display:none;flex-direction:column;gap:4px">
+            <label style="font-size:10px;font-weight:600;color:var(--muted2);letter-spacing:.06em;text-transform:uppercase">Custom Range</label>
+            <div style="display:flex;align-items:center;gap:6px">
+              <input type="date" id="cases-date-from" class="filter-input" onchange="filterCases()" style="font-size:12px;padding:6px 9px;width:132px">
+              <span style="font-size:11px;color:var(--muted2)">→</span>
+              <input type="date" id="cases-date-to" class="filter-input" onchange="filterCases()" style="font-size:12px;padding:6px 9px;width:132px">
+            </div>
+          </div>
+
+          <button class="btn btn-sm" onclick="resetCasesFilters()" style="color:var(--muted);align-self:flex-end">
+            <i class="ti ti-refresh" style="font-size:12px"></i> Reset
+          </button>
         </div>
-        <div style="display:flex;align-items:center;gap:6px">
-          <label style="font-size:11px;font-weight:600;color:var(--muted2);white-space:nowrap;letter-spacing:.04em;text-transform:uppercase">RM</label>
-          <select class="filter-select" id="cases-rm-filter" onchange="filterCases()" style="font-size:12px;padding:5px 9px;min-width:130px" disabled="">
-            <option value="">— Select BM first —</option>
-          </select>
-        </div>
-
-        <div style="width:1px;height:20px;background:var(--border);flex-shrink:0"></div>
-
-        <select class="filter-select" id="cases-status-filter" onchange="filterCases()" style="font-size:12px;padding:5px 9px">
-          <option value="">All statuses</option>
-          <option>Draft</option><option>In process</option><option>Sanctioned</option><option>Disbursed</option><option>Rejected</option>
-        </select>
-        <select class="filter-select" id="cases-bank-filter" onchange="filterCases()" style="font-size:12px;padding:5px 9px">
-          <option value="">All banks</option>
-          <option>HDFC Bank</option><option>ICICI Bank</option><option>Axis Bank</option><option>Kotak Bank</option><option>SBI</option><option>IndusInd Bank</option>
-        </select>
-
-        <!-- Period filter (same as dashboard) -->
-        <select class="filter-select" id="cases-period-filter" onchange="onCasesPeriodChange()" style="font-size:12px;padding:5px 9px;min-width:170px"><option value="" selected="" disabled="">Select Period</option><option value="today">Today</option><option value="thisweek">This Week</option><option value="lastweek">Last Week</option><option disabled="">────────────────</option><option value="fy">FY 2026–27 (Full year)</option><option disabled="">────────────────</option><option value="q1">Q1 — Apr–Jun 2026</option><option value="q2">Q2 — Jul–Sep 2026</option><option value="q3">Q3 — Oct–Dec 2026</option><option value="q4">Q4 — Jan–Mar 2027</option><option disabled="">────────────────</option><option value="h1">H1 — Apr–Sep 2026</option><option value="h2">H2 — Oct–Mar 2027</option><option disabled="">────────────────</option><option value="custom">Custom Range…</option></select>
-        <div id="cases-custom-range" style="display:none;align-items:center;gap:5px">
-          <input type="date" id="cases-date-from" class="filter-input" onchange="filterCases()" style="font-size:11.5px;padding:4px 8px;width:128px">
-          <span style="font-size:11px;color:var(--muted2)">→</span>
-          <input type="date" id="cases-date-to" class="filter-input" onchange="filterCases()" style="font-size:11.5px;padding:4px 8px;width:128px">
-        </div>
-
-        <button class="btn btn-sm" onclick="exportCases()" style="margin-left:auto"><i class="ti ti-download" style="font-size:12px"></i> Export</button>
-        <span id="cases-count" style="font-size:12px;color:var(--muted);align-self:center">10 cases</span>
       </div>
 
       <div class="card">
@@ -785,177 +832,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);fon
           <thead>
             <tr><th>Case ID</th><th>Date</th><th>Customer</th><th>Car</th><th>Bank</th><th>Loan (₹)</th><th>BM</th><th>RM</th><th>CIBIL</th><th>Status</th><th>Payout</th><th>Docs</th><th>Action</th></tr>
           </thead>
-          <tbody id="all-cases-tbody"><tr>
-      <td><span style="font-family:&#39;DM Mono&#39;,monospace;font-size:11px">CPG-024</span></td>
-      <td style="font-size:11px;color:var(--muted)">2026-05-31</td>
-      <td style="font-weight:500">Senthil Rajan</td>
-      <td style="font-size:12px;color:var(--muted)">Hyundai Tucson</td>
-      <td style="font-size:12.5px">ICICI Bank</td>
-      <td style="font-family:&#39;DM Mono&#39;,monospace;font-size:12px">₹2.0L</td>
-      <td style="font-size:12px;font-weight:500">Anand R</td>
-      <td style="font-size:12px">Priya S</td>
-      <td style="font-family:&#39;DM Mono&#39;,monospace;font-size:12px;color:var(--green-text)">772</td>
-      <td><span class="badge badge-amber">In process</span></td>
-      <td style="font-family:&#39;DM Mono&#39;,monospace;font-size:12px;color:var(--green-text);font-weight:600">₹7,838</td>
-      <td><button class="btn btn-xs" onclick="event.stopPropagation();openDocModal(&#39;CPG-024&#39;)"><i class="ti ti-files" style="font-size:11px"></i> View</button></td>
-      <td style="white-space:nowrap">
-        <button class="btn btn-sm" onclick="openCaseDetailModal(&#39;CPG-024&#39;)">View</button>
-        <button class="btn btn-sm" onclick="event.stopPropagation();openUnlockModal()" style="margin-left:4px"><i class="ti ti-lock-open" style="font-size:11px"></i></button>
-      </td>
-    </tr><tr>
-      <td><span style="font-family:&#39;DM Mono&#39;,monospace;font-size:11px">CPG-023</span></td>
-      <td style="font-size:11px;color:var(--muted)">2026-05-30</td>
-      <td style="font-weight:500">Meenakshi Devi</td>
-      <td style="font-size:12px;color:var(--muted)">Tata Nexon EV</td>
-      <td style="font-size:12.5px">HDFC Bank</td>
-      <td style="font-family:&#39;DM Mono&#39;,monospace;font-size:12px">₹1.0L</td>
-      <td style="font-size:12px;font-weight:500">Anand R</td>
-      <td style="font-size:12px">Priya S</td>
-      <td style="font-family:&#39;DM Mono&#39;,monospace;font-size:12px;color:var(--green-text)">748</td>
-      <td><span class="badge badge-green">Sanctioned</span></td>
-      <td style="font-family:&#39;DM Mono&#39;,monospace;font-size:12px;color:var(--green-text);font-weight:600">₹7,100</td>
-      <td><button class="btn btn-xs" onclick="event.stopPropagation();openDocModal(&#39;CPG-023&#39;)"><i class="ti ti-files" style="font-size:11px"></i> View</button></td>
-      <td style="white-space:nowrap">
-        <button class="btn btn-sm" onclick="openCaseDetailModal(&#39;CPG-023&#39;)">View</button>
-        <button class="btn btn-sm" onclick="event.stopPropagation();openUnlockModal()" style="margin-left:4px"><i class="ti ti-lock-open" style="font-size:11px"></i></button>
-      </td>
-    </tr><tr>
-      <td><span style="font-family:&#39;DM Mono&#39;,monospace;font-size:11px">CPG-022</span></td>
-      <td style="font-size:11px;color:var(--muted)">2026-05-29</td>
-      <td style="font-weight:500">Balaji Krishnan</td>
-      <td style="font-size:12px;color:var(--muted)">Maruti Brezza ZXI</td>
-      <td style="font-size:12.5px">SBI</td>
-      <td style="font-family:&#39;DM Mono&#39;,monospace;font-size:12px">₹1.0L</td>
-      <td style="font-size:12px;font-weight:500">Anand R</td>
-      <td style="font-size:12px">Karthik M</td>
-      <td style="font-family:&#39;DM Mono&#39;,monospace;font-size:12px;color:var(--red-text)">691</td>
-      <td><span class="badge badge-green">Disbursed</span></td>
-      <td style="font-family:&#39;DM Mono&#39;,monospace;font-size:12px;color:var(--green-text);font-weight:600">₹2,000</td>
-      <td><button class="btn btn-xs" onclick="event.stopPropagation();openDocModal(&#39;CPG-022&#39;)"><i class="ti ti-files" style="font-size:11px"></i> View</button></td>
-      <td style="white-space:nowrap">
-        <button class="btn btn-sm" onclick="openCaseDetailModal(&#39;CPG-022&#39;)">View</button>
-        <button class="btn btn-sm" onclick="event.stopPropagation();openUnlockModal()" style="margin-left:4px"><i class="ti ti-lock-open" style="font-size:11px"></i></button>
-      </td>
-    </tr><tr>
-      <td><span style="font-family:&#39;DM Mono&#39;,monospace;font-size:11px">CPG-021</span></td>
-      <td style="font-size:11px;color:var(--muted)">2026-05-28</td>
-      <td style="font-weight:500">Lavanya Subramanian</td>
-      <td style="font-size:12px;color:var(--muted)">Honda City V</td>
-      <td style="font-size:12.5px">IndusInd Bank</td>
-      <td style="font-family:&#39;DM Mono&#39;,monospace;font-size:12px">₹1.0L</td>
-      <td style="font-size:12px;font-weight:500">Divya L</td>
-      <td style="font-size:12px">Ravi T</td>
-      <td style="font-family:&#39;DM Mono&#39;,monospace;font-size:12px;color:var(--amber-text)">734</td>
-      <td><span class="badge badge-amber">In process</span></td>
-      <td style="font-family:&#39;DM Mono&#39;,monospace;font-size:12px;color:var(--green-text);font-weight:600">₹7,040</td>
-      <td><button class="btn btn-xs" onclick="event.stopPropagation();openDocModal(&#39;CPG-021&#39;)"><i class="ti ti-files" style="font-size:11px"></i> View</button></td>
-      <td style="white-space:nowrap">
-        <button class="btn btn-sm" onclick="openCaseDetailModal(&#39;CPG-021&#39;)">View</button>
-        <button class="btn btn-sm" onclick="event.stopPropagation();openUnlockModal()" style="margin-left:4px"><i class="ti ti-lock-open" style="font-size:11px"></i></button>
-      </td>
-    </tr><tr>
-      <td><span style="font-family:&#39;DM Mono&#39;,monospace;font-size:11px">CPG-020</span></td>
-      <td style="font-size:11px;color:var(--muted)">2026-05-27</td>
-      <td style="font-weight:500">Raj Kumar</td>
-      <td style="font-size:12px;color:var(--muted)">Kia Seltos HTX+</td>
-      <td style="font-size:12.5px">HDFC Bank</td>
-      <td style="font-family:&#39;DM Mono&#39;,monospace;font-size:12px">₹2.0L</td>
-      <td style="font-size:12px;font-weight:500">Anand R</td>
-      <td style="font-size:12px">Karthik M</td>
-      <td style="font-family:&#39;DM Mono&#39;,monospace;font-size:12px;color:var(--green-text)">761</td>
-      <td><span class="badge badge-green">Disbursed</span></td>
-      <td style="font-family:&#39;DM Mono&#39;,monospace;font-size:12px;color:var(--green-text);font-weight:600">₹7,500</td>
-      <td><button class="btn btn-xs" onclick="event.stopPropagation();openDocModal(&#39;CPG-020&#39;)"><i class="ti ti-files" style="font-size:11px"></i> View</button></td>
-      <td style="white-space:nowrap">
-        <button class="btn btn-sm" onclick="openCaseDetailModal(&#39;CPG-020&#39;)">View</button>
-        <button class="btn btn-sm" onclick="event.stopPropagation();openUnlockModal()" style="margin-left:4px"><i class="ti ti-lock-open" style="font-size:11px"></i></button>
-      </td>
-    </tr><tr>
-      <td><span style="font-family:&#39;DM Mono&#39;,monospace;font-size:11px">CPG-019</span></td>
-      <td style="font-size:11px;color:var(--muted)">2026-05-26</td>
-      <td style="font-weight:500">Suresh Pillai</td>
-      <td style="font-size:12px;color:var(--muted)">Maruti Ertiga VXI</td>
-      <td style="font-size:12.5px">Axis Bank</td>
-      <td style="font-family:&#39;DM Mono&#39;,monospace;font-size:12px">₹1.0L</td>
-      <td style="font-size:12px;font-weight:500">Anand R</td>
-      <td style="font-size:12px">Karthik M</td>
-      <td style="font-family:&#39;DM Mono&#39;,monospace;font-size:12px;color:var(--amber-text)">712</td>
-      <td><span class="badge badge-green">Sanctioned</span></td>
-      <td style="font-family:&#39;DM Mono&#39;,monospace;font-size:12px;color:var(--green-text);font-weight:600">₹4,275</td>
-      <td><button class="btn btn-xs" onclick="event.stopPropagation();openDocModal(&#39;CPG-019&#39;)"><i class="ti ti-files" style="font-size:11px"></i> View</button></td>
-      <td style="white-space:nowrap">
-        <button class="btn btn-sm" onclick="openCaseDetailModal(&#39;CPG-019&#39;)">View</button>
-        <button class="btn btn-sm" onclick="event.stopPropagation();openUnlockModal()" style="margin-left:4px"><i class="ti ti-lock-open" style="font-size:11px"></i></button>
-      </td>
-    </tr><tr>
-      <td><span style="font-family:&#39;DM Mono&#39;,monospace;font-size:11px">CPG-018</span></td>
-      <td style="font-size:11px;color:var(--muted)">2026-05-25</td>
-      <td style="font-weight:500">Priya Nair</td>
-      <td style="font-size:12px;color:var(--muted)">Tata Punch Creative</td>
-      <td style="font-size:12.5px">Kotak Bank</td>
-      <td style="font-family:&#39;DM Mono&#39;,monospace;font-size:12px">₹1.0L</td>
-      <td style="font-size:12px;font-weight:500">Anand R</td>
-      <td style="font-size:12px">Priya S</td>
-      <td style="font-family:&#39;DM Mono&#39;,monospace;font-size:12px;color:var(--green-text)">758</td>
-      <td><span class="badge badge-red">Rejected</span></td>
-      <td style="font-family:&#39;DM Mono&#39;,monospace;font-size:12px;color:var(--green-text);font-weight:600">—</td>
-      <td><button class="btn btn-xs" onclick="event.stopPropagation();openDocModal(&#39;CPG-018&#39;)"><i class="ti ti-files" style="font-size:11px"></i> View</button></td>
-      <td style="white-space:nowrap">
-        <button class="btn btn-sm" onclick="openCaseDetailModal(&#39;CPG-018&#39;)">View</button>
-        <button class="btn btn-sm" onclick="event.stopPropagation();openUnlockModal()" style="margin-left:4px"><i class="ti ti-lock-open" style="font-size:11px"></i></button>
-      </td>
-    </tr><tr>
-      <td><span style="font-family:&#39;DM Mono&#39;,monospace;font-size:11px">CPG-017</span></td>
-      <td style="font-size:11px;color:var(--muted)">2026-05-24</td>
-      <td style="font-weight:500">Arun Balasubramanian</td>
-      <td style="font-size:12px;color:var(--muted)">Hyundai Creta SX</td>
-      <td style="font-size:12.5px">HDFC Bank</td>
-      <td style="font-family:&#39;DM Mono&#39;,monospace;font-size:12px">₹1.0L</td>
-      <td style="font-size:12px;font-weight:500">Divya L</td>
-      <td style="font-size:12px">Sneha K</td>
-      <td style="font-family:&#39;DM Mono&#39;,monospace;font-size:12px;color:var(--green-text)">745</td>
-      <td><span class="badge badge-green">Disbursed</span></td>
-      <td style="font-family:&#39;DM Mono&#39;,monospace;font-size:12px;color:var(--green-text);font-weight:600">₹6,750</td>
-      <td><button class="btn btn-xs" onclick="event.stopPropagation();openDocModal(&#39;CPG-017&#39;)"><i class="ti ti-files" style="font-size:11px"></i> View</button></td>
-      <td style="white-space:nowrap">
-        <button class="btn btn-sm" onclick="openCaseDetailModal(&#39;CPG-017&#39;)">View</button>
-        <button class="btn btn-sm" onclick="event.stopPropagation();openUnlockModal()" style="margin-left:4px"><i class="ti ti-lock-open" style="font-size:11px"></i></button>
-      </td>
-    </tr><tr>
-      <td><span style="font-family:&#39;DM Mono&#39;,monospace;font-size:11px">CPG-016</span></td>
-      <td style="font-size:11px;color:var(--muted)">2026-05-23</td>
-      <td style="font-weight:500">Vijay Thiyagarajan</td>
-      <td style="font-size:12px;color:var(--muted)">MG Astor ST</td>
-      <td style="font-size:12.5px">ICICI Bank</td>
-      <td style="font-family:&#39;DM Mono&#39;,monospace;font-size:12px">₹1.0L</td>
-      <td style="font-size:12px;font-weight:500">Anand R</td>
-      <td style="font-size:12px">Priya S</td>
-      <td style="font-family:&#39;DM Mono&#39;,monospace;font-size:12px;color:var(--amber-text)">729</td>
-      <td><span class="badge badge-green">Sanctioned</span></td>
-      <td style="font-family:&#39;DM Mono&#39;,monospace;font-size:12px;color:var(--green-text);font-weight:600">₹5,605</td>
-      <td><button class="btn btn-xs" onclick="event.stopPropagation();openDocModal(&#39;CPG-016&#39;)"><i class="ti ti-files" style="font-size:11px"></i> View</button></td>
-      <td style="white-space:nowrap">
-        <button class="btn btn-sm" onclick="openCaseDetailModal(&#39;CPG-016&#39;)">View</button>
-        <button class="btn btn-sm" onclick="event.stopPropagation();openUnlockModal()" style="margin-left:4px"><i class="ti ti-lock-open" style="font-size:11px"></i></button>
-      </td>
-    </tr><tr>
-      <td><span style="font-family:&#39;DM Mono&#39;,monospace;font-size:11px">CPG-015</span></td>
-      <td style="font-size:11px;color:var(--muted)">2026-05-22</td>
-      <td style="font-weight:500">Deepika Rajan</td>
-      <td style="font-size:12px;color:var(--muted)">Toyota Urban Cruiser</td>
-      <td style="font-size:12.5px">IndusInd Bank</td>
-      <td style="font-family:&#39;DM Mono&#39;,monospace;font-size:12px">₹1.0L</td>
-      <td style="font-size:12px;font-weight:500">Divya L</td>
-      <td style="font-size:12px">Ravi T</td>
-      <td style="font-family:&#39;DM Mono&#39;,monospace;font-size:12px;color:var(--green-text)">743</td>
-      <td><span class="badge badge-green">Disbursed</span></td>
-      <td style="font-family:&#39;DM Mono&#39;,monospace;font-size:12px;color:var(--green-text);font-weight:600">₹5,775</td>
-      <td><button class="btn btn-xs" onclick="event.stopPropagation();openDocModal(&#39;CPG-015&#39;)"><i class="ti ti-files" style="font-size:11px"></i> View</button></td>
-      <td style="white-space:nowrap">
-        <button class="btn btn-sm" onclick="openCaseDetailModal(&#39;CPG-015&#39;)">View</button>
-        <button class="btn btn-sm" onclick="event.stopPropagation();openUnlockModal()" style="margin-left:4px"><i class="ti ti-lock-open" style="font-size:11px"></i></button>
-      </td>
-    </tr></tbody>
+          <tbody id="all-cases-tbody"><tr><td colspan="13" style="text-align:center;padding:40px;color:var(--muted);font-size:13px"><i class="ti ti-loader" style="font-size:18px;display:block;margin-bottom:8px"></i>Loading cases...</td></tr></tbody>
         </table>
       </div>
     </div>
@@ -2649,7 +2526,7 @@ function renderAllCases(data){
       const org=caseOrgMap[c.id]||{bm:'—',rm:'—'};
       return `<tr>
       <td><span style="font-family:'DM Mono',monospace;font-size:11px">${c.id}</span></td>
-      <td style="font-size:11px;color:var(--muted)">${c.date}</td>
+      <td style="font-size:11px;color:var(--muted)">${fmtDate(c.date)}</td>
       <td style="font-weight:500">${c.cust}</td>
       <td style="font-size:12px;color:var(--muted)">${c.car}</td>
       <td style="font-size:12.5px">${c.bank}</td>
@@ -2997,7 +2874,7 @@ function generateReport(){
 function openCase(id){
   const c=cases.find(x=>x.id===id);if(!c)return;
   document.getElementById('detail-case-id').textContent='Case '+c.id;
-  document.getElementById('detail-case-sub').textContent=c.status+' · '+c.date;
+  document.getElementById('detail-case-sub').textContent=c.status+' · '+fmtDate(c.date);
   document.getElementById('detail-body').innerHTML=`
     <div class="detail-section">
       <div class="detail-section-title">Customer</div>
@@ -3240,7 +3117,7 @@ function closeDocModal(){document.getElementById('doc-modal-overlay').classList.
 function openCaseDetailModal(id){
   const c=cases.find(x=>x.id===id);if(!c)return;
   document.getElementById('cdm-case-id').textContent='Case '+c.id;
-  document.getElementById('cdm-case-sub').textContent=c.status+' · '+c.date;
+  document.getElementById('cdm-case-sub').textContent=c.status+' · '+fmtDate(c.date);
   document.querySelectorAll('.wide-modal .itab').forEach((t,i)=>t.classList.toggle('active',i===0));
   renderCDMTab('basic',c);
   document.getElementById('case-detail-modal').classList.add('open');
@@ -3493,6 +3370,17 @@ window.addEventListener('DOMContentLoaded', async () => {
         if (['Bank management','AI settings','System settings'].some(t => el.textContent.includes(t)))
           el.style.display = 'none';
       });
+    }
+
+    // ── Hide BM/RM filters in cases tab based on role ──────────────────────────
+    if (user.role === 'bm') {
+      const bmWrap2 = document.getElementById('cases-bm-wrap');
+      if (bmWrap2) bmWrap2.style.display = 'none';
+    } else if (user.role === 'rm') {
+      const bmWrap2 = document.getElementById('cases-bm-wrap');
+      const rmWrap2 = document.getElementById('cases-rm-wrap');
+      if (bmWrap2) bmWrap2.style.display = 'none';
+      if (rmWrap2) rmWrap2.style.display = 'none';
     }
 
     // ── Load live cases from Supabase ────────────────────────────────────────
@@ -3753,6 +3641,7 @@ async function loadLiveCases(user) {
     });
 
     console.log('Live cases loaded:', liveMapped.length, '| Total with sample:', cases.length);
+    showOnlyLiveCases();
 
   } catch(e) {
     console.error('loadLiveCases error:', e.message);
@@ -3927,6 +3816,58 @@ document.addEventListener('click', function(e) {
     if (dd) dd.style.display = 'none';
   }
 });
+
+// ── DATE FORMAT dd/mm/yyyy ────────────────────────────────────────────────────
+function fmtDate(d) {
+  if (!d) return '—';
+  // Handle ISO date strings like 2026-06-07 or 2026-06-07T...
+  const parts = d.slice(0,10).split('-');
+  if (parts.length === 3) return parts[2] + '/' + parts[1] + '/' + parts[0];
+  return d;
+}
+
+// ── CASES FILTER TOGGLE ───────────────────────────────────────────────────────
+function toggleCasesFilters() {
+  const panel   = document.getElementById('cases-filter-panel');
+  const chevron = document.getElementById('cases-filter-chevron');
+  const btn     = document.getElementById('cases-filter-btn');
+  if (!panel) return;
+  const isOpen = panel.style.display !== 'none';
+  panel.style.display = isOpen ? 'none' : 'block';
+  if (chevron) chevron.style.transform = isOpen ? 'rotate(0deg)' : 'rotate(180deg)';
+  if (btn) btn.style.background = isOpen ? 'var(--surface)' : 'var(--surface2)';
+}
+
+function resetCasesFilters() {
+  ['cases-bm-filter','cases-rm-filter','cases-status-filter',
+   'cases-bank-filter','cases-period-filter','cases-search'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = '';
+  });
+  const cr = document.getElementById('cases-custom-range');
+  if (cr) cr.style.display = 'none';
+  filterCases();
+}
+
+// ── HIDE HARDCODED SAMPLE CASES — show only live Supabase cases ───────────────
+function showOnlyLiveCases() {
+  // Filter out sample cases (non-live) from the cases array
+  const liveCasesOnly = cases.filter(c => c.isLive);
+  if (liveCasesOnly.length > 0) {
+    // Replace global cases with live only
+    cases.length = 0;
+    liveCasesOnly.forEach(c => cases.push(c));
+  }
+  // Update nav badge
+  const badge = document.getElementById('nav-cases-badge');
+  if (badge) badge.textContent = cases.length;
+  // Update count
+  const count = document.getElementById('cases-count');
+  if (count) count.textContent = cases.length + ' case' + (cases.length !== 1 ? 's' : '');
+  // Re-render
+  if (typeof renderAllCases === 'function') renderAllCases();
+  if (typeof filterCases === 'function') filterCases();
+}
 </script>
 
 </body></html>

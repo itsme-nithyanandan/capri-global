@@ -304,10 +304,154 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);fon
 .tm-input{width:100%;padding:8px 11px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:13px;font-family:inherit;outline:none;background:var(--surface);color:var(--text);transition:border-color .15s}
 .tm-input:focus{border-color:var(--accent)}
 .tm-label{font-size:11px;font-weight:600;color:var(--muted);letter-spacing:.04em;text-transform:uppercase;margin-bottom:4px;display:block}
+
+/* ════════════════════════════════════════════════
+   MOBILE RESPONSIVE — Capri Global Dashboard
+   Breakpoint: 768px
+════════════════════════════════════════════════ */
+
+/* ── HAMBURGER BUTTON ── */
+.hamburger {
+  display: none;
+  width: 36px; height: 36px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background: var(--surface2);
+  align-items: center; justify-content: center;
+  cursor: pointer; color: var(--text); font-size: 18px;
+  flex-shrink: 0;
+}
+
+/* ── SIDEBAR OVERLAY ── */
+.sidebar-overlay {
+  display: none;
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,.5);
+  z-index: 99;
+}
+.sidebar-overlay.open { display: block; }
+
+@media (max-width: 768px) {
+
+  /* ── SIDEBAR: hidden off-screen, slides in ── */
+  .sidebar {
+    transform: translateX(-100%);
+    transition: transform .28s cubic-bezier(.4,0,.2,1);
+    z-index: 200;
+  }
+  .sidebar.open { transform: translateX(0); }
+
+  /* ── MAIN: full width ── */
+  .main { margin-left: 0 !important; }
+
+  /* ── TOPBAR ── */
+  .topbar { padding: 0 14px; }
+  .topbar-right .icon-btn:not(:last-of-type) { display: none; }
+  .hamburger { display: flex; }
+  /* Hide send report text on small screens */
+  .btn-primary.btn-sm span { display: none; }
+
+  /* ── CONTENT ── */
+  .content { padding: 14px 12px 100px; }
+
+  /* ── KPI GRID: 2 columns on mobile ── */
+  .kpi-grid {
+    grid-template-columns: 1fr 1fr !important;
+    gap: 10px !important;
+  }
+  .kpi-card { padding: 14px 12px !important; }
+  .kpi-val { font-size: 22px !important; }
+
+  /* ── OVERVIEW GRID: stack vertically ── */
+  .overview-grid {
+    grid-template-columns: 1fr !important;
+    gap: 14px !important;
+  }
+
+  /* ── FILTERS: scroll horizontally ── */
+  .filter-bar {
+    flex-wrap: nowrap !important;
+    overflow-x: auto !important;
+    gap: 6px !important;
+    padding-bottom: 4px;
+    -webkit-overflow-scrolling: touch;
+  }
+  .filter-bar::-webkit-scrollbar { display: none; }
+  .filter-select { font-size: 11px !important; padding: 5px 22px 5px 8px !important; }
+  .filter-input { font-size: 11px !important; }
+
+  /* ── RECENT CASES TABLE: horizontal scroll ── */
+  .table-wrap {
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch;
+  }
+  .cases-table { min-width: 700px; }
+
+  /* ── TEAM SNAPSHOT: full width ── */
+  .team-snapshot { width: 100% !important; }
+  .snapshot-row { grid-template-columns: 1fr !important; }
+
+  /* ── MODALS: full screen on mobile ── */
+  .modal-overlay { align-items: flex-end !important; padding: 0 !important; }
+  .modal {
+    width: 100% !important;
+    max-width: 100% !important;
+    border-radius: 20px 20px 0 0 !important;
+    max-height: 90vh;
+    overflow-y: auto;
+  }
+  .wide-modal {
+    width: 100% !important;
+    max-width: 100% !important;
+    border-radius: 20px 20px 0 0 !important;
+    max-height: 92vh;
+    overflow-y: auto;
+  }
+
+  /* ── ALL CASES: hide less important columns ── */
+  .cases-table th:nth-child(4),
+  .cases-table td:nth-child(4),
+  .cases-table th:nth-child(8),
+  .cases-table td:nth-child(8),
+  .cases-table th:nth-child(9),
+  .cases-table td:nth-child(9) { display: none; }
+
+  /* ── g2 / g3 grids: stack ── */
+  .g2, .g3 { grid-template-columns: 1fr !important; }
+
+  /* ── FAB: adjust for mobile ── */
+  .fab-new-case {
+    left: 16px !important;
+    bottom: 20px !important;
+    padding: 12px 18px !important;
+  }
+
+  /* ── FORM FULLPAGE: mobile topbar ── */
+  .form-topbar { padding: 0 14px; }
+  .form-topbar-title { font-size: 13px; }
+
+  /* ── PAYOUT ALERT: wrap text ── */
+  .payout-alert { flex-direction: column !important; gap: 6px !important; }
+
+  /* ── TOP BANKS LIST: compact ── */
+  .bank-payout-row { padding: 8px 10px !important; }
+}
+
+@media (max-width: 480px) {
+  /* ── KPI: full width on very small ── */
+  .kpi-grid { grid-template-columns: 1fr 1fr !important; }
+  .kpi-val { font-size: 20px !important; }
+  .content { padding: 10px 10px 90px; }
+  .topbar { height: 52px; }
+  .topbar-title { font-size: 13px !important; }
+  .topbar-sub { display: none; }
+}
+
 </style>
 </head>
 <body>
 
+<div class="sidebar-overlay" id="sidebar-overlay" onclick="toggleSidebar()"></div>
 <!-- SIDEBAR -->
 <aside class="sidebar">
   <div class="sidebar-brand">
@@ -378,6 +522,9 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);fon
 <div class="main">
   <div class="topbar">
     <div class="topbar-left">
+      <button class="hamburger" onclick="toggleSidebar()" title="Menu">
+        <i class="ti ti-menu-2"></i>
+      </button>
       <div>
         <div class="topbar-title" id="topbar-title">Dashboard</div>
         <div class="topbar-sub" id="topbar-sub">May 2026 · Chennai Operations</div>
@@ -3467,6 +3614,23 @@ renderAIToggles();
 renderWeightSliders();
 renderTeamManagement();
 applyDashFilters();
+
+// ── MOBILE SIDEBAR TOGGLE ─────────────────────────────────────────────────────
+function toggleSidebar() {
+  const sidebar  = document.querySelector('.sidebar');
+  const overlay  = document.getElementById('sidebar-overlay');
+  const isOpen   = sidebar.classList.contains('open');
+  sidebar.classList.toggle('open', !isOpen);
+  overlay.classList.toggle('open', !isOpen);
+  document.body.style.overflow = isOpen ? '' : 'hidden';
+}
+// Close sidebar when a nav item is clicked on mobile
+document.querySelectorAll('.nav-item').forEach(item => {
+  item.addEventListener('click', () => {
+    if (window.innerWidth <= 768) toggleSidebar();
+  });
+});
+
 </script>
 
 

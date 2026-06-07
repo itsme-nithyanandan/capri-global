@@ -500,15 +500,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);fon
       <i class="ti ti-settings"></i> System settings
     </div>
   </nav>
-  <div class="sidebar-footer">
-    <div class="user-row">
-      <div class="user-avatar" id="sidebar-avatar">--</div>
-      <div>
-        <div class="user-name" id="sidebar-name">Loading...</div>
-        <div class="user-role" id="sidebar-role">Chennai</div>
-      </div>
-    </div>
-  </div>
+
 </aside>
 
 <!-- MAIN -->
@@ -524,25 +516,70 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);fon
       </div>
     </div>
     <div class="topbar-right">
-      <div class="icon-btn" title="Search" style="position:relative"><i class="ti ti-search"></i></div>
-      <div class="icon-btn" title="Notifications" style="position:relative">
-        <i class="ti ti-bell"></i>
-        <div class="notif-dot"></div>
+      <!-- Avatar dropdown -->
+      <div style="position:relative" id="avatar-menu-wrap">
+        <button id="avatar-btn" onclick="toggleAvatarMenu()"
+          style="width:36px;height:36px;border-radius:50%;
+                 background:linear-gradient(135deg,var(--gold),var(--gold-light));
+                 border:2px solid rgba(200,168,82,.4);
+                 display:flex;align-items:center;justify-content:center;
+                 font-size:12px;font-weight:700;color:#1A1814;
+                 cursor:pointer;transition:all .2s;flex-shrink:0"
+          id="topbar-avatar-btn">CH</button>
+
+        <!-- Dropdown -->
+        <div id="avatar-dropdown"
+          style="display:none;position:absolute;top:calc(100% + 8px);right:0;
+                 width:220px;background:var(--surface);
+                 border:1px solid var(--border);border-radius:var(--radius);
+                 box-shadow:var(--shadow-md);z-index:500;overflow:hidden">
+
+          <!-- User info -->
+          <div style="padding:14px 16px;border-bottom:1px solid var(--border);
+                      background:var(--surface2)">
+            <div style="display:flex;align-items:center;gap:10px">
+              <div style="width:38px;height:38px;border-radius:50%;flex-shrink:0;
+                          background:linear-gradient(135deg,var(--gold),var(--gold-light));
+                          display:flex;align-items:center;justify-content:center;
+                          font-size:13px;font-weight:700;color:#1A1814"
+                   id="dropdown-avatar">CH</div>
+              <div>
+                <div style="font-size:13px;font-weight:600;color:var(--text)"
+                     id="dropdown-name">City Head</div>
+                <div style="font-size:11px;color:var(--muted)"
+                     id="dropdown-role">Chennai · Full access</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Notifications -->
+          <div onclick="toggleAvatarMenu()"
+            style="display:flex;align-items:center;gap:10px;padding:11px 16px;
+                   cursor:pointer;transition:background .15s;font-size:13px;color:var(--text)"
+            onmouseover="this.style.background='var(--surface2)'"
+            onmouseout="this.style.background='transparent'">
+            <i class="ti ti-bell" style="font-size:16px;color:var(--muted)"></i>
+            <span>Notifications</span>
+            <span style="margin-left:auto;background:var(--accent);color:white;
+                         font-size:10px;font-weight:600;padding:2px 7px;
+                         border-radius:10px">3</span>
+          </div>
+
+          <!-- Divider -->
+          <div style="height:1px;background:var(--border)"></div>
+
+          <!-- Sign out -->
+          <div onclick="confirmLogout()"
+            style="display:flex;align-items:center;gap:10px;padding:11px 16px;
+                   cursor:pointer;transition:background .15s;font-size:13px;
+                   color:var(--red-text)"
+            onmouseover="this.style.background='var(--red-bg)'"
+            onmouseout="this.style.background='transparent'">
+            <i class="ti ti-logout" style="font-size:16px"></i>
+            <span>Sign out</span>
+          </div>
+        </div>
       </div>
-      <div class="icon-btn" title="Export"><i class="ti ti-download"></i></div>
-      <button class="btn btn-primary btn-sm" onclick="showTab(&#39;reports&#39;,document.querySelectorAll(&#39;.nav-item&#39;)[5])">
-        <i class="ti ti-send" style="font-size:12px"></i> Send report
-      </button>
-      <div style="width:1px;height:20px;background:var(--border);margin:0 4px"></div>
-      <button onclick="confirmLogout()" title="Sign out"
-        style="display:flex;align-items:center;gap:6px;padding:7px 12px;border-radius:var(--radius-sm);
-               border:1px solid var(--border);background:transparent;cursor:pointer;
-               font-family:inherit;font-size:12px;font-weight:500;color:var(--muted);
-               transition:all .15s;white-space:nowrap"
-        onmouseover="this.style.background='var(--red-bg)';this.style.color='var(--red-text)';this.style.borderColor='var(--red-border)'"
-        onmouseout="this.style.background='transparent';this.style.color='var(--muted)';this.style.borderColor='var(--border)'">
-        <i class="ti ti-logout" style="font-size:14px"></i> Sign out
-      </button>
     </div>
   </div>
 
@@ -3874,6 +3911,22 @@ function toggleDashFilters() {
   if (chevron) chevron.style.transform = isOpen ? 'rotate(0deg)' : 'rotate(180deg)';
   if (btn) btn.style.background = isOpen ? 'var(--surface)' : 'var(--surface2)';
 }
+
+// ── AVATAR DROPDOWN ───────────────────────────────────────────────────────────
+function toggleAvatarMenu() {
+  const dd = document.getElementById('avatar-dropdown');
+  if (!dd) return;
+  const isOpen = dd.style.display !== 'none';
+  dd.style.display = isOpen ? 'none' : 'block';
+}
+// Close dropdown when clicking outside
+document.addEventListener('click', function(e) {
+  const wrap = document.getElementById('avatar-menu-wrap');
+  if (wrap && !wrap.contains(e.target)) {
+    const dd = document.getElementById('avatar-dropdown');
+    if (dd) dd.style.display = 'none';
+  }
+});
 </script>
 
 </body></html>

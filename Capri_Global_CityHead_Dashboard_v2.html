@@ -4,8 +4,8 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Capri Global — City Head Dashboard</title>
-<link href="./Capri Global — City Head Dashboard_files/css2" rel="stylesheet">
-<link rel="stylesheet" href="./Capri Global — City Head Dashboard_files/tabler-icons.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,500;0,9..144,600;1,9..144,300&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <style>
 :root {
@@ -320,7 +320,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);fon
         <div class="brand-sub">Chennai Operations</div>
       </div>
     </div>
-    <div class="brand-badge" id="brand-role-badge"><i class="ti ti-shield-check" style="font-size:10px"></i> City Head</div>
+    
   </div>
   <nav class="sidebar-nav">
     <div class="nav-section">Overview</div>
@@ -3322,18 +3322,40 @@ function switchCDMTab(tab,el){
 
 function renderCDMTab(tab,c){
   const body=document.getElementById('cdm-body');
+  const val = v => v && v !== '—' && v !== 0 ? v : '<span style="color:var(--muted)">—</span>';
+  const fmtInr = n => n ? '₹' + Number(n).toLocaleString('en-IN') : '<span style="color:var(--muted)">—</span>';
   if(tab==='basic'){
+    // Use real data from case object — live cases have extra fields stored in c._raw
+    const raw = c._raw || {};
+    const personalRows = [
+      ['Full Name',       val(c.cust)],
+      ['Date of Birth',   val(raw.cust_dob || c.dob)],
+      ['Gender',          val(raw.cust_gender || c.gender)],
+      ['Mobile',          val(raw.cust_mobile || c.mobile)],
+      ['Email',           val(raw.cust_email || c.email)],
+      ['PAN',             val(raw.cust_pan || c.pan)],
+      ['Aadhaar',         val(raw.cust_aadhaar)],
+      ['Marital Status',  val(raw.cust_marital)],
+      ['Dependants',      val(raw.cust_dependants)],
+      ['Current Pincode', val(raw.curr_pincode || c.pincode)],
+    ].filter(([k,v]) => !v.includes('—') || ['Full Name','Mobile'].includes(k));
+    const empRows = [
+      ['Employment Type', val(raw.emp_type || c.emp)],
+      ['Employer',        val(raw.emp_company || c.employer)],
+      ['Net Monthly Income', fmtInr(raw.inc_net_monthly || c.income)],
+      ['Residence Type',  val(raw.res_type)],
+    ].filter(([k,v]) => !v.includes('—'));
     body.innerHTML=`
       <div class="g2" style="gap:14px">
         <div>
           <div class="detail-section-title" style="margin-bottom:10px">Personal Details</div>
-          ${[['Full Name',c.cust],['Date of Birth','15 Mar 1988'],['Gender','Male'],['Father\'s Name','Rajan Kumar'],['Mobile','9876543210'],['Email','customer@email.com'],['PAN','ABCDE1234F'],['Aadhaar','XXXX XXXX 1234'],['Address','14/5 Anna Nagar, Chennai – 600040']].map(([k,v])=>`
+          ${personalRows.map(([k,v])=>`
           <div class="detail-row"><span class="detail-key">${k}</span><span class="detail-val">${v}</span></div>`).join('')}
         </div>
         <div>
           <div class="detail-section-title" style="margin-bottom:10px">Employment</div>
-          ${[['Employment Type','Salaried'],['Employer','Infosys Limited'],['Designation','Senior Engineer'],['Monthly Income','₹85,000'],['Experience','6 years 4 months'],['Office Address','Tidel Park, Chennai']].map(([k,v])=>`
-          <div class="detail-row"><span class="detail-key">${k}</span><span class="detail-val">${v}</span></div>`).join('')}
+          ${empRows.length ? empRows.map(([k,v])=>`
+          <div class="detail-row"><span class="detail-key">${k}</span><span class="detail-val">${v}</span></div>`).join('') : '<div style="color:var(--muted);font-size:12px;padding:8px 0">No employment data entered yet</div>'}
         </div>
       </div>`;
   } else if(tab==='loan'){
@@ -3484,13 +3506,7 @@ window.addEventListener('DOMContentLoaded', async () => {
     if (roleEl)  roleEl.textContent  = roleLabel[user.role] || user.role;
     if (badgeEl) badgeEl.textContent = roleBadge[user.role] || user.role.toUpperCase();
 
-    // Update brand badge in sidebar top
-    const brandBadge = document.getElementById('brand-role-badge');
-    const brandIcons = { city_head:'ti-shield-check', bm:'ti-users', rm:'ti-user' };
-    if (brandBadge) {
-      const icon = brandIcons[user.role] || 'ti-user';
-      brandBadge.innerHTML = '<i class="ti ' + icon + '" style="font-size:10px"></i> ' + (roleBadge[user.role] || user.role);
-    }
+    // brand badge removed
 
     // ── BM role ──
     if (user.role === 'bm') {
@@ -3728,8 +3744,6 @@ async function loadLiveCases(user) {
       const bmName  = isCreatorBM ? (creator?.name || '—') : (bm?.name || '—');
       const rmName  = isCreatorBM ? '—' : (creator?.name || '—');
 
-      console.log('Case', c.id, '| creator:', creator?.name, creator?.role, '| bm:', bmName, '| rm:', rmName);
-
       return {
         id:      c.id,
         date:    c.submitted_at ? c.submitted_at.slice(0,10) : c.created_at.slice(0,10),
@@ -3746,7 +3760,8 @@ async function loadLiveCases(user) {
         pincode: c.curr_pincode || c.perm_pincode || '',
         income:  c.inc_net_monthly || 0,
         emp:     c.emp_type || '',
-        isLive:  true
+        isLive:  true,
+        _raw:    c   // store full raw object for modal detail view
       };
     });
 
@@ -3912,7 +3927,9 @@ async function loadLiveCases(user) {
 
 <!-- FAB -->
 <button class="fab-new-case" onclick="openFormPage()">
-  <div class="fab-icon"><i class="ti ti-plus"></i></div>
+  <div class="fab-icon" style="background:rgba(26,72,0,.18)">
+    <i class="ti ti-plus" style="font-size:16px;color:#1A1200;font-weight:700"></i>
+  </div>
   <div class="fab-label">
     <span class="fab-label-main">New Case</span>
     <span class="fab-label-sub">Fill form →</span>

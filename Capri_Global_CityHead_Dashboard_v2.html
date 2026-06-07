@@ -121,8 +121,8 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);fon
 .kpi-value{font-size:28px;font-weight:600;line-height:1;margin-bottom:6px;font-family:'DM Mono',monospace;letter-spacing:-.02em}
 .kpi-sub{font-size:11px;color:var(--muted);display:flex;align-items:center;gap:4px}
 .kpi-icon{position:absolute;right:16px;top:16px;width:38px;height:38px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:18px}
-.kpi-bar{height:3px;border-radius:2px;background:var(--border);margin-top:12px;overflow:hidden}
-.kpi-fill{height:100%;border-radius:2px;transition:width .8s cubic-bezier(.4,0,.2,1)}
+
+
 .trend-up{color:var(--green-text)}
 .trend-dn{color:var(--red-text)}
 
@@ -678,7 +678,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);fon
           <div class="kpi-value" style="color:var(--accent)" id="kpi-files">10</div>
           <div style="font-size:11px;font-weight:600;color:var(--muted);margin-bottom:4px" id="kpi-files-val">₹1.23 Cr total value</div>
           <div class="kpi-sub"><span class="trend-up"><i class="ti ti-trending-up" style="font-size:11px"></i> +4 vs April</span></div>
-          <div class="kpi-bar"><div class="kpi-fill" style="width:80%;background:var(--accent)"></div></div>
+          
         </div>
 
         <!-- 2. In Process -->
@@ -698,7 +698,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);fon
           <div class="kpi-value" style="color:var(--green-text)" id="kpi-sanc">3</div>
           <div style="font-size:11px;font-weight:600;color:var(--green-text);margin-bottom:4px" id="kpi-sanc-val">₹35.5L pending disbursal</div>
           <div class="kpi-sub"><span style="color:var(--muted)">Cases yet to be disbursed</span></div>
-          <div class="kpi-bar"><div class="kpi-fill" id="kpi-sanc-bar" style="width:30%;background:var(--green-text)"></div></div>
+          
         </div>
 
         <!-- 4. Disbursements -->
@@ -727,7 +727,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);fon
           <div class="kpi-label">Total Payout — May</div>
           <div class="kpi-value" style="color:var(--purple-text);font-size:22px" id="kpi-payout-val">₹53,883</div>
           <div class="kpi-sub"><span class="trend-up"><i class="ti ti-trending-up" style="font-size:11px"></i> +₹14K vs April</span></div>
-          <div class="kpi-bar"><div class="kpi-fill" id="kpi-payout-bar" style="width: 100%; background: var(--purple-text);"></div></div>
+          
         </div>
 
       </div>
@@ -970,7 +970,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);fon
       <div class="kpi-label">Anand R</div>
       <div class="kpi-value" style="color:#1A4F3A;font-size:26px">5</div>
       <div class="kpi-sub" style="margin-bottom:4px">sanctioned of 8 files</div>
-      <div class="kpi-bar"><div class="kpi-fill" style="width:50%;background:#1A4F3A"></div></div>
+      
     </div>
   
     <div class="kpi">
@@ -980,7 +980,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);fon
       <div class="kpi-label">Priya S</div>
       <div class="kpi-value" style="color:#1E40AF;font-size:26px">4</div>
       <div class="kpi-sub" style="margin-bottom:4px">sanctioned of 7 files</div>
-      <div class="kpi-bar"><div class="kpi-fill" style="width:50%;background:#1E40AF"></div></div>
+      
     </div>
   
     <div class="kpi">
@@ -990,7 +990,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);fon
       <div class="kpi-label">Karthik M</div>
       <div class="kpi-value" style="color:#5B21B6;font-size:26px">3</div>
       <div class="kpi-sub" style="margin-bottom:4px">sanctioned of 5 files</div>
-      <div class="kpi-bar"><div class="kpi-fill" style="width:38%;background:#5B21B6"></div></div>
+      
     </div>
   
     <div class="kpi">
@@ -1000,7 +1000,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);fon
       <div class="kpi-label">Divya L</div>
       <div class="kpi-value" style="color:#B45309;font-size:26px">2</div>
       <div class="kpi-sub" style="margin-bottom:4px">sanctioned of 4 files</div>
-      <div class="kpi-bar"><div class="kpi-fill" style="width:25%;background:#B45309"></div></div>
+      
     </div>
   
     <div class="kpi">
@@ -1010,7 +1010,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);fon
       <div class="kpi-label">Ravi T</div>
       <div class="kpi-value" style="color:#0F766E;font-size:26px">1</div>
       <div class="kpi-sub" style="margin-bottom:4px">sanctioned of 2 files</div>
-      <div class="kpi-bar"><div class="kpi-fill" style="width:13%;background:#0F766E"></div></div>
+      
     </div>
   
     <div class="kpi">
@@ -1020,7 +1020,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);fon
       <div class="kpi-label">Sneha K</div>
       <div class="kpi-value" style="color:#7C3AED;font-size:26px">1</div>
       <div class="kpi-sub" style="margin-bottom:4px">sanctioned of 1 files</div>
-      <div class="kpi-bar"><div class="kpi-fill" style="width:13%;background:#7C3AED"></div></div>
+      
     </div>
   </div>
       <div class="g-main" style="margin-bottom:18px">
@@ -1377,10 +1377,10 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);fon
     <!-- ══ TAB: ONLINE LEADS (was RTO) ══ -->
     <div class="tab-pane" id="tab-rto">
       <div class="g4" style="margin-bottom:18px">
-        <div class="kpi"><div class="kpi-label">Total Leads</div><div class="kpi-value">18</div><div class="kpi-bar"><div class="kpi-fill" style="width:100%;background:var(--accent)"></div></div></div>
-        <div class="kpi"><div class="kpi-label">Contacted</div><div class="kpi-value" style="color:var(--amber-text)">8</div><div class="kpi-bar"><div class="kpi-fill" style="width:44%;background:var(--amber-text)"></div></div></div>
-        <div class="kpi"><div class="kpi-label">Interested</div><div class="kpi-value" style="color:var(--blue-text)">5</div><div class="kpi-bar"><div class="kpi-fill" style="width:28%;background:var(--blue-text)"></div></div></div>
-        <div class="kpi"><div class="kpi-label">Converted</div><div class="kpi-value" style="color:var(--green-text)">3</div><div class="kpi-bar"><div class="kpi-fill" style="width:17%;background:var(--green-text)"></div></div></div>
+        <div class="kpi"><div class="kpi-label">Total Leads</div><div class="kpi-value">18</div></div>
+        <div class="kpi"><div class="kpi-label">Contacted</div><div class="kpi-value" style="color:var(--amber-text)">8</div></div>
+        <div class="kpi"><div class="kpi-label">Interested</div><div class="kpi-value" style="color:var(--blue-text)">5</div></div>
+        <div class="kpi"><div class="kpi-label">Converted</div><div class="kpi-value" style="color:var(--green-text)">3</div></div>
       </div>
       <div class="card">
         <div class="card-pad" style="padding-bottom:0">
@@ -2773,7 +2773,7 @@ function renderTeamTab(){
       <div class="kpi-label">${m.name}</div>
       <div class="kpi-value" style="color:${m.color};font-size:26px">${m.sanctioned}</div>
       <div class="kpi-sub" style="margin-bottom:4px">sanctioned of ${m.files} files</div>
-      <div class="kpi-bar"><div class="kpi-fill" style="width:${Math.round(m.sanctioned/m.target*100)}%;background:${m.color}"></div></div>
+      
     </div>
   `).join('');
 

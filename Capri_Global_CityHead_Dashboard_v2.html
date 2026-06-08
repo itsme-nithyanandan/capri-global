@@ -3382,7 +3382,7 @@ const tabTitles={
 };
 
 function showTab(id,el){
-  if(id==='cases'){setTimeout(()=>{if(typeof filterCases==='function')filterCases();},80);}
+  if(id==='cases'){setTimeout(()=>{console.log('cases tab opened, cases array:', cases.length); if(typeof filterCases==='function')filterCases();},80);}
   document.querySelectorAll('.tab-pane').forEach(p=>p.classList.remove('on'));
   document.querySelectorAll('.nav-item').forEach(b=>b.classList.remove('active'));
   document.getElementById('tab-'+id).classList.add('on');

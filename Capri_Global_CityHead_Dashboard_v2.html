@@ -120,8 +120,8 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);fon
 .kpi-value{font-size:28px;font-weight:600;line-height:1;margin-bottom:6px;font-family:'DM Mono',monospace;letter-spacing:-.02em}
 .kpi-sub{font-size:11px;color:var(--muted);display:flex;align-items:center;gap:4px}
 .kpi-icon{position:absolute;right:16px;top:16px;width:38px;height:38px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:18px}
-.kpi-bar{height:3px;border-radius:2px;background:var(--border);margin-top:12px;overflow:hidden}
-.kpi-fill{height:100%;border-radius:2px;transition:width .8s cubic-bezier(.4,0,.2,1)}
+
+
 .trend-up{color:var(--green-text)}
 .trend-dn{color:var(--red-text)}
 
@@ -304,6 +304,17 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);fon
 .tm-input:focus{border-color:var(--accent)}
 .tm-label{font-size:11px;font-weight:600;color:var(--muted);letter-spacing:.04em;text-transform:uppercase;margin-bottom:4px;display:block}
 </style>
+
+<style>
+/* Mobile KPI 2-col */
+@media(max-width:768px){
+  #kpi-grid{grid-template-columns:1fr 1fr!important;gap:10px!important}
+  .kpi{padding:14px 12px!important}
+  .kpi-value{font-size:20px!important}
+  .content{padding:14px 12px 100px!important}
+  .filter-bar,.filter-bar *{flex-wrap:wrap}
+}
+</style>
 </head>
 <body>
 
@@ -362,15 +373,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);fon
       <i class="ti ti-settings"></i> System settings
     </div>
   </nav>
-  <div class="sidebar-footer">
-    <div class="user-row">
-      <div class="user-avatar">CK</div>
-      <div>
-        <div class="user-name">City Head</div>
-        <div class="user-role">Chennai · Full access</div>
-      </div>
-    </div>
-  </div>
+  
 </aside>
 
 <!-- MAIN -->
@@ -401,53 +404,68 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);fon
     <div class="tab-pane on" id="tab-overview">
 
       <!-- DASHBOARD FILTERS -->
-      <div style="display:flex;align-items:center;gap:8px;margin-bottom:16px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:12px 16px;box-shadow:var(--shadow-sm);flex-wrap:wrap">
-        <i class="ti ti-filter" style="font-size:15px;color:var(--muted);flex-shrink:0"></i>
-        <span style="font-size:11px;font-weight:700;color:var(--muted);letter-spacing:.06em;text-transform:uppercase;margin-right:4px">Filters</span>
-        <div style="width:1px;height:20px;background:var(--border);margin:0 4px;flex-shrink:0"></div>
-
-        <div style="display:flex;align-items:center;gap:7px">
-          <label style="font-size:11px;font-weight:600;color:var(--muted2);white-space:nowrap;letter-spacing:.04em;text-transform:uppercase">Finance Institute</label>
-          <select class="filter-select" id="dash-bank-filter" onchange="applyDashFilters()" style="font-size:12.5px;padding:5px 10px;min-width:150px">
-            <option value="">All Banks / NBFCs</option>
-            <option>HDFC Bank</option><option>ICICI Bank</option><option>Axis Bank</option>
-            <option>Kotak Bank</option><option>SBI</option><option>IndusInd Bank</option>
-            <option>Tata Capital</option><option>Mahindra Finance</option><option>HDB Financial</option><option>Cholamandalam</option>
-          </select>
-        </div>
-
-        <div style="display:flex;align-items:center;gap:7px">
-          <label style="font-size:11px;font-weight:600;color:var(--muted2);white-space:nowrap;letter-spacing:.04em;text-transform:uppercase">BM</label>
-          <select class="filter-select" id="dash-bm-filter" onchange="onBMChange()" style="font-size:12.5px;padding:5px 10px;min-width:130px"><option value="">All BMs</option><option value="Anand R">Anand R</option><option value="Divya L">Divya L</option></select>
-        </div>
-
-        <div style="display:flex;align-items:center;gap:7px">
-          <label style="font-size:11px;font-weight:600;color:var(--muted2);white-space:nowrap;letter-spacing:.04em;text-transform:uppercase">RM</label>
-          <select class="filter-select" id="dash-rm-filter" onchange="applyDashFilters()" style="font-size:12.5px;padding:5px 10px;min-width:140px" disabled="">
-            <option value="">— Select BM first —</option>
-          </select>
-        </div>
-
-        <div style="display:flex;align-items:center;gap:7px">
-          <label style="font-size:11px;font-weight:600;color:var(--muted2);white-space:nowrap;letter-spacing:.04em;text-transform:uppercase">Period</label>
-          <select class="filter-select" id="dash-period-select" onchange="setPeriod(this.value)" style="font-size:12.5px;padding:5px 10px;min-width:200px"><option value="" selected="" disabled="">Select Period</option><option value="today">Today</option><option value="thisweek">This Week</option><option value="lastweek">Last Week</option><option disabled="">────────────────</option><option value="fy">FY 2026–27 (Full year)</option><option disabled="">────────────────</option><option value="q1">Q1 — Apr–Jun 2026</option><option value="q2">Q2 — Jul–Sep 2026</option><option value="q3">Q3 — Oct–Dec 2026</option><option value="q4">Q4 — Jan–Mar 2027</option><option disabled="">────────────────</option><option value="h1">H1 — Apr–Sep 2026</option><option value="h2">H2 — Oct–Mar 2027</option><option disabled="">────────────────</option><option value="custom">Custom Range…</option></select>
-          <div id="custom-range-wrap" style="display:none;align-items:center;gap:6px">
-            <input type="date" id="dash-date-from" class="filter-input" value="" onchange="applyDashFilters()" style="font-size:12px;padding:4px 9px;width:132px">
-            <span style="font-size:11px;color:var(--muted2)">→</span>
-            <input type="date" id="dash-date-to" class="filter-input" value="" onchange="applyDashFilters()" style="font-size:12px;padding:4px 9px;width:132px">
-          </div>
-        </div>
-
-        <div style="margin-left:auto;display:flex;align-items:center;gap:8px">
-          <span id="dash-filter-badge" style="display:none;background:var(--accent);color:white;font-size:10px;font-weight:600;padding:3px 9px;border-radius:10px;letter-spacing:.03em"></span>
-          <button class="btn btn-sm" onclick="resetDashFilters()" style="color:var(--muted);gap:5px">
-            <i class="ti ti-refresh" style="font-size:12px"></i> Reset
-          </button>
+<div style="margin-bottom:16px">
+  <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+    <button onclick="toggleDashFilters()" id="filter-toggle-btn"
+      style="display:flex;align-items:center;gap:7px;padding:8px 14px;border-radius:var(--radius-sm);border:1px solid var(--border);background:var(--surface);cursor:pointer;font-family:inherit;font-size:12.5px;font-weight:500;color:var(--text);transition:all .15s;box-shadow:var(--shadow-sm)">
+      <i class="ti ti-filter" style="font-size:14px;color:var(--muted)"></i>
+      Filters
+      <span id="dash-filter-badge" style="display:none;background:var(--accent);color:white;font-size:10px;font-weight:600;padding:2px 7px;border-radius:10px">0</span>
+      <i class="ti ti-chevron-down" id="filter-chevron" style="font-size:12px;color:var(--muted);transition:transform .2s"></i>
+    </button>
+    <button class="btn btn-sm" onclick="resetDashFilters()" style="color:var(--muted)">
+      <i class="ti ti-refresh" style="font-size:12px"></i> Reset
+    </button>
+  </div>
+  <div id="dash-filter-panel" style="display:none;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px;box-shadow:var(--shadow-sm)">
+    <div style="display:flex;flex-wrap:wrap;gap:12px;align-items:flex-end">
+      <div style="display:flex;flex-direction:column;gap:4px">
+        <label style="font-size:10px;font-weight:600;color:var(--muted2);letter-spacing:.06em;text-transform:uppercase">Finance Institute</label>
+        <select class="filter-select" id="dash-bank-filter" onchange="applyDashFilters()" style="font-size:12.5px;padding:6px 10px;min-width:150px">
+          <option value="">All Banks / NBFCs</option>
+          <option>HDFC Bank</option><option>ICICI Bank</option><option>Axis Bank</option><option>Kotak Bank</option><option>SBI</option><option>IndusInd Bank</option><option>Tata Capital</option><option>Mahindra Finance</option><option>HDB Financial</option><option>Cholamandalam</option>
+        </select>
+      </div>
+      <div id="bm-filter-wrap" style="display:flex;flex-direction:column;gap:4px">
+        <label style="font-size:10px;font-weight:600;color:var(--muted2);letter-spacing:.06em;text-transform:uppercase">BM</label>
+        <select class="filter-select" id="dash-bm-filter" onchange="onBMChange()" style="font-size:12.5px;padding:6px 10px;min-width:130px">
+          <option value="">All BMs</option><option value="Anand R">Anand R</option><option value="Divya L">Divya L</option>
+        </select>
+      </div>
+      <div id="rm-filter-wrap" style="display:flex;flex-direction:column;gap:4px">
+        <label style="font-size:10px;font-weight:600;color:var(--muted2);letter-spacing:.06em;text-transform:uppercase">RM</label>
+        <select class="filter-select" id="dash-rm-filter" onchange="applyDashFilters()" style="font-size:12.5px;padding:6px 10px;min-width:140px" disabled="">
+          <option value="">— Select BM first —</option>
+        </select>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:4px">
+        <label style="font-size:10px;font-weight:600;color:var(--muted2);letter-spacing:.06em;text-transform:uppercase">Period</label>
+        <select class="filter-select" id="dash-period-select" onchange="setPeriod(this.value)" style="font-size:12.5px;padding:6px 10px;min-width:180px">
+          <option value="" selected disabled>Select Period</option>
+          <option value="today">Today</option><option value="thisweek">This Week</option><option value="lastweek">Last Week</option>
+          <option disabled>────────</option>
+          <option value="fy">FY 2026–27</option>
+          <option disabled>────────</option>
+          <option value="q1">Q1 Apr–Jun</option><option value="q2">Q2 Jul–Sep</option><option value="q3">Q3 Oct–Dec</option><option value="q4">Q4 Jan–Mar</option>
+          <option disabled>────────</option>
+          <option value="h1">H1 Apr–Sep</option><option value="h2">H2 Oct–Mar</option>
+          <option disabled>────────</option>
+          <option value="custom">Custom Range…</option>
+        </select>
+      </div>
+      <div id="custom-range-wrap" style="display:none;flex-direction:column;gap:4px">
+        <label style="font-size:10px;font-weight:600;color:var(--muted2);letter-spacing:.06em;text-transform:uppercase">Custom Range</label>
+        <div style="display:flex;align-items:center;gap:6px">
+          <input type="date" id="dash-date-from" class="filter-input" onchange="applyDashFilters()" style="font-size:12px;padding:6px 9px;width:132px">
+          <span style="font-size:11px;color:var(--muted2)">→</span>
+          <input type="date" id="dash-date-to" class="filter-input" onchange="applyDashFilters()" style="font-size:12px;padding:6px 9px;width:132px">
         </div>
       </div>
-
-      <!-- KPI ROW -->
-      <div style="display:grid;grid-template-columns:repeat(6,1fr);gap:13px;margin-bottom:18px">
+    </div>
+  </div>
+</div>
+<!-- KPI ROW -->
+      <div id="kpi-grid" style="display:grid;grid-template-columns:repeat(6,1fr);gap:13px;margin-bottom:18px">
 
         <!-- 1. Total Files -->
         <div class="kpi">
@@ -456,7 +474,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);fon
           <div class="kpi-value" style="color:var(--accent)" id="kpi-files">10</div>
           <div style="font-size:11px;font-weight:600;color:var(--muted);margin-bottom:4px" id="kpi-files-val">₹1.23 Cr total value</div>
           <div class="kpi-sub"><span class="trend-up"><i class="ti ti-trending-up" style="font-size:11px"></i> +4 vs April</span></div>
-          <div class="kpi-bar"><div class="kpi-fill" style="width:80%;background:var(--accent)"></div></div>
+          
         </div>
 
         <!-- 2. In Process -->
@@ -476,7 +494,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);fon
           <div class="kpi-value" style="color:var(--green-text)" id="kpi-sanc">3</div>
           <div style="font-size:11px;font-weight:600;color:var(--green-text);margin-bottom:4px" id="kpi-sanc-val">₹35.5L pending disbursal</div>
           <div class="kpi-sub"><span style="color:var(--muted)">Cases yet to be disbursed</span></div>
-          <div class="kpi-bar"><div class="kpi-fill" id="kpi-sanc-bar" style="width:30%;background:var(--green-text)"></div></div>
+          
         </div>
 
         <!-- 4. Disbursements -->
@@ -505,294 +523,18 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);fon
           <div class="kpi-label">Total Payout — May</div>
           <div class="kpi-value" style="color:var(--purple-text);font-size:22px" id="kpi-payout-val">₹53,883</div>
           <div class="kpi-sub"><span class="trend-up"><i class="ti ti-trending-up" style="font-size:11px"></i> +₹14K vs April</span></div>
-          <div class="kpi-bar"><div class="kpi-fill" id="kpi-payout-bar" style="width: 100%; background: var(--purple-text);"></div></div>
+          
         </div>
 
       </div>
 
-      <!-- PAYOUT ALERT -->
-      <div class="alert-banner warn" style="margin-bottom:16px">
-        <i class="ti ti-alert-triangle" style="color:var(--amber-text);font-size:16px;flex-shrink:0;margin-top:1px"></i>
-        <div><strong style="font-weight:600">Payout alert</strong> — Karthik M submitted CPG-019 to Axis Bank (payout ₹4,250) instead of recommended HDFC Bank (payout ₹5,000). Potential loss: <strong>₹750</strong>. <span style="cursor:pointer;color:var(--blue-text);text-decoration:underline;font-weight:500" onclick="openCase(&#39;CPG-019&#39;)">View case →</span></div>
-      </div>
+            </div>
 
       <div class="g-main">
         <!-- LEFT -->
         <div style="display:flex;flex-direction:column;gap:16px">
 
-          <!-- RECENT CASES -->
-          <div class="card">
-            <div class="card-pad" style="padding-bottom:0">
-              <div class="card-title">
-                Recent Cases
-                <div style="display:flex;gap:7px;align-items:center">
-                  <select class="filter-select" style="font-size:11px;padding:4px 8px" onchange="filterTable(this.value)">
-                    <option value="all">All members</option>
-                    <option>Anand R</option><option>Priya S</option><option>Karthik M</option><option>Divya L</option>
-                  </select>
-                  <button class="btn btn-sm" onclick="showTab(&#39;cases&#39;,document.querySelectorAll(&#39;.nav-item&#39;)[1])">View all →</button>
-                </div>
-              </div>
-            </div>
-            <table class="data-table" id="recent-table">
-              <thead>
-                <tr><th>Case ID</th><th>Customer</th><th>Member</th><th>Bank</th><th>Loan</th><th>Status</th><th>Payout</th></tr>
-              </thead>
-              <tbody id="recent-tbody"><tr onclick="openCase(&#39;CPG-024&#39;)">
-    <td><span style="font-family:&#39;DM Mono&#39;,monospace;font-size:11px;color:var(--muted)">CPG-024</span></td>
-    <td style="font-weight:500">Senthil Rajan</td>
-    <td><div style="display:flex;align-items:center;gap:6px">
-      <div class="avatar" style="background:#1A4F3A;width:22px;height:22px;font-size:9px">AR</div>
-      <span>Anand R</span></div></td>
-    <td style="font-size:12px">ICICI Bank</td>
-    <td style="font-family:&#39;DM Mono&#39;,monospace;font-size:12px">₹2.0L</td>
-    <td><span class="badge badge-amber">In process</span></td>
-    <td style="font-family:&#39;DM Mono&#39;,monospace;font-size:12px;color:var(--green-text);font-weight:600">₹7,838</td>
-  </tr><tr onclick="openCase(&#39;CPG-023&#39;)">
-    <td><span style="font-family:&#39;DM Mono&#39;,monospace;font-size:11px;color:var(--muted)">CPG-023</span></td>
-    <td style="font-weight:500">Meenakshi Devi</td>
-    <td><div style="display:flex;align-items:center;gap:6px">
-      <div class="avatar" style="background:#1E40AF;width:22px;height:22px;font-size:9px">PS</div>
-      <span>Priya S</span></div></td>
-    <td style="font-size:12px">HDFC Bank</td>
-    <td style="font-family:&#39;DM Mono&#39;,monospace;font-size:12px">₹1.0L</td>
-    <td><span class="badge badge-green">Sanctioned</span></td>
-    <td style="font-family:&#39;DM Mono&#39;,monospace;font-size:12px;color:var(--green-text);font-weight:600">₹7,100</td>
-  </tr><tr onclick="openCase(&#39;CPG-022&#39;)">
-    <td><span style="font-family:&#39;DM Mono&#39;,monospace;font-size:11px;color:var(--muted)">CPG-022</span></td>
-    <td style="font-weight:500">Balaji Krishnan</td>
-    <td><div style="display:flex;align-items:center;gap:6px">
-      <div class="avatar" style="background:#5B21B6;width:22px;height:22px;font-size:9px">KM</div>
-      <span>Karthik M</span></div></td>
-    <td style="font-size:12px">SBI</td>
-    <td style="font-family:&#39;DM Mono&#39;,monospace;font-size:12px">₹1.0L</td>
-    <td><span class="badge badge-green">Disbursed</span></td>
-    <td style="font-family:&#39;DM Mono&#39;,monospace;font-size:12px;color:var(--green-text);font-weight:600">₹2,000</td>
-  </tr><tr onclick="openCase(&#39;CPG-021&#39;)">
-    <td><span style="font-family:&#39;DM Mono&#39;,monospace;font-size:11px;color:var(--muted)">CPG-021</span></td>
-    <td style="font-weight:500">Lavanya Subramanian</td>
-    <td><div style="display:flex;align-items:center;gap:6px">
-      <div class="avatar" style="background:#B45309;width:22px;height:22px;font-size:9px">DL</div>
-      <span>Divya L</span></div></td>
-    <td style="font-size:12px">IndusInd Bank</td>
-    <td style="font-family:&#39;DM Mono&#39;,monospace;font-size:12px">₹1.0L</td>
-    <td><span class="badge badge-amber">In process</span></td>
-    <td style="font-family:&#39;DM Mono&#39;,monospace;font-size:12px;color:var(--green-text);font-weight:600">₹7,040</td>
-  </tr><tr onclick="openCase(&#39;CPG-020&#39;)">
-    <td><span style="font-family:&#39;DM Mono&#39;,monospace;font-size:11px;color:var(--muted)">CPG-020</span></td>
-    <td style="font-weight:500">Raj Kumar</td>
-    <td><div style="display:flex;align-items:center;gap:6px">
-      <div class="avatar" style="background:#1A4F3A;width:22px;height:22px;font-size:9px">AR</div>
-      <span>Anand R</span></div></td>
-    <td style="font-size:12px">HDFC Bank</td>
-    <td style="font-family:&#39;DM Mono&#39;,monospace;font-size:12px">₹2.0L</td>
-    <td><span class="badge badge-green">Disbursed</span></td>
-    <td style="font-family:&#39;DM Mono&#39;,monospace;font-size:12px;color:var(--green-text);font-weight:600">₹7,500</td>
-  </tr><tr onclick="openCase(&#39;CPG-019&#39;)">
-    <td><span style="font-family:&#39;DM Mono&#39;,monospace;font-size:11px;color:var(--muted)">CPG-019</span></td>
-    <td style="font-weight:500">Suresh Pillai</td>
-    <td><div style="display:flex;align-items:center;gap:6px">
-      <div class="avatar" style="background:#5B21B6;width:22px;height:22px;font-size:9px">KM</div>
-      <span>Karthik M</span></div></td>
-    <td style="font-size:12px">Axis Bank</td>
-    <td style="font-family:&#39;DM Mono&#39;,monospace;font-size:12px">₹1.0L</td>
-    <td><span class="badge badge-green">Sanctioned</span></td>
-    <td style="font-family:&#39;DM Mono&#39;,monospace;font-size:12px;color:var(--green-text);font-weight:600">₹4,275</td>
-  </tr></tbody>
-            </table>
-          </div>
-
-          <!-- TREND CHART -->
-          <div class="card card-pad">
-            <div class="card-title">
-              Monthly Loan Book Trend
-              <span class="stat-pill"><i class="ti ti-trending-up" style="font-size:10px;color:var(--green-text)"></i> +70% since Dec</span>
-            </div>
-            <div id="trend-chart-wrap"><svg viewBox="0 0 420 90" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:90px">
-    <defs>
-      <lineargradient id="trendGrad" x1="0" y1="0" x2="0" y2="1">
-        <stop offset="0%" stop-color="#1A4F3A" stop-opacity="0.15"></stop>
-        <stop offset="100%" stop-color="#1A4F3A" stop-opacity="0.01"></stop>
-      </lineargradient>
-    </defs>
-    <path d="M10,62 L90,53 L170,44.529411764705884 L250,35.529411764705884 L330,26.000000000000004 L410,8 L410,62 L10,62 Z" fill="url(#trendGrad)"></path>
-    <path d="M10,62 L90,53 L170,44.529411764705884 L250,35.529411764705884 L330,26.000000000000004 L410,8" fill="none" stroke="#1A4F3A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
-    
-      <circle cx="10" cy="62" r="2.5" fill="#2E7D52" stroke="white" stroke-width="1.5"></circle>
-      <text x="10" y="86" text-anchor="middle" fill="#6B6760" font-size="9" font-family="DM Sans">Dec</text>
-      
-    
-      <circle cx="90" cy="53" r="2.5" fill="#2E7D52" stroke="white" stroke-width="1.5"></circle>
-      <text x="90" y="86" text-anchor="middle" fill="#6B6760" font-size="9" font-family="DM Sans">Jan</text>
-      
-    
-      <circle cx="170" cy="44.529411764705884" r="2.5" fill="#2E7D52" stroke="white" stroke-width="1.5"></circle>
-      <text x="170" y="86" text-anchor="middle" fill="#6B6760" font-size="9" font-family="DM Sans">Feb</text>
-      
-    
-      <circle cx="250" cy="35.529411764705884" r="2.5" fill="#2E7D52" stroke="white" stroke-width="1.5"></circle>
-      <text x="250" y="86" text-anchor="middle" fill="#6B6760" font-size="9" font-family="DM Sans">Mar</text>
-      
-    
-      <circle cx="330" cy="26.000000000000004" r="2.5" fill="#2E7D52" stroke="white" stroke-width="1.5"></circle>
-      <text x="330" y="86" text-anchor="middle" fill="#6B6760" font-size="9" font-family="DM Sans">Apr</text>
-      
-    
-      <circle cx="410" cy="8" r="4" fill="#1A4F3A" stroke="white" stroke-width="2"></circle>
-      <text x="410" y="86" text-anchor="middle" fill="#6B6760" font-size="9" font-family="DM Sans">May</text>
-      <text x="410" y="-1" text-anchor="middle" fill="#1A4F3A" font-size="9" font-weight="600" font-family="DM Sans">₹2.47Cr</text>
-    
-  </svg></div>
-          </div>
-
-        </div>
-
-        <!-- RIGHT -->
-        <div style="display:flex;flex-direction:column;gap:16px">
-
-          <!-- TEAM SNAPSHOT -->
-          <div class="card card-pad">
-            <div class="card-title">Team Snapshot
-              <button class="btn btn-xs" onclick="showTab(&#39;team&#39;,document.querySelectorAll(&#39;.nav-item&#39;)[2])">Full view</button>
-            </div>
-            <div id="team-snapshot"><div class="member-row">
-      <div class="avatar" style="background:#1A4F3A">AR</div>
-      <div class="member-info">
-        <div class="member-name">Anand R</div>
-        <div class="prog-wrap" style="margin-top:5px;width:120px"><div class="prog-fill" style="width:50%;background:#1A4F3A"></div></div>
-        <div style="font-size:10px;color:var(--muted);margin-top:2px">5/10 target · 50%</div>
-      </div>
-      <div class="member-stats">
-        <div class="stat-item"><div class="stat-val">8</div><div class="stat-lbl">Files</div></div>
-        <div class="stat-item"><div class="stat-val" style="color:var(--green-text)">5</div><div class="stat-lbl">Sanct.</div></div>
-      </div>
-    </div><div class="member-row">
-      <div class="avatar" style="background:#1E40AF">PS</div>
-      <div class="member-info">
-        <div class="member-name">Priya S</div>
-        <div class="prog-wrap" style="margin-top:5px;width:120px"><div class="prog-fill" style="width:50%;background:#1E40AF"></div></div>
-        <div style="font-size:10px;color:var(--muted);margin-top:2px">4/8 target · 50%</div>
-      </div>
-      <div class="member-stats">
-        <div class="stat-item"><div class="stat-val">7</div><div class="stat-lbl">Files</div></div>
-        <div class="stat-item"><div class="stat-val" style="color:var(--green-text)">4</div><div class="stat-lbl">Sanct.</div></div>
-      </div>
-    </div><div class="member-row">
-      <div class="avatar" style="background:#5B21B6">KM</div>
-      <div class="member-info">
-        <div class="member-name">Karthik M</div>
-        <div class="prog-wrap" style="margin-top:5px;width:120px"><div class="prog-fill" style="width:38%;background:#5B21B6"></div></div>
-        <div style="font-size:10px;color:var(--muted);margin-top:2px">3/8 target · 38%</div>
-      </div>
-      <div class="member-stats">
-        <div class="stat-item"><div class="stat-val">5</div><div class="stat-lbl">Files</div></div>
-        <div class="stat-item"><div class="stat-val" style="color:var(--green-text)">3</div><div class="stat-lbl">Sanct.</div></div>
-      </div>
-    </div><div class="member-row">
-      <div class="avatar" style="background:#B45309">DL</div>
-      <div class="member-info">
-        <div class="member-name">Divya L</div>
-        <div class="prog-wrap" style="margin-top:5px;width:120px"><div class="prog-fill" style="width:25%;background:#B45309"></div></div>
-        <div style="font-size:10px;color:var(--muted);margin-top:2px">2/8 target · 25%</div>
-      </div>
-      <div class="member-stats">
-        <div class="stat-item"><div class="stat-val">4</div><div class="stat-lbl">Files</div></div>
-        <div class="stat-item"><div class="stat-val" style="color:var(--green-text)">2</div><div class="stat-lbl">Sanct.</div></div>
-      </div>
-    </div><div class="member-row">
-      <div class="avatar" style="background:#0F766E">RT</div>
-      <div class="member-info">
-        <div class="member-name">Ravi T</div>
-        <div class="prog-wrap" style="margin-top:5px;width:120px"><div class="prog-fill" style="width:13%;background:#0F766E"></div></div>
-        <div style="font-size:10px;color:var(--muted);margin-top:2px">1/8 target · 13%</div>
-      </div>
-      <div class="member-stats">
-        <div class="stat-item"><div class="stat-val">2</div><div class="stat-lbl">Files</div></div>
-        <div class="stat-item"><div class="stat-val" style="color:var(--green-text)">1</div><div class="stat-lbl">Sanct.</div></div>
-      </div>
-    </div><div class="member-row">
-      <div class="avatar" style="background:#7C3AED">SK</div>
-      <div class="member-info">
-        <div class="member-name">Sneha K</div>
-        <div class="prog-wrap" style="margin-top:5px;width:120px"><div class="prog-fill" style="width:13%;background:#7C3AED"></div></div>
-        <div style="font-size:10px;color:var(--muted);margin-top:2px">1/8 target · 13%</div>
-      </div>
-      <div class="member-stats">
-        <div class="stat-item"><div class="stat-val">1</div><div class="stat-lbl">Files</div></div>
-        <div class="stat-item"><div class="stat-val" style="color:var(--green-text)">1</div><div class="stat-lbl">Sanct.</div></div>
-      </div>
-    </div></div>
-          </div>
-
-          <!-- TOP BANKS -->
-          <div class="card card-pad">
-            <div class="card-title">Top Banks by Payout — May</div>
-            <div id="bank-payout-list">
-    <div class="payout-row">
-      <div style="width:20px;height:20px;border-radius:50%;background:var(--accent);color:white;font-size:9px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0">1</div>
-      <div class="payout-bank">HDFC Bank</div>
-      <div class="sparkline"><div class="spark-bar" style="height:9.077250766059652px;background:var(--accent)"></div><div class="spark-bar" style="height:14.389375898491823px;background:var(--accent)"></div><div class="spark-bar" style="height:17.01006641769118px;background:var(--accent)"></div><div class="spark-bar" style="height:17.236953338459564px;background:var(--accent)"></div><div class="spark-bar" style="height:18.80420933278355px;background:var(--accent)"></div></div>
-      <div class="payout-amt">₹21,350</div>
-    </div>
-  
-    <div class="payout-row">
-      <div style="width:20px;height:20px;border-radius:50%;background:var(--border2);color:var(--muted);font-size:9px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0">2</div>
-      <div class="payout-bank">ICICI Bank</div>
-      <div class="sparkline"><div class="spark-bar" style="height:14.957290525476212px;background:var(--border)"></div><div class="spark-bar" style="height:22.810287993649517px;background:var(--border)"></div><div class="spark-bar" style="height:18.448041717683193px;background:var(--border)"></div><div class="spark-bar" style="height:11.548455355883416px;background:var(--border)"></div><div class="spark-bar" style="height:6.162897372045814px;background:var(--border)"></div></div>
-      <div class="payout-amt">₹13,443</div>
-    </div>
-  
-    <div class="payout-row">
-      <div style="width:20px;height:20px;border-radius:50%;background:var(--border2);color:var(--muted);font-size:9px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0">3</div>
-      <div class="payout-bank">IndusInd Bank</div>
-      <div class="sparkline"><div class="spark-bar" style="height:13.793279421105924px;background:var(--border)"></div><div class="spark-bar" style="height:13.262791575023021px;background:var(--border)"></div><div class="spark-bar" style="height:22.524010899093312px;background:var(--border)"></div><div class="spark-bar" style="height:8.038411522759397px;background:var(--border)"></div><div class="spark-bar" style="height:13.511734483475822px;background:var(--border)"></div></div>
-      <div class="payout-amt">₹12,815</div>
-    </div>
-  
-    <div class="payout-row">
-      <div style="width:20px;height:20px;border-radius:50%;background:var(--border2);color:var(--muted);font-size:9px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0">4</div>
-      <div class="payout-bank">Axis Bank</div>
-      <div class="sparkline"><div class="spark-bar" style="height:19.05786830722697px;background:var(--border)"></div><div class="spark-bar" style="height:5.731085054868835px;background:var(--border)"></div><div class="spark-bar" style="height:21.331585312095715px;background:var(--border)"></div><div class="spark-bar" style="height:9.80986469805242px;background:var(--border)"></div><div class="spark-bar" style="height:16.474205389578508px;background:var(--border)"></div></div>
-      <div class="payout-amt">₹4,275</div>
-    </div>
-  
-    <div class="payout-row">
-      <div style="width:20px;height:20px;border-radius:50%;background:var(--border2);color:var(--muted);font-size:9px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0">5</div>
-      <div class="payout-bank">SBI</div>
-      <div class="sparkline"><div class="spark-bar" style="height:13.458968874344867px;background:var(--border)"></div><div class="spark-bar" style="height:10.988423229030882px;background:var(--border)"></div><div class="spark-bar" style="height:11.56720951419817px;background:var(--border)"></div><div class="spark-bar" style="height:21.57389710606143px;background:var(--border)"></div><div class="spark-bar" style="height:13.563325613921092px;background:var(--border)"></div></div>
-      <div class="payout-amt">₹2,000</div>
-    </div>
-  </div>
-          </div>
-
-          <!-- QUICK ACTIONS -->
-          <div class="card card-pad">
-            <div class="card-title">Quick Actions</div>
-            <div style="display:flex;flex-direction:column;gap:6px">
-              <button class="qaction-btn" onclick="showTab(&#39;payout&#39;,document.querySelectorAll(&#39;.nav-item&#39;)[4])">
-                <div class="qaction-icon" style="background:var(--green-bg);color:var(--green-text)"><i class="ti ti-calculator"></i></div>
-                <div><div class="qaction-label">Calculate May payout</div><div class="qaction-sub">Commission breakdown</div></div>
-              </button>
-              <button class="qaction-btn" onclick="showTab(&#39;reports&#39;,document.querySelectorAll(&#39;.nav-item&#39;)[5])">
-                <div class="qaction-icon" style="background:var(--blue-bg);color:var(--blue-text)"><i class="ti ti-send"></i></div>
-                <div><div class="qaction-label">Send daily report</div><div class="qaction-sub">WhatsApp + Email</div></div>
-              </button>
-              <button class="qaction-btn" onclick="showTab(&#39;banks&#39;,document.querySelectorAll(&#39;.nav-item&#39;)[6])">
-                <div class="qaction-icon" style="background:var(--purple-bg);color:var(--purple-text)"><i class="ti ti-building-bank"></i></div>
-                <div><div class="qaction-label">Manage banks</div><div class="qaction-sub">10 active lenders</div></div>
-              </button>
-              <button class="qaction-btn" onclick="showTab(&#39;ai&#39;,document.querySelectorAll(&#39;.nav-item&#39;)[8])">
-                <div class="qaction-icon" style="background:var(--amber-bg);color:var(--amber-text)"><i class="ti ti-brain"></i></div>
-                <div><div class="qaction-label">AI settings</div><div class="qaction-sub">₹347 used this month</div></div>
-              </button>
-            </div>
-          </div>
-
-        </div>
-      </div>
-    </div>
-
-    <!-- ══ TAB: ALL CASES ══ -->
+          <!-- ══ TAB: ALL CASES ══ -->
     <div class="tab-pane" id="tab-cases">
       <!-- Filter Bar -->
       <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:12px 16px;box-shadow:var(--shadow-sm);flex-wrap:wrap">
@@ -1025,7 +767,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);fon
       <div class="kpi-label">Anand R</div>
       <div class="kpi-value" style="color:#1A4F3A;font-size:26px">5</div>
       <div class="kpi-sub" style="margin-bottom:4px">sanctioned of 8 files</div>
-      <div class="kpi-bar"><div class="kpi-fill" style="width:50%;background:#1A4F3A"></div></div>
+      
     </div>
   
     <div class="kpi">
@@ -1035,7 +777,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);fon
       <div class="kpi-label">Priya S</div>
       <div class="kpi-value" style="color:#1E40AF;font-size:26px">4</div>
       <div class="kpi-sub" style="margin-bottom:4px">sanctioned of 7 files</div>
-      <div class="kpi-bar"><div class="kpi-fill" style="width:50%;background:#1E40AF"></div></div>
+      
     </div>
   
     <div class="kpi">
@@ -1045,7 +787,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);fon
       <div class="kpi-label">Karthik M</div>
       <div class="kpi-value" style="color:#5B21B6;font-size:26px">3</div>
       <div class="kpi-sub" style="margin-bottom:4px">sanctioned of 5 files</div>
-      <div class="kpi-bar"><div class="kpi-fill" style="width:38%;background:#5B21B6"></div></div>
+      
     </div>
   
     <div class="kpi">
@@ -1055,7 +797,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);fon
       <div class="kpi-label">Divya L</div>
       <div class="kpi-value" style="color:#B45309;font-size:26px">2</div>
       <div class="kpi-sub" style="margin-bottom:4px">sanctioned of 4 files</div>
-      <div class="kpi-bar"><div class="kpi-fill" style="width:25%;background:#B45309"></div></div>
+      
     </div>
   
     <div class="kpi">
@@ -1065,7 +807,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);fon
       <div class="kpi-label">Ravi T</div>
       <div class="kpi-value" style="color:#0F766E;font-size:26px">1</div>
       <div class="kpi-sub" style="margin-bottom:4px">sanctioned of 2 files</div>
-      <div class="kpi-bar"><div class="kpi-fill" style="width:13%;background:#0F766E"></div></div>
+      
     </div>
   
     <div class="kpi">
@@ -1075,7 +817,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);fon
       <div class="kpi-label">Sneha K</div>
       <div class="kpi-value" style="color:#7C3AED;font-size:26px">1</div>
       <div class="kpi-sub" style="margin-bottom:4px">sanctioned of 1 files</div>
-      <div class="kpi-bar"><div class="kpi-fill" style="width:13%;background:#7C3AED"></div></div>
+      
     </div>
   </div>
       <div class="g-main" style="margin-bottom:18px">
@@ -1432,10 +1174,10 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);fon
     <!-- ══ TAB: ONLINE LEADS (was RTO) ══ -->
     <div class="tab-pane" id="tab-rto">
       <div class="g4" style="margin-bottom:18px">
-        <div class="kpi"><div class="kpi-label">Total Leads</div><div class="kpi-value">18</div><div class="kpi-bar"><div class="kpi-fill" style="width:100%;background:var(--accent)"></div></div></div>
-        <div class="kpi"><div class="kpi-label">Contacted</div><div class="kpi-value" style="color:var(--amber-text)">8</div><div class="kpi-bar"><div class="kpi-fill" style="width:44%;background:var(--amber-text)"></div></div></div>
-        <div class="kpi"><div class="kpi-label">Interested</div><div class="kpi-value" style="color:var(--blue-text)">5</div><div class="kpi-bar"><div class="kpi-fill" style="width:28%;background:var(--blue-text)"></div></div></div>
-        <div class="kpi"><div class="kpi-label">Converted</div><div class="kpi-value" style="color:var(--green-text)">3</div><div class="kpi-bar"><div class="kpi-fill" style="width:17%;background:var(--green-text)"></div></div></div>
+        <div class="kpi"><div class="kpi-label">Total Leads</div><div class="kpi-value">18</div></div>
+        <div class="kpi"><div class="kpi-label">Contacted</div><div class="kpi-value" style="color:var(--amber-text)">8</div></div>
+        <div class="kpi"><div class="kpi-label">Interested</div><div class="kpi-value" style="color:var(--blue-text)">5</div></div>
+        <div class="kpi"><div class="kpi-label">Converted</div><div class="kpi-value" style="color:var(--green-text)">3</div></div>
       </div>
       <div class="card">
         <div class="card-pad" style="padding-bottom:0">
@@ -2824,7 +2566,7 @@ function renderTeamTab(){
       <div class="kpi-label">${m.name}</div>
       <div class="kpi-value" style="color:${m.color};font-size:26px">${m.sanctioned}</div>
       <div class="kpi-sub" style="margin-bottom:4px">sanctioned of ${m.files} files</div>
-      <div class="kpi-bar"><div class="kpi-fill" style="width:${Math.round(m.sanctioned/m.target*100)}%;background:${m.color}"></div></div>
+      
     </div>
   `).join('');
 
@@ -3742,6 +3484,28 @@ function openFormPage() {
 function closeFormPage() {
   document.getElementById('form-fullpage').classList.remove('open');
   document.body.style.overflow = '';
+}
+</script>
+
+
+<script>
+function toggleDashFilters(){
+  const panel=document.getElementById('dash-filter-panel');
+  const chevron=document.getElementById('filter-chevron');
+  const btn=document.getElementById('filter-toggle-btn');
+  if(!panel)return;
+  const open=panel.style.display!=='none';
+  panel.style.display=open?'none':'block';
+  if(chevron)chevron.style.transform=open?'rotate(0deg)':'rotate(180deg)';
+  if(btn)btn.style.background=open?'var(--surface)':'var(--surface2)';
+}
+function resetDashFilters(){
+  ['dash-bank-filter','dash-bm-filter','dash-rm-filter','dash-period-select'].forEach(id=>{
+    const el=document.getElementById(id); if(el)el.value='';
+  });
+  const cr=document.getElementById('custom-range-wrap');
+  if(cr)cr.style.display='none';
+  if(typeof applyDashFilters==='function')applyDashFilters();
 }
 </script>
 

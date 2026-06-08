@@ -4,9 +4,8 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Capri Global — City Head Dashboard</title>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,500;0,9..144,600;1,9..144,300&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<link href="./Capri Global — City Head Dashboard_files/css2" rel="stylesheet">
+<link rel="stylesheet" href="./Capri Global — City Head Dashboard_files/tabler-icons.min.css">
 <style>
 :root {
   --bg: #EEECEA;
@@ -121,8 +120,8 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);fon
 .kpi-value{font-size:28px;font-weight:600;line-height:1;margin-bottom:6px;font-family:'DM Mono',monospace;letter-spacing:-.02em}
 .kpi-sub{font-size:11px;color:var(--muted);display:flex;align-items:center;gap:4px}
 .kpi-icon{position:absolute;right:16px;top:16px;width:38px;height:38px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:18px}
-
-
+.kpi-bar{height:3px;border-radius:2px;background:var(--border);margin-top:12px;overflow:hidden}
+.kpi-fill{height:100%;border-radius:2px;transition:width .8s cubic-bezier(.4,0,.2,1)}
 .trend-up{color:var(--green-text)}
 .trend-dn{color:var(--red-text)}
 
@@ -304,220 +303,10 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);fon
 .tm-input{width:100%;padding:8px 11px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:13px;font-family:inherit;outline:none;background:var(--surface);color:var(--text);transition:border-color .15s}
 .tm-input:focus{border-color:var(--accent)}
 .tm-label{font-size:11px;font-weight:600;color:var(--muted);letter-spacing:.04em;text-transform:uppercase;margin-bottom:4px;display:block}
-
-/* ════════════════════════════════════════════════
-   MOBILE RESPONSIVE — Capri Global Dashboard
-   Breakpoint: 768px
-════════════════════════════════════════════════ */
-
-/* ── HAMBURGER BUTTON ── */
-.hamburger {
-  display: none;
-  width: 36px; height: 36px;
-  border-radius: var(--radius-sm);
-  border: 1px solid var(--border);
-  background: var(--surface2);
-  align-items: center; justify-content: center;
-  cursor: pointer; color: var(--text); font-size: 18px;
-  flex-shrink: 0;
-}
-
-/* ── SIDEBAR OVERLAY ── */
-.sidebar-overlay {
-  display: none;
-  position: fixed; inset: 0;
-  background: rgba(0,0,0,.5);
-  z-index: 99;
-}
-.sidebar-overlay.open { display: block; }
-
-@media (max-width: 768px) {
-
-  /* ── SIDEBAR: hidden off-screen, slides in ── */
-  .sidebar {
-    transform: translateX(-100%);
-    transition: transform .28s cubic-bezier(.4,0,.2,1);
-    z-index: 200;
-  }
-  .sidebar.open { transform: translateX(0); }
-
-  /* ── MAIN: full width ── */
-  .main { margin-left: 0 !important; }
-
-  /* ── TOPBAR ── */
-  .topbar { padding: 0 14px; }
-  .topbar-right .icon-btn:not(:last-of-type) { display: none; }
-  .hamburger { display: flex; }
-  /* Hide send report text on small screens */
-  .btn-primary.btn-sm span { display: none; }
-
-  /* ── CONTENT ── */
-  .content { padding: 14px 12px 100px; }
-
-  /* ── KPI GRID: 2 columns on mobile ── */
-  #kpi-grid {
-    grid-template-columns: 1fr 1fr !important;
-    gap: 10px !important;
-  }
-  .kpi { padding: 14px 12px !important; }
-  .kpi-value { font-size: 20px !important; }
-
-  /* ── OVERVIEW GRID: stack vertically ── */
-  .overview-grid {
-    grid-template-columns: 1fr !important;
-    gap: 14px !important;
-  }
-
-  /* ── FILTERS: scroll horizontally ── */
-  .filter-bar {
-    flex-wrap: nowrap !important;
-    overflow-x: auto !important;
-    gap: 6px !important;
-    padding-bottom: 4px;
-    -webkit-overflow-scrolling: touch;
-  }
-  .filter-bar::-webkit-scrollbar { display: none; }
-  .filter-select { font-size: 11px !important; padding: 5px 22px 5px 8px !important; }
-  .filter-input { font-size: 11px !important; }
-
-
-
-
-  .snapshot-row { grid-template-columns: 1fr !important; }
-
-  /* ── MODALS: full screen on mobile ── */
-  .modal-overlay { align-items: flex-end !important; padding: 0 !important; }
-  .modal {
-    width: 100% !important;
-    max-width: 100% !important;
-    border-radius: 20px 20px 0 0 !important;
-    max-height: 90vh;
-    overflow-y: auto;
-  }
-  .wide-modal {
-    width: 100% !important;
-    max-width: 100% !important;
-    border-radius: 20px 20px 0 0 !important;
-    max-height: 92vh;
-    overflow-y: auto;
-  }
-
-  /* ── ALL CASES: hide less important columns ── */
-  .cases-table th:nth-child(4),
-  .cases-table td:nth-child(4),
-  .cases-table th:nth-child(8),
-  .cases-table td:nth-child(8),
-  .cases-table th:nth-child(9),
-  .cases-table td:nth-child(9) { display: none; }
-
-  /* ── g2 / g3 grids: stack ── */
-  .g2, .g3 { grid-template-columns: 1fr !important; }
-
-  /* ── FAB: adjust for mobile ── */
-  .fab-new-case {
-    left: 16px !important;
-    bottom: 20px !important;
-    padding: 12px 18px !important;
-  }
-
-  /* ── FORM FULLPAGE: mobile topbar ── */
-  .form-topbar { padding: 0 14px; }
-  .form-topbar-title { font-size: 13px; }
-
-  /* ── PAYOUT ALERT: wrap text ── */
-  .payout-alert { flex-direction: column !important; gap: 6px !important; }
-
-
-}
-
-@media (max-width: 480px) {
-  /* ── KPI: full width on very small ── */
-  #kpi-grid { grid-template-columns: 1fr 1fr !important; }
-  .kpi-val { font-size: 20px !important; }
-  .content { padding: 10px 10px 90px; }
-  .topbar { height: 52px; }
-  .topbar-title { font-size: 13px !important; }
-  .topbar-sub { display: none; }
-}
-
-
-/* ── MOBILE CASE CARDS (shown only on mobile) ── */
-.case-cards { display: none; }
-
-@media (max-width: 768px) {
-  /* Hide desktop table */
-  #all-cases-table { display: none !important; }
-  /* Show mobile cards */
-  .case-cards { display: flex; flex-direction: column; gap: 10px; padding: 4px 0; }
-
-  .case-card {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: 14px;
-    box-shadow: var(--shadow-sm);
-  }
-  .case-card-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 10px;
-  }
-  .case-card-id {
-    font-family: 'DM Mono', monospace;
-    font-size: 12px;
-    font-weight: 600;
-    color: var(--accent);
-  }
-  .case-card-date {
-    font-size: 11px;
-    color: var(--muted);
-  }
-  .case-card-customer {
-    font-size: 15px;
-    font-weight: 600;
-    color: var(--text);
-    margin-bottom: 10px;
-  }
-  .case-card-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 8px;
-    margin-bottom: 12px;
-  }
-  .case-card-field { display: flex; flex-direction: column; gap: 2px; }
-  .case-card-label {
-    font-size: 9px;
-    font-weight: 700;
-    letter-spacing: .06em;
-    text-transform: uppercase;
-    color: var(--muted2);
-  }
-  .case-card-value {
-    font-size: 13px;
-    font-weight: 500;
-    color: var(--text);
-  }
-  .case-card-actions {
-    display: flex;
-    gap: 8px;
-    border-top: 1px solid var(--border);
-    padding-top: 10px;
-    margin-top: 2px;
-  }
-  .case-card-actions .btn {
-    flex: 1;
-    justify-content: center;
-    font-size: 12px;
-    padding: 8px 10px;
-  }
-}
-
 </style>
 </head>
 <body>
 
-<div class="sidebar-overlay" id="sidebar-overlay" onclick="toggleSidebar()"></div>
 <!-- SIDEBAR -->
 <aside class="sidebar">
   <div class="sidebar-brand">
@@ -530,17 +319,16 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);fon
         <div class="brand-sub">Chennai Operations</div>
       </div>
     </div>
-    
+    <div class="brand-badge"><i class="ti ti-shield-check" style="font-size:10px"></i> City Head</div>
   </div>
   <nav class="sidebar-nav">
     <div class="nav-section">Overview</div>
     <div class="nav-item active" onclick="showTab(&#39;overview&#39;,this)">
       <i class="ti ti-layout-dashboard"></i> Dashboard
     </div>
-    <div class="nav-section">Products</div>
     <div class="nav-item" onclick="showTab(&#39;cases&#39;,this)">
-      <i class="ti ti-car"></i> New Car
-      <span class="nav-badge" id="nav-cases-badge">—</span>
+      <i class="ti ti-files"></i> All cases
+      <span class="nav-badge">24</span>
     </div>
     <div class="nav-item" onclick="showTab(&#39;team&#39;,this)">
       <i class="ti ti-users"></i> Team performance
@@ -574,86 +362,36 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);fon
       <i class="ti ti-settings"></i> System settings
     </div>
   </nav>
-
+  <div class="sidebar-footer">
+    <div class="user-row">
+      <div class="user-avatar">CK</div>
+      <div>
+        <div class="user-name">City Head</div>
+        <div class="user-role">Chennai · Full access</div>
+      </div>
+    </div>
+  </div>
 </aside>
 
 <!-- MAIN -->
 <div class="main">
   <div class="topbar">
     <div class="topbar-left">
-      <button class="hamburger" onclick="toggleSidebar()" title="Menu">
-        <i class="ti ti-menu-2"></i>
-      </button>
       <div>
         <div class="topbar-title" id="topbar-title">Dashboard</div>
         <div class="topbar-sub" id="topbar-sub">May 2026 · Chennai Operations</div>
       </div>
     </div>
     <div class="topbar-right">
-      <!-- Avatar dropdown -->
-      <div style="position:relative" id="avatar-menu-wrap">
-        <button id="avatar-btn" onclick="toggleAvatarMenu()"
-          style="width:36px;height:36px;border-radius:50%;
-                 background:linear-gradient(135deg,var(--gold),var(--gold-light));
-                 border:2px solid rgba(200,168,82,.4);
-                 display:flex;align-items:center;justify-content:center;
-                 font-size:12px;font-weight:700;color:#1A1814;
-                 cursor:pointer;transition:all .2s;flex-shrink:0"
-          id="topbar-avatar-btn">CH</button>
-
-        <!-- Dropdown -->
-        <div id="avatar-dropdown"
-          style="display:none;position:absolute;top:calc(100% + 8px);right:0;
-                 width:220px;background:var(--surface);
-                 border:1px solid var(--border);border-radius:var(--radius);
-                 box-shadow:var(--shadow-md);z-index:500;overflow:hidden">
-
-          <!-- User info -->
-          <div style="padding:14px 16px;border-bottom:1px solid var(--border);
-                      background:var(--surface2)">
-            <div style="display:flex;align-items:center;gap:10px">
-              <div style="width:38px;height:38px;border-radius:50%;flex-shrink:0;
-                          background:linear-gradient(135deg,var(--gold),var(--gold-light));
-                          display:flex;align-items:center;justify-content:center;
-                          font-size:13px;font-weight:700;color:#1A1814"
-                   id="dropdown-avatar">CH</div>
-              <div>
-                <div style="font-size:13px;font-weight:600;color:var(--text)"
-                     id="dropdown-name">City Head</div>
-                <div style="font-size:11px;color:var(--muted)"
-                     id="dropdown-role">Chennai · Full access</div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Notifications -->
-          <div onclick="toggleAvatarMenu()"
-            style="display:flex;align-items:center;gap:10px;padding:11px 16px;
-                   cursor:pointer;transition:background .15s;font-size:13px;color:var(--text)"
-            onmouseover="this.style.background='var(--surface2)'"
-            onmouseout="this.style.background='transparent'">
-            <i class="ti ti-bell" style="font-size:16px;color:var(--muted)"></i>
-            <span>Notifications</span>
-            <span style="margin-left:auto;background:var(--accent);color:white;
-                         font-size:10px;font-weight:600;padding:2px 7px;
-                         border-radius:10px">3</span>
-          </div>
-
-          <!-- Divider -->
-          <div style="height:1px;background:var(--border)"></div>
-
-          <!-- Sign out -->
-          <div onclick="confirmLogout()"
-            style="display:flex;align-items:center;gap:10px;padding:11px 16px;
-                   cursor:pointer;transition:background .15s;font-size:13px;
-                   color:var(--red-text)"
-            onmouseover="this.style.background='var(--red-bg)'"
-            onmouseout="this.style.background='transparent'">
-            <i class="ti ti-logout" style="font-size:16px"></i>
-            <span>Sign out</span>
-          </div>
-        </div>
+      <div class="icon-btn" title="Search" style="position:relative"><i class="ti ti-search"></i></div>
+      <div class="icon-btn" title="Notifications" style="position:relative">
+        <i class="ti ti-bell"></i>
+        <div class="notif-dot"></div>
       </div>
+      <div class="icon-btn" title="Export"><i class="ti ti-download"></i></div>
+      <button class="btn btn-primary btn-sm" onclick="showTab(&#39;reports&#39;,document.querySelectorAll(&#39;.nav-item&#39;)[5])">
+        <i class="ti ti-send" style="font-size:12px"></i> Send report
+      </button>
     </div>
   </div>
 
@@ -662,97 +400,63 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);fon
     <!-- ══ TAB: OVERVIEW ══ -->
     <div class="tab-pane on" id="tab-overview">
 
-      <!-- DASHBOARD FILTERS — collapsible -->
-      <div style="margin-bottom:16px">
-        <!-- Filter toggle button -->
-        <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
-          <button onclick="toggleDashFilters()" id="filter-toggle-btn"
-            style="display:flex;align-items:center;gap:7px;padding:8px 14px;border-radius:var(--radius-sm);
-                   border:1px solid var(--border);background:var(--surface);cursor:pointer;
-                   font-family:inherit;font-size:12.5px;font-weight:500;color:var(--text);
-                   transition:all .15s;box-shadow:var(--shadow-sm)">
-            <i class="ti ti-filter" style="font-size:14px;color:var(--muted)"></i>
-            Filters
-            <span id="dash-filter-badge" style="display:none;background:var(--accent);color:white;
-                  font-size:10px;font-weight:600;padding:2px 7px;border-radius:10px">0</span>
-            <i class="ti ti-chevron-down" id="filter-chevron" style="font-size:12px;color:var(--muted);margin-left:2px;transition:transform .2s"></i>
-          </button>
-          <button class="btn btn-sm" onclick="resetDashFilters()" style="color:var(--muted)">
-            <i class="ti ti-refresh" style="font-size:12px"></i> Reset
-          </button>
+      <!-- DASHBOARD FILTERS -->
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:16px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:12px 16px;box-shadow:var(--shadow-sm);flex-wrap:wrap">
+        <i class="ti ti-filter" style="font-size:15px;color:var(--muted);flex-shrink:0"></i>
+        <span style="font-size:11px;font-weight:700;color:var(--muted);letter-spacing:.06em;text-transform:uppercase;margin-right:4px">Filters</span>
+        <div style="width:1px;height:20px;background:var(--border);margin:0 4px;flex-shrink:0"></div>
+
+        <div style="display:flex;align-items:center;gap:7px">
+          <label style="font-size:11px;font-weight:600;color:var(--muted2);white-space:nowrap;letter-spacing:.04em;text-transform:uppercase">Finance Institute</label>
+          <select class="filter-select" id="dash-bank-filter" onchange="applyDashFilters()" style="font-size:12.5px;padding:5px 10px;min-width:150px">
+            <option value="">All Banks / NBFCs</option>
+            <option>HDFC Bank</option><option>ICICI Bank</option><option>Axis Bank</option>
+            <option>Kotak Bank</option><option>SBI</option><option>IndusInd Bank</option>
+            <option>Tata Capital</option><option>Mahindra Finance</option><option>HDB Financial</option><option>Cholamandalam</option>
+          </select>
         </div>
 
-        <!-- Collapsible filter panel -->
-        <div id="dash-filter-panel" style="display:none;background:var(--surface);border:1px solid var(--border);
-             border-radius:var(--radius);padding:14px 16px;box-shadow:var(--shadow-sm);
-             animation:fadeSlide .2s ease">
-          <div style="display:flex;flex-wrap:wrap;gap:12px;align-items:flex-end">
+        <div style="display:flex;align-items:center;gap:7px">
+          <label style="font-size:11px;font-weight:600;color:var(--muted2);white-space:nowrap;letter-spacing:.04em;text-transform:uppercase">BM</label>
+          <select class="filter-select" id="dash-bm-filter" onchange="onBMChange()" style="font-size:12.5px;padding:5px 10px;min-width:130px"><option value="">All BMs</option><option value="Anand R">Anand R</option><option value="Divya L">Divya L</option></select>
+        </div>
 
-            <div style="display:flex;flex-direction:column;gap:4px">
-              <label style="font-size:10px;font-weight:600;color:var(--muted2);letter-spacing:.06em;text-transform:uppercase">Finance Institute</label>
-              <select class="filter-select" id="dash-bank-filter" onchange="applyDashFilters()" style="font-size:12.5px;padding:6px 10px;min-width:150px">
-                <option value="">All Banks / NBFCs</option>
-                <option>HDFC Bank</option><option>ICICI Bank</option><option>Axis Bank</option>
-                <option>Kotak Bank</option><option>SBI</option><option>IndusInd Bank</option>
-                <option>Tata Capital</option><option>Mahindra Finance</option><option>HDB Financial</option><option>Cholamandalam</option>
-              </select>
-            </div>
+        <div style="display:flex;align-items:center;gap:7px">
+          <label style="font-size:11px;font-weight:600;color:var(--muted2);white-space:nowrap;letter-spacing:.04em;text-transform:uppercase">RM</label>
+          <select class="filter-select" id="dash-rm-filter" onchange="applyDashFilters()" style="font-size:12.5px;padding:5px 10px;min-width:140px" disabled="">
+            <option value="">— Select BM first —</option>
+          </select>
+        </div>
 
-            <div id="bm-filter-wrap" style="display:flex;flex-direction:column;gap:4px">
-              <label style="font-size:10px;font-weight:600;color:var(--muted2);letter-spacing:.06em;text-transform:uppercase">BM</label>
-              <select class="filter-select" id="dash-bm-filter" onchange="onBMChange()" style="font-size:12.5px;padding:6px 10px;min-width:130px">
-                <option value="">All BMs</option><option value="Anand R">Anand R</option><option value="Divya L">Divya L</option>
-              </select>
-            </div>
-
-            <div id="rm-filter-wrap" style="display:flex;flex-direction:column;gap:4px">
-              <label style="font-size:10px;font-weight:600;color:var(--muted2);letter-spacing:.06em;text-transform:uppercase">RM</label>
-              <select class="filter-select" id="dash-rm-filter" onchange="applyDashFilters()" style="font-size:12.5px;padding:6px 10px;min-width:140px" disabled="">
-                <option value="">— Select BM first —</option>
-              </select>
-            </div>
-
-            <div style="display:flex;flex-direction:column;gap:4px">
-              <label style="font-size:10px;font-weight:600;color:var(--muted2);letter-spacing:.06em;text-transform:uppercase">Period</label>
-              <select class="filter-select" id="dash-period-select" onchange="setPeriod(this.value)" style="font-size:12.5px;padding:6px 10px;min-width:180px">
-                <option value="" selected="" disabled="">Select Period</option>
-                <option value="today">Today</option><option value="thisweek">This Week</option><option value="lastweek">Last Week</option>
-                <option disabled="">────────</option>
-                <option value="fy">FY 2026–27</option>
-                <option disabled="">────────</option>
-                <option value="q1">Q1 Apr–Jun</option><option value="q2">Q2 Jul–Sep</option>
-                <option value="q3">Q3 Oct–Dec</option><option value="q4">Q4 Jan–Mar</option>
-                <option disabled="">────────</option>
-                <option value="h1">H1 Apr–Sep</option><option value="h2">H2 Oct–Mar</option>
-                <option disabled="">────────</option>
-                <option value="custom">Custom Range…</option>
-              </select>
-            </div>
-
-            <div id="custom-range-wrap" style="display:none;flex-direction:column;gap:4px">
-              <label style="font-size:10px;font-weight:600;color:var(--muted2);letter-spacing:.06em;text-transform:uppercase">Custom Range</label>
-              <div style="display:flex;align-items:center;gap:6px">
-                <input type="date" id="dash-date-from" class="filter-input" onchange="applyDashFilters()" style="font-size:12px;padding:6px 9px;width:132px">
-                <span style="font-size:11px;color:var(--muted2)">→</span>
-                <input type="date" id="dash-date-to" class="filter-input" onchange="applyDashFilters()" style="font-size:12px;padding:6px 9px;width:132px">
-              </div>
-            </div>
-
+        <div style="display:flex;align-items:center;gap:7px">
+          <label style="font-size:11px;font-weight:600;color:var(--muted2);white-space:nowrap;letter-spacing:.04em;text-transform:uppercase">Period</label>
+          <select class="filter-select" id="dash-period-select" onchange="setPeriod(this.value)" style="font-size:12.5px;padding:5px 10px;min-width:200px"><option value="" selected="" disabled="">Select Period</option><option value="today">Today</option><option value="thisweek">This Week</option><option value="lastweek">Last Week</option><option disabled="">────────────────</option><option value="fy">FY 2026–27 (Full year)</option><option disabled="">────────────────</option><option value="q1">Q1 — Apr–Jun 2026</option><option value="q2">Q2 — Jul–Sep 2026</option><option value="q3">Q3 — Oct–Dec 2026</option><option value="q4">Q4 — Jan–Mar 2027</option><option disabled="">────────────────</option><option value="h1">H1 — Apr–Sep 2026</option><option value="h2">H2 — Oct–Mar 2027</option><option disabled="">────────────────</option><option value="custom">Custom Range…</option></select>
+          <div id="custom-range-wrap" style="display:none;align-items:center;gap:6px">
+            <input type="date" id="dash-date-from" class="filter-input" value="" onchange="applyDashFilters()" style="font-size:12px;padding:4px 9px;width:132px">
+            <span style="font-size:11px;color:var(--muted2)">→</span>
+            <input type="date" id="dash-date-to" class="filter-input" value="" onchange="applyDashFilters()" style="font-size:12px;padding:4px 9px;width:132px">
           </div>
+        </div>
+
+        <div style="margin-left:auto;display:flex;align-items:center;gap:8px">
+          <span id="dash-filter-badge" style="display:none;background:var(--accent);color:white;font-size:10px;font-weight:600;padding:3px 9px;border-radius:10px;letter-spacing:.03em"></span>
+          <button class="btn btn-sm" onclick="resetDashFilters()" style="color:var(--muted);gap:5px">
+            <i class="ti ti-refresh" style="font-size:12px"></i> Reset
+          </button>
         </div>
       </div>
 
       <!-- KPI ROW -->
-      <div id="kpi-grid" style="display:grid;grid-template-columns:repeat(6,1fr);gap:13px;margin-bottom:18px">
+      <div style="display:grid;grid-template-columns:repeat(6,1fr);gap:13px;margin-bottom:18px">
 
         <!-- 1. Total Files -->
         <div class="kpi">
           <div class="kpi-icon" style="background:var(--green-bg);color:var(--green-text)"><i class="ti ti-files"></i></div>
           <div class="kpi-label">Total Files — May</div>
-          <div class="kpi-value" style="color:var(--accent)" id="kpi-files">—</div>
+          <div class="kpi-value" style="color:var(--accent)" id="kpi-files">10</div>
           <div style="font-size:11px;font-weight:600;color:var(--muted);margin-bottom:4px" id="kpi-files-val">₹1.23 Cr total value</div>
           <div class="kpi-sub"><span class="trend-up"><i class="ti ti-trending-up" style="font-size:11px"></i> +4 vs April</span></div>
-          
+          <div class="kpi-bar"><div class="kpi-fill" style="width:80%;background:var(--accent)"></div></div>
         </div>
 
         <!-- 2. In Process -->
@@ -760,7 +464,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);fon
           <div style="position:absolute;right:-16px;bottom:-16px;width:72px;height:72px;border-radius:50%;background:rgba(139,74,12,.06)"></div>
           <div class="kpi-icon" style="background:#FDE68A;color:var(--amber-text)"><i class="ti ti-loader"></i></div>
           <div class="kpi-label" style="color:var(--amber-text)">In Process — May</div>
-          <div class="kpi-value" style="color:var(--amber-text)" id="kpi-inprocess">—</div>
+          <div class="kpi-value" style="color:var(--amber-text)" id="kpi-inprocess">2</div>
           <div style="font-size:11px;font-weight:600;color:var(--amber-text);margin-bottom:4px" id="kpi-inprocess-val">₹29.3L pipeline value</div>
           <div class="kpi-sub" style="color:var(--amber-text)"><i class="ti ti-trending-up" style="font-size:11px"></i> +3 vs April (4 in process)</div>
         </div>
@@ -769,10 +473,10 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);fon
         <div class="kpi">
           <div class="kpi-icon" style="background:var(--green-bg);color:var(--green-text)"><i class="ti ti-check"></i></div>
           <div class="kpi-label">Sanctioned — Awaiting Disbursal</div>
-          <div class="kpi-value" style="color:var(--green-text)" id="kpi-sanc">—</div>
-          <div style="font-size:11px;font-weight:600;color:var(--green-text);margin-bottom:4px" id="kpi-sanc-val">—</div>
+          <div class="kpi-value" style="color:var(--green-text)" id="kpi-sanc">3</div>
+          <div style="font-size:11px;font-weight:600;color:var(--green-text);margin-bottom:4px" id="kpi-sanc-val">₹35.5L pending disbursal</div>
           <div class="kpi-sub"><span style="color:var(--muted)">Cases yet to be disbursed</span></div>
-          
+          <div class="kpi-bar"><div class="kpi-fill" id="kpi-sanc-bar" style="width:30%;background:var(--green-text)"></div></div>
         </div>
 
         <!-- 4. Disbursements -->
@@ -780,7 +484,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);fon
           <div style="position:absolute;right:-16px;bottom:-16px;width:72px;height:72px;border-radius:50%;background:rgba(21,94,53,.07)"></div>
           <div class="kpi-icon" style="background:#BBF7D0;color:#166534"><i class="ti ti-circle-check"></i></div>
           <div class="kpi-label" style="color:#166534">Disbursements — May</div>
-          <div class="kpi-value" style="color:#166534" id="disb-count">—</div>
+          <div class="kpi-value" style="color:#166534" id="disb-count">4</div>
           <div style="font-size:11px;font-weight:600;color:#166534;margin-bottom:4px" id="disb-amount">₹50.0L disbursed</div>
           <div class="kpi-sub" style="color:#166534"><i class="ti ti-trending-up" style="font-size:11px"></i> +2 vs April (4 disb.)</div>
         </div>
@@ -790,7 +494,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);fon
           <div style="position:absolute;right:-16px;bottom:-16px;width:72px;height:72px;border-radius:50%;background:rgba(178,28,28,.05)"></div>
           <div class="kpi-icon" style="background:#FECACA;color:var(--red-text)"><i class="ti ti-circle-x"></i></div>
           <div class="kpi-label" style="color:var(--red-text)">Rejected — May</div>
-          <div class="kpi-value" style="color:var(--red-text)" id="kpi-rejected">—</div>
+          <div class="kpi-value" style="color:var(--red-text)" id="kpi-rejected">1</div>
           <div style="font-size:11px;font-weight:600;color:var(--red-text);margin-bottom:4px" id="kpi-rejected-val">₹8.2L declined value</div>
           <div class="kpi-sub" style="color:var(--red-text)" id="kpi-rejected-rate"><i class="ti ti-percentage" style="font-size:11px"></i> 10.0% rejection rate</div>
         </div>
@@ -799,115 +503,516 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);fon
         <div class="kpi">
           <div class="kpi-icon" style="background:var(--purple-bg);color:var(--purple-text)"><i class="ti ti-cash"></i></div>
           <div class="kpi-label">Total Payout — May</div>
-          <div class="kpi-value" style="color:var(--purple-text);font-size:22px" id="kpi-payout-val">—</div>
+          <div class="kpi-value" style="color:var(--purple-text);font-size:22px" id="kpi-payout-val">₹53,883</div>
           <div class="kpi-sub"><span class="trend-up"><i class="ti ti-trending-up" style="font-size:11px"></i> +₹14K vs April</span></div>
-          
+          <div class="kpi-bar"><div class="kpi-fill" id="kpi-payout-bar" style="width: 100%; background: var(--purple-text);"></div></div>
         </div>
 
       </div>
 
+      <!-- PAYOUT ALERT -->
+      <div class="alert-banner warn" style="margin-bottom:16px">
+        <i class="ti ti-alert-triangle" style="color:var(--amber-text);font-size:16px;flex-shrink:0;margin-top:1px"></i>
+        <div><strong style="font-weight:600">Payout alert</strong> — Karthik M submitted CPG-019 to Axis Bank (payout ₹4,250) instead of recommended HDFC Bank (payout ₹5,000). Potential loss: <strong>₹750</strong>. <span style="cursor:pointer;color:var(--blue-text);text-decoration:underline;font-weight:500" onclick="openCase(&#39;CPG-019&#39;)">View case →</span></div>
+      </div>
 
+      <div class="g-main">
+        <!-- LEFT -->
+        <div style="display:flex;flex-direction:column;gap:16px">
+
+          <!-- RECENT CASES -->
+          <div class="card">
+            <div class="card-pad" style="padding-bottom:0">
+              <div class="card-title">
+                Recent Cases
+                <div style="display:flex;gap:7px;align-items:center">
+                  <select class="filter-select" style="font-size:11px;padding:4px 8px" onchange="filterTable(this.value)">
+                    <option value="all">All members</option>
+                    <option>Anand R</option><option>Priya S</option><option>Karthik M</option><option>Divya L</option>
+                  </select>
+                  <button class="btn btn-sm" onclick="showTab(&#39;cases&#39;,document.querySelectorAll(&#39;.nav-item&#39;)[1])">View all →</button>
+                </div>
+              </div>
+            </div>
+            <table class="data-table" id="recent-table">
+              <thead>
+                <tr><th>Case ID</th><th>Customer</th><th>Member</th><th>Bank</th><th>Loan</th><th>Status</th><th>Payout</th></tr>
+              </thead>
+              <tbody id="recent-tbody"><tr onclick="openCase(&#39;CPG-024&#39;)">
+    <td><span style="font-family:&#39;DM Mono&#39;,monospace;font-size:11px;color:var(--muted)">CPG-024</span></td>
+    <td style="font-weight:500">Senthil Rajan</td>
+    <td><div style="display:flex;align-items:center;gap:6px">
+      <div class="avatar" style="background:#1A4F3A;width:22px;height:22px;font-size:9px">AR</div>
+      <span>Anand R</span></div></td>
+    <td style="font-size:12px">ICICI Bank</td>
+    <td style="font-family:&#39;DM Mono&#39;,monospace;font-size:12px">₹2.0L</td>
+    <td><span class="badge badge-amber">In process</span></td>
+    <td style="font-family:&#39;DM Mono&#39;,monospace;font-size:12px;color:var(--green-text);font-weight:600">₹7,838</td>
+  </tr><tr onclick="openCase(&#39;CPG-023&#39;)">
+    <td><span style="font-family:&#39;DM Mono&#39;,monospace;font-size:11px;color:var(--muted)">CPG-023</span></td>
+    <td style="font-weight:500">Meenakshi Devi</td>
+    <td><div style="display:flex;align-items:center;gap:6px">
+      <div class="avatar" style="background:#1E40AF;width:22px;height:22px;font-size:9px">PS</div>
+      <span>Priya S</span></div></td>
+    <td style="font-size:12px">HDFC Bank</td>
+    <td style="font-family:&#39;DM Mono&#39;,monospace;font-size:12px">₹1.0L</td>
+    <td><span class="badge badge-green">Sanctioned</span></td>
+    <td style="font-family:&#39;DM Mono&#39;,monospace;font-size:12px;color:var(--green-text);font-weight:600">₹7,100</td>
+  </tr><tr onclick="openCase(&#39;CPG-022&#39;)">
+    <td><span style="font-family:&#39;DM Mono&#39;,monospace;font-size:11px;color:var(--muted)">CPG-022</span></td>
+    <td style="font-weight:500">Balaji Krishnan</td>
+    <td><div style="display:flex;align-items:center;gap:6px">
+      <div class="avatar" style="background:#5B21B6;width:22px;height:22px;font-size:9px">KM</div>
+      <span>Karthik M</span></div></td>
+    <td style="font-size:12px">SBI</td>
+    <td style="font-family:&#39;DM Mono&#39;,monospace;font-size:12px">₹1.0L</td>
+    <td><span class="badge badge-green">Disbursed</span></td>
+    <td style="font-family:&#39;DM Mono&#39;,monospace;font-size:12px;color:var(--green-text);font-weight:600">₹2,000</td>
+  </tr><tr onclick="openCase(&#39;CPG-021&#39;)">
+    <td><span style="font-family:&#39;DM Mono&#39;,monospace;font-size:11px;color:var(--muted)">CPG-021</span></td>
+    <td style="font-weight:500">Lavanya Subramanian</td>
+    <td><div style="display:flex;align-items:center;gap:6px">
+      <div class="avatar" style="background:#B45309;width:22px;height:22px;font-size:9px">DL</div>
+      <span>Divya L</span></div></td>
+    <td style="font-size:12px">IndusInd Bank</td>
+    <td style="font-family:&#39;DM Mono&#39;,monospace;font-size:12px">₹1.0L</td>
+    <td><span class="badge badge-amber">In process</span></td>
+    <td style="font-family:&#39;DM Mono&#39;,monospace;font-size:12px;color:var(--green-text);font-weight:600">₹7,040</td>
+  </tr><tr onclick="openCase(&#39;CPG-020&#39;)">
+    <td><span style="font-family:&#39;DM Mono&#39;,monospace;font-size:11px;color:var(--muted)">CPG-020</span></td>
+    <td style="font-weight:500">Raj Kumar</td>
+    <td><div style="display:flex;align-items:center;gap:6px">
+      <div class="avatar" style="background:#1A4F3A;width:22px;height:22px;font-size:9px">AR</div>
+      <span>Anand R</span></div></td>
+    <td style="font-size:12px">HDFC Bank</td>
+    <td style="font-family:&#39;DM Mono&#39;,monospace;font-size:12px">₹2.0L</td>
+    <td><span class="badge badge-green">Disbursed</span></td>
+    <td style="font-family:&#39;DM Mono&#39;,monospace;font-size:12px;color:var(--green-text);font-weight:600">₹7,500</td>
+  </tr><tr onclick="openCase(&#39;CPG-019&#39;)">
+    <td><span style="font-family:&#39;DM Mono&#39;,monospace;font-size:11px;color:var(--muted)">CPG-019</span></td>
+    <td style="font-weight:500">Suresh Pillai</td>
+    <td><div style="display:flex;align-items:center;gap:6px">
+      <div class="avatar" style="background:#5B21B6;width:22px;height:22px;font-size:9px">KM</div>
+      <span>Karthik M</span></div></td>
+    <td style="font-size:12px">Axis Bank</td>
+    <td style="font-family:&#39;DM Mono&#39;,monospace;font-size:12px">₹1.0L</td>
+    <td><span class="badge badge-green">Sanctioned</span></td>
+    <td style="font-family:&#39;DM Mono&#39;,monospace;font-size:12px;color:var(--green-text);font-weight:600">₹4,275</td>
+  </tr></tbody>
+            </table>
+          </div>
+
+          <!-- TREND CHART -->
+          <div class="card card-pad">
+            <div class="card-title">
+              Monthly Loan Book Trend
+              <span class="stat-pill"><i class="ti ti-trending-up" style="font-size:10px;color:var(--green-text)"></i> +70% since Dec</span>
+            </div>
+            <div id="trend-chart-wrap"><svg viewBox="0 0 420 90" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:90px">
+    <defs>
+      <lineargradient id="trendGrad" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="#1A4F3A" stop-opacity="0.15"></stop>
+        <stop offset="100%" stop-color="#1A4F3A" stop-opacity="0.01"></stop>
+      </lineargradient>
+    </defs>
+    <path d="M10,62 L90,53 L170,44.529411764705884 L250,35.529411764705884 L330,26.000000000000004 L410,8 L410,62 L10,62 Z" fill="url(#trendGrad)"></path>
+    <path d="M10,62 L90,53 L170,44.529411764705884 L250,35.529411764705884 L330,26.000000000000004 L410,8" fill="none" stroke="#1A4F3A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
+    
+      <circle cx="10" cy="62" r="2.5" fill="#2E7D52" stroke="white" stroke-width="1.5"></circle>
+      <text x="10" y="86" text-anchor="middle" fill="#6B6760" font-size="9" font-family="DM Sans">Dec</text>
+      
+    
+      <circle cx="90" cy="53" r="2.5" fill="#2E7D52" stroke="white" stroke-width="1.5"></circle>
+      <text x="90" y="86" text-anchor="middle" fill="#6B6760" font-size="9" font-family="DM Sans">Jan</text>
+      
+    
+      <circle cx="170" cy="44.529411764705884" r="2.5" fill="#2E7D52" stroke="white" stroke-width="1.5"></circle>
+      <text x="170" y="86" text-anchor="middle" fill="#6B6760" font-size="9" font-family="DM Sans">Feb</text>
+      
+    
+      <circle cx="250" cy="35.529411764705884" r="2.5" fill="#2E7D52" stroke="white" stroke-width="1.5"></circle>
+      <text x="250" y="86" text-anchor="middle" fill="#6B6760" font-size="9" font-family="DM Sans">Mar</text>
+      
+    
+      <circle cx="330" cy="26.000000000000004" r="2.5" fill="#2E7D52" stroke="white" stroke-width="1.5"></circle>
+      <text x="330" y="86" text-anchor="middle" fill="#6B6760" font-size="9" font-family="DM Sans">Apr</text>
+      
+    
+      <circle cx="410" cy="8" r="4" fill="#1A4F3A" stroke="white" stroke-width="2"></circle>
+      <text x="410" y="86" text-anchor="middle" fill="#6B6760" font-size="9" font-family="DM Sans">May</text>
+      <text x="410" y="-1" text-anchor="middle" fill="#1A4F3A" font-size="9" font-weight="600" font-family="DM Sans">₹2.47Cr</text>
+    
+  </svg></div>
+          </div>
+
+        </div>
+
+        <!-- RIGHT -->
+        <div style="display:flex;flex-direction:column;gap:16px">
+
+          <!-- TEAM SNAPSHOT -->
+          <div class="card card-pad">
+            <div class="card-title">Team Snapshot
+              <button class="btn btn-xs" onclick="showTab(&#39;team&#39;,document.querySelectorAll(&#39;.nav-item&#39;)[2])">Full view</button>
+            </div>
+            <div id="team-snapshot"><div class="member-row">
+      <div class="avatar" style="background:#1A4F3A">AR</div>
+      <div class="member-info">
+        <div class="member-name">Anand R</div>
+        <div class="prog-wrap" style="margin-top:5px;width:120px"><div class="prog-fill" style="width:50%;background:#1A4F3A"></div></div>
+        <div style="font-size:10px;color:var(--muted);margin-top:2px">5/10 target · 50%</div>
+      </div>
+      <div class="member-stats">
+        <div class="stat-item"><div class="stat-val">8</div><div class="stat-lbl">Files</div></div>
+        <div class="stat-item"><div class="stat-val" style="color:var(--green-text)">5</div><div class="stat-lbl">Sanct.</div></div>
+      </div>
+    </div><div class="member-row">
+      <div class="avatar" style="background:#1E40AF">PS</div>
+      <div class="member-info">
+        <div class="member-name">Priya S</div>
+        <div class="prog-wrap" style="margin-top:5px;width:120px"><div class="prog-fill" style="width:50%;background:#1E40AF"></div></div>
+        <div style="font-size:10px;color:var(--muted);margin-top:2px">4/8 target · 50%</div>
+      </div>
+      <div class="member-stats">
+        <div class="stat-item"><div class="stat-val">7</div><div class="stat-lbl">Files</div></div>
+        <div class="stat-item"><div class="stat-val" style="color:var(--green-text)">4</div><div class="stat-lbl">Sanct.</div></div>
+      </div>
+    </div><div class="member-row">
+      <div class="avatar" style="background:#5B21B6">KM</div>
+      <div class="member-info">
+        <div class="member-name">Karthik M</div>
+        <div class="prog-wrap" style="margin-top:5px;width:120px"><div class="prog-fill" style="width:38%;background:#5B21B6"></div></div>
+        <div style="font-size:10px;color:var(--muted);margin-top:2px">3/8 target · 38%</div>
+      </div>
+      <div class="member-stats">
+        <div class="stat-item"><div class="stat-val">5</div><div class="stat-lbl">Files</div></div>
+        <div class="stat-item"><div class="stat-val" style="color:var(--green-text)">3</div><div class="stat-lbl">Sanct.</div></div>
+      </div>
+    </div><div class="member-row">
+      <div class="avatar" style="background:#B45309">DL</div>
+      <div class="member-info">
+        <div class="member-name">Divya L</div>
+        <div class="prog-wrap" style="margin-top:5px;width:120px"><div class="prog-fill" style="width:25%;background:#B45309"></div></div>
+        <div style="font-size:10px;color:var(--muted);margin-top:2px">2/8 target · 25%</div>
+      </div>
+      <div class="member-stats">
+        <div class="stat-item"><div class="stat-val">4</div><div class="stat-lbl">Files</div></div>
+        <div class="stat-item"><div class="stat-val" style="color:var(--green-text)">2</div><div class="stat-lbl">Sanct.</div></div>
+      </div>
+    </div><div class="member-row">
+      <div class="avatar" style="background:#0F766E">RT</div>
+      <div class="member-info">
+        <div class="member-name">Ravi T</div>
+        <div class="prog-wrap" style="margin-top:5px;width:120px"><div class="prog-fill" style="width:13%;background:#0F766E"></div></div>
+        <div style="font-size:10px;color:var(--muted);margin-top:2px">1/8 target · 13%</div>
+      </div>
+      <div class="member-stats">
+        <div class="stat-item"><div class="stat-val">2</div><div class="stat-lbl">Files</div></div>
+        <div class="stat-item"><div class="stat-val" style="color:var(--green-text)">1</div><div class="stat-lbl">Sanct.</div></div>
+      </div>
+    </div><div class="member-row">
+      <div class="avatar" style="background:#7C3AED">SK</div>
+      <div class="member-info">
+        <div class="member-name">Sneha K</div>
+        <div class="prog-wrap" style="margin-top:5px;width:120px"><div class="prog-fill" style="width:13%;background:#7C3AED"></div></div>
+        <div style="font-size:10px;color:var(--muted);margin-top:2px">1/8 target · 13%</div>
+      </div>
+      <div class="member-stats">
+        <div class="stat-item"><div class="stat-val">1</div><div class="stat-lbl">Files</div></div>
+        <div class="stat-item"><div class="stat-val" style="color:var(--green-text)">1</div><div class="stat-lbl">Sanct.</div></div>
+      </div>
+    </div></div>
+          </div>
+
+          <!-- TOP BANKS -->
+          <div class="card card-pad">
+            <div class="card-title">Top Banks by Payout — May</div>
+            <div id="bank-payout-list">
+    <div class="payout-row">
+      <div style="width:20px;height:20px;border-radius:50%;background:var(--accent);color:white;font-size:9px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0">1</div>
+      <div class="payout-bank">HDFC Bank</div>
+      <div class="sparkline"><div class="spark-bar" style="height:9.077250766059652px;background:var(--accent)"></div><div class="spark-bar" style="height:14.389375898491823px;background:var(--accent)"></div><div class="spark-bar" style="height:17.01006641769118px;background:var(--accent)"></div><div class="spark-bar" style="height:17.236953338459564px;background:var(--accent)"></div><div class="spark-bar" style="height:18.80420933278355px;background:var(--accent)"></div></div>
+      <div class="payout-amt">₹21,350</div>
+    </div>
+  
+    <div class="payout-row">
+      <div style="width:20px;height:20px;border-radius:50%;background:var(--border2);color:var(--muted);font-size:9px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0">2</div>
+      <div class="payout-bank">ICICI Bank</div>
+      <div class="sparkline"><div class="spark-bar" style="height:14.957290525476212px;background:var(--border)"></div><div class="spark-bar" style="height:22.810287993649517px;background:var(--border)"></div><div class="spark-bar" style="height:18.448041717683193px;background:var(--border)"></div><div class="spark-bar" style="height:11.548455355883416px;background:var(--border)"></div><div class="spark-bar" style="height:6.162897372045814px;background:var(--border)"></div></div>
+      <div class="payout-amt">₹13,443</div>
+    </div>
+  
+    <div class="payout-row">
+      <div style="width:20px;height:20px;border-radius:50%;background:var(--border2);color:var(--muted);font-size:9px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0">3</div>
+      <div class="payout-bank">IndusInd Bank</div>
+      <div class="sparkline"><div class="spark-bar" style="height:13.793279421105924px;background:var(--border)"></div><div class="spark-bar" style="height:13.262791575023021px;background:var(--border)"></div><div class="spark-bar" style="height:22.524010899093312px;background:var(--border)"></div><div class="spark-bar" style="height:8.038411522759397px;background:var(--border)"></div><div class="spark-bar" style="height:13.511734483475822px;background:var(--border)"></div></div>
+      <div class="payout-amt">₹12,815</div>
+    </div>
+  
+    <div class="payout-row">
+      <div style="width:20px;height:20px;border-radius:50%;background:var(--border2);color:var(--muted);font-size:9px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0">4</div>
+      <div class="payout-bank">Axis Bank</div>
+      <div class="sparkline"><div class="spark-bar" style="height:19.05786830722697px;background:var(--border)"></div><div class="spark-bar" style="height:5.731085054868835px;background:var(--border)"></div><div class="spark-bar" style="height:21.331585312095715px;background:var(--border)"></div><div class="spark-bar" style="height:9.80986469805242px;background:var(--border)"></div><div class="spark-bar" style="height:16.474205389578508px;background:var(--border)"></div></div>
+      <div class="payout-amt">₹4,275</div>
+    </div>
+  
+    <div class="payout-row">
+      <div style="width:20px;height:20px;border-radius:50%;background:var(--border2);color:var(--muted);font-size:9px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0">5</div>
+      <div class="payout-bank">SBI</div>
+      <div class="sparkline"><div class="spark-bar" style="height:13.458968874344867px;background:var(--border)"></div><div class="spark-bar" style="height:10.988423229030882px;background:var(--border)"></div><div class="spark-bar" style="height:11.56720951419817px;background:var(--border)"></div><div class="spark-bar" style="height:21.57389710606143px;background:var(--border)"></div><div class="spark-bar" style="height:13.563325613921092px;background:var(--border)"></div></div>
+      <div class="payout-amt">₹2,000</div>
+    </div>
+  </div>
+          </div>
+
+          <!-- QUICK ACTIONS -->
+          <div class="card card-pad">
+            <div class="card-title">Quick Actions</div>
+            <div style="display:flex;flex-direction:column;gap:6px">
+              <button class="qaction-btn" onclick="showTab(&#39;payout&#39;,document.querySelectorAll(&#39;.nav-item&#39;)[4])">
+                <div class="qaction-icon" style="background:var(--green-bg);color:var(--green-text)"><i class="ti ti-calculator"></i></div>
+                <div><div class="qaction-label">Calculate May payout</div><div class="qaction-sub">Commission breakdown</div></div>
+              </button>
+              <button class="qaction-btn" onclick="showTab(&#39;reports&#39;,document.querySelectorAll(&#39;.nav-item&#39;)[5])">
+                <div class="qaction-icon" style="background:var(--blue-bg);color:var(--blue-text)"><i class="ti ti-send"></i></div>
+                <div><div class="qaction-label">Send daily report</div><div class="qaction-sub">WhatsApp + Email</div></div>
+              </button>
+              <button class="qaction-btn" onclick="showTab(&#39;banks&#39;,document.querySelectorAll(&#39;.nav-item&#39;)[6])">
+                <div class="qaction-icon" style="background:var(--purple-bg);color:var(--purple-text)"><i class="ti ti-building-bank"></i></div>
+                <div><div class="qaction-label">Manage banks</div><div class="qaction-sub">10 active lenders</div></div>
+              </button>
+              <button class="qaction-btn" onclick="showTab(&#39;ai&#39;,document.querySelectorAll(&#39;.nav-item&#39;)[8])">
+                <div class="qaction-icon" style="background:var(--amber-bg);color:var(--amber-text)"><i class="ti ti-brain"></i></div>
+                <div><div class="qaction-label">AI settings</div><div class="qaction-sub">₹347 used this month</div></div>
+              </button>
+            </div>
+          </div>
+
+        </div>
+      </div>
     </div>
 
     <!-- ══ TAB: ALL CASES ══ -->
     <div class="tab-pane" id="tab-cases">
-      <!-- All Cases header row -->
-      <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">
-        <button onclick="toggleCasesFilters()" id="cases-filter-btn"
-          style="display:flex;align-items:center;gap:7px;padding:8px 14px;
-                 border-radius:var(--radius-sm);border:1px solid var(--border);
-                 background:var(--surface);cursor:pointer;font-family:inherit;
-                 font-size:12.5px;font-weight:500;color:var(--text);
-                 transition:all .15s;box-shadow:var(--shadow-sm)">
-          <i class="ti ti-filter" style="font-size:14px;color:var(--muted)"></i>
-          Filters
-          <i class="ti ti-chevron-down" id="cases-filter-chevron"
-             style="font-size:12px;color:var(--muted);transition:transform .2s"></i>
-        </button>
-        <!-- Search always visible -->
-        <input class="filter-input" placeholder="Search customer, case ID..."
-               style="flex:1;max-width:260px" id="cases-search" oninput="filterCases()">
-        <span id="cases-count" style="font-size:12px;color:var(--muted);margin-left:4px">— cases</span>
-        <button class="btn btn-sm" onclick="exportCases()" style="margin-left:auto">
-          <i class="ti ti-download" style="font-size:12px"></i> Export
-        </button>
-      </div>
+      <!-- Filter Bar -->
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:12px 16px;box-shadow:var(--shadow-sm);flex-wrap:wrap">
+        <i class="ti ti-filter" style="font-size:15px;color:var(--muted);flex-shrink:0"></i>
+        <input class="filter-input" placeholder="Search customer, case ID..." style="width:200px" id="cases-search" oninput="filterCases()">
 
-      <!-- Collapsible filter panel -->
-      <div id="cases-filter-panel" style="display:none;background:var(--surface);
-           border:1px solid var(--border);border-radius:var(--radius);
-           padding:14px 16px;margin-bottom:12px;box-shadow:var(--shadow-sm);
-           animation:fadeSlide .2s ease">
-        <div style="display:flex;flex-wrap:wrap;gap:12px;align-items:flex-end">
+        <div style="width:1px;height:20px;background:var(--border);flex-shrink:0"></div>
 
-          <div id="cases-bm-wrap" style="display:flex;flex-direction:column;gap:4px">
-            <label style="font-size:10px;font-weight:600;color:var(--muted2);letter-spacing:.06em;text-transform:uppercase">BM</label>
-            <select class="filter-select" id="cases-bm-filter" onchange="onCasesBMChange()" style="font-size:12px;padding:6px 10px;min-width:130px">
-              <option value="">All BMs</option><option>Anand R</option><option>Divya L</option>
-            </select>
-          </div>
-
-          <div id="cases-rm-wrap" style="display:flex;flex-direction:column;gap:4px">
-            <label style="font-size:10px;font-weight:600;color:var(--muted2);letter-spacing:.06em;text-transform:uppercase">RM</label>
-            <select class="filter-select" id="cases-rm-filter" onchange="filterCases()" style="font-size:12px;padding:6px 10px;min-width:130px" disabled="">
-              <option value="">— Select BM first —</option>
-            </select>
-          </div>
-
-          <div style="display:flex;flex-direction:column;gap:4px">
-            <label style="font-size:10px;font-weight:600;color:var(--muted2);letter-spacing:.06em;text-transform:uppercase">Status</label>
-            <select class="filter-select" id="cases-status-filter" onchange="filterCases()" style="font-size:12px;padding:6px 10px;min-width:130px">
-              <option value="">All statuses</option>
-              <option>In process</option><option>Sanctioned</option><option>Disbursed</option><option>Rejected</option>
-            </select>
-          </div>
-
-          <div style="display:flex;flex-direction:column;gap:4px">
-            <label style="font-size:10px;font-weight:600;color:var(--muted2);letter-spacing:.06em;text-transform:uppercase">Bank</label>
-            <select class="filter-select" id="cases-bank-filter" onchange="filterCases()" style="font-size:12px;padding:6px 10px;min-width:140px">
-              <option value="">All banks</option>
-              <option>HDFC Bank</option><option>ICICI Bank</option><option>Axis Bank</option>
-              <option>Kotak Bank</option><option>SBI</option><option>IndusInd Bank</option>
-              <option>Tata Capital</option><option>Mahindra Finance</option><option>Cholamandalam</option>
-            </select>
-          </div>
-
-          <div style="display:flex;flex-direction:column;gap:4px">
-            <label style="font-size:10px;font-weight:600;color:var(--muted2);letter-spacing:.06em;text-transform:uppercase">Period</label>
-            <select class="filter-select" id="cases-period-filter" onchange="onCasesPeriodChange()" style="font-size:12px;padding:6px 10px;min-width:160px">
-              <option value="">All time</option>
-              <option value="today">Today</option><option value="thisweek">This Week</option>
-              <option value="thismonth">This Month</option>
-              <option value="lastmonth">Last Month</option>
-              <option value="custom">Custom Range…</option>
-            </select>
-          </div>
-
-          <div id="cases-custom-range" style="display:none;flex-direction:column;gap:4px">
-            <label style="font-size:10px;font-weight:600;color:var(--muted2);letter-spacing:.06em;text-transform:uppercase">Custom Range</label>
-            <div style="display:flex;align-items:center;gap:6px">
-              <input type="date" id="cases-date-from" class="filter-input" onchange="filterCases()" style="font-size:12px;padding:6px 9px;width:132px">
-              <span style="font-size:11px;color:var(--muted2)">→</span>
-              <input type="date" id="cases-date-to" class="filter-input" onchange="filterCases()" style="font-size:12px;padding:6px 9px;width:132px">
-            </div>
-          </div>
-
-          <button class="btn btn-sm" onclick="resetCasesFilters()" style="color:var(--muted);align-self:flex-end">
-            <i class="ti ti-refresh" style="font-size:12px"></i> Reset
-          </button>
+        <div style="display:flex;align-items:center;gap:6px">
+          <label style="font-size:11px;font-weight:600;color:var(--muted2);white-space:nowrap;letter-spacing:.04em;text-transform:uppercase">BM</label>
+          <select class="filter-select" id="cases-bm-filter" onchange="onCasesBMChange()" style="font-size:12px;padding:5px 9px;min-width:120px"><option value="">All BMs</option><option>Anand R</option><option>Divya L</option></select>
         </div>
+        <div style="display:flex;align-items:center;gap:6px">
+          <label style="font-size:11px;font-weight:600;color:var(--muted2);white-space:nowrap;letter-spacing:.04em;text-transform:uppercase">RM</label>
+          <select class="filter-select" id="cases-rm-filter" onchange="filterCases()" style="font-size:12px;padding:5px 9px;min-width:130px" disabled="">
+            <option value="">— Select BM first —</option>
+          </select>
+        </div>
+
+        <div style="width:1px;height:20px;background:var(--border);flex-shrink:0"></div>
+
+        <select class="filter-select" id="cases-status-filter" onchange="filterCases()" style="font-size:12px;padding:5px 9px">
+          <option value="">All statuses</option>
+          <option>Draft</option><option>In process</option><option>Sanctioned</option><option>Disbursed</option><option>Rejected</option>
+        </select>
+        <select class="filter-select" id="cases-bank-filter" onchange="filterCases()" style="font-size:12px;padding:5px 9px">
+          <option value="">All banks</option>
+          <option>HDFC Bank</option><option>ICICI Bank</option><option>Axis Bank</option><option>Kotak Bank</option><option>SBI</option><option>IndusInd Bank</option>
+        </select>
+
+        <!-- Period filter (same as dashboard) -->
+        <select class="filter-select" id="cases-period-filter" onchange="onCasesPeriodChange()" style="font-size:12px;padding:5px 9px;min-width:170px"><option value="" selected="" disabled="">Select Period</option><option value="today">Today</option><option value="thisweek">This Week</option><option value="lastweek">Last Week</option><option disabled="">────────────────</option><option value="fy">FY 2026–27 (Full year)</option><option disabled="">────────────────</option><option value="q1">Q1 — Apr–Jun 2026</option><option value="q2">Q2 — Jul–Sep 2026</option><option value="q3">Q3 — Oct–Dec 2026</option><option value="q4">Q4 — Jan–Mar 2027</option><option disabled="">────────────────</option><option value="h1">H1 — Apr–Sep 2026</option><option value="h2">H2 — Oct–Mar 2027</option><option disabled="">────────────────</option><option value="custom">Custom Range…</option></select>
+        <div id="cases-custom-range" style="display:none;align-items:center;gap:5px">
+          <input type="date" id="cases-date-from" class="filter-input" onchange="filterCases()" style="font-size:11.5px;padding:4px 8px;width:128px">
+          <span style="font-size:11px;color:var(--muted2)">→</span>
+          <input type="date" id="cases-date-to" class="filter-input" onchange="filterCases()" style="font-size:11.5px;padding:4px 8px;width:128px">
+        </div>
+
+        <button class="btn btn-sm" onclick="exportCases()" style="margin-left:auto"><i class="ti ti-download" style="font-size:12px"></i> Export</button>
+        <span id="cases-count" style="font-size:12px;color:var(--muted);align-self:center">10 cases</span>
       </div>
 
       <div class="card">
         <table class="data-table" id="all-cases-table">
           <thead>
-            <tr><th>Case ID</th><th>Date</th><th>Customer</th><th>Car</th><th>Bank</th><th>Loan (₹)</th><th>Created by</th><th>Reporting to</th><th>CIBIL</th><th>Status</th><th>Payout</th><th>Action</th></tr>
+            <tr><th>Case ID</th><th>Date</th><th>Customer</th><th>Car</th><th>Bank</th><th>Loan (₹)</th><th>BM</th><th>RM</th><th>CIBIL</th><th>Status</th><th>Payout</th><th>Docs</th><th>Action</th></tr>
           </thead>
-          <tbody id="all-cases-tbody"><tr><td colspan="12" style="text-align:center;padding:40px;color:var(--muted);font-size:13px"><i class="ti ti-loader" style="font-size:18px;display:block;margin-bottom:8px"></i>Loading cases...</td></tr></tbody>
+          <tbody id="all-cases-tbody"><tr>
+      <td><span style="font-family:&#39;DM Mono&#39;,monospace;font-size:11px">CPG-024</span></td>
+      <td style="font-size:11px;color:var(--muted)">2026-05-31</td>
+      <td style="font-weight:500">Senthil Rajan</td>
+      <td style="font-size:12px;color:var(--muted)">Hyundai Tucson</td>
+      <td style="font-size:12.5px">ICICI Bank</td>
+      <td style="font-family:&#39;DM Mono&#39;,monospace;font-size:12px">₹2.0L</td>
+      <td style="font-size:12px;font-weight:500">Anand R</td>
+      <td style="font-size:12px">Priya S</td>
+      <td style="font-family:&#39;DM Mono&#39;,monospace;font-size:12px;color:var(--green-text)">772</td>
+      <td><span class="badge badge-amber">In process</span></td>
+      <td style="font-family:&#39;DM Mono&#39;,monospace;font-size:12px;color:var(--green-text);font-weight:600">₹7,838</td>
+      <td><button class="btn btn-xs" onclick="event.stopPropagation();openDocModal(&#39;CPG-024&#39;)"><i class="ti ti-files" style="font-size:11px"></i> View</button></td>
+      <td style="white-space:nowrap">
+        <button class="btn btn-sm" onclick="openCaseDetailModal(&#39;CPG-024&#39;)">View</button>
+        <button class="btn btn-sm" onclick="event.stopPropagation();openUnlockModal()" style="margin-left:4px"><i class="ti ti-lock-open" style="font-size:11px"></i></button>
+      </td>
+    </tr><tr>
+      <td><span style="font-family:&#39;DM Mono&#39;,monospace;font-size:11px">CPG-023</span></td>
+      <td style="font-size:11px;color:var(--muted)">2026-05-30</td>
+      <td style="font-weight:500">Meenakshi Devi</td>
+      <td style="font-size:12px;color:var(--muted)">Tata Nexon EV</td>
+      <td style="font-size:12.5px">HDFC Bank</td>
+      <td style="font-family:&#39;DM Mono&#39;,monospace;font-size:12px">₹1.0L</td>
+      <td style="font-size:12px;font-weight:500">Anand R</td>
+      <td style="font-size:12px">Priya S</td>
+      <td style="font-family:&#39;DM Mono&#39;,monospace;font-size:12px;color:var(--green-text)">748</td>
+      <td><span class="badge badge-green">Sanctioned</span></td>
+      <td style="font-family:&#39;DM Mono&#39;,monospace;font-size:12px;color:var(--green-text);font-weight:600">₹7,100</td>
+      <td><button class="btn btn-xs" onclick="event.stopPropagation();openDocModal(&#39;CPG-023&#39;)"><i class="ti ti-files" style="font-size:11px"></i> View</button></td>
+      <td style="white-space:nowrap">
+        <button class="btn btn-sm" onclick="openCaseDetailModal(&#39;CPG-023&#39;)">View</button>
+        <button class="btn btn-sm" onclick="event.stopPropagation();openUnlockModal()" style="margin-left:4px"><i class="ti ti-lock-open" style="font-size:11px"></i></button>
+      </td>
+    </tr><tr>
+      <td><span style="font-family:&#39;DM Mono&#39;,monospace;font-size:11px">CPG-022</span></td>
+      <td style="font-size:11px;color:var(--muted)">2026-05-29</td>
+      <td style="font-weight:500">Balaji Krishnan</td>
+      <td style="font-size:12px;color:var(--muted)">Maruti Brezza ZXI</td>
+      <td style="font-size:12.5px">SBI</td>
+      <td style="font-family:&#39;DM Mono&#39;,monospace;font-size:12px">₹1.0L</td>
+      <td style="font-size:12px;font-weight:500">Anand R</td>
+      <td style="font-size:12px">Karthik M</td>
+      <td style="font-family:&#39;DM Mono&#39;,monospace;font-size:12px;color:var(--red-text)">691</td>
+      <td><span class="badge badge-green">Disbursed</span></td>
+      <td style="font-family:&#39;DM Mono&#39;,monospace;font-size:12px;color:var(--green-text);font-weight:600">₹2,000</td>
+      <td><button class="btn btn-xs" onclick="event.stopPropagation();openDocModal(&#39;CPG-022&#39;)"><i class="ti ti-files" style="font-size:11px"></i> View</button></td>
+      <td style="white-space:nowrap">
+        <button class="btn btn-sm" onclick="openCaseDetailModal(&#39;CPG-022&#39;)">View</button>
+        <button class="btn btn-sm" onclick="event.stopPropagation();openUnlockModal()" style="margin-left:4px"><i class="ti ti-lock-open" style="font-size:11px"></i></button>
+      </td>
+    </tr><tr>
+      <td><span style="font-family:&#39;DM Mono&#39;,monospace;font-size:11px">CPG-021</span></td>
+      <td style="font-size:11px;color:var(--muted)">2026-05-28</td>
+      <td style="font-weight:500">Lavanya Subramanian</td>
+      <td style="font-size:12px;color:var(--muted)">Honda City V</td>
+      <td style="font-size:12.5px">IndusInd Bank</td>
+      <td style="font-family:&#39;DM Mono&#39;,monospace;font-size:12px">₹1.0L</td>
+      <td style="font-size:12px;font-weight:500">Divya L</td>
+      <td style="font-size:12px">Ravi T</td>
+      <td style="font-family:&#39;DM Mono&#39;,monospace;font-size:12px;color:var(--amber-text)">734</td>
+      <td><span class="badge badge-amber">In process</span></td>
+      <td style="font-family:&#39;DM Mono&#39;,monospace;font-size:12px;color:var(--green-text);font-weight:600">₹7,040</td>
+      <td><button class="btn btn-xs" onclick="event.stopPropagation();openDocModal(&#39;CPG-021&#39;)"><i class="ti ti-files" style="font-size:11px"></i> View</button></td>
+      <td style="white-space:nowrap">
+        <button class="btn btn-sm" onclick="openCaseDetailModal(&#39;CPG-021&#39;)">View</button>
+        <button class="btn btn-sm" onclick="event.stopPropagation();openUnlockModal()" style="margin-left:4px"><i class="ti ti-lock-open" style="font-size:11px"></i></button>
+      </td>
+    </tr><tr>
+      <td><span style="font-family:&#39;DM Mono&#39;,monospace;font-size:11px">CPG-020</span></td>
+      <td style="font-size:11px;color:var(--muted)">2026-05-27</td>
+      <td style="font-weight:500">Raj Kumar</td>
+      <td style="font-size:12px;color:var(--muted)">Kia Seltos HTX+</td>
+      <td style="font-size:12.5px">HDFC Bank</td>
+      <td style="font-family:&#39;DM Mono&#39;,monospace;font-size:12px">₹2.0L</td>
+      <td style="font-size:12px;font-weight:500">Anand R</td>
+      <td style="font-size:12px">Karthik M</td>
+      <td style="font-family:&#39;DM Mono&#39;,monospace;font-size:12px;color:var(--green-text)">761</td>
+      <td><span class="badge badge-green">Disbursed</span></td>
+      <td style="font-family:&#39;DM Mono&#39;,monospace;font-size:12px;color:var(--green-text);font-weight:600">₹7,500</td>
+      <td><button class="btn btn-xs" onclick="event.stopPropagation();openDocModal(&#39;CPG-020&#39;)"><i class="ti ti-files" style="font-size:11px"></i> View</button></td>
+      <td style="white-space:nowrap">
+        <button class="btn btn-sm" onclick="openCaseDetailModal(&#39;CPG-020&#39;)">View</button>
+        <button class="btn btn-sm" onclick="event.stopPropagation();openUnlockModal()" style="margin-left:4px"><i class="ti ti-lock-open" style="font-size:11px"></i></button>
+      </td>
+    </tr><tr>
+      <td><span style="font-family:&#39;DM Mono&#39;,monospace;font-size:11px">CPG-019</span></td>
+      <td style="font-size:11px;color:var(--muted)">2026-05-26</td>
+      <td style="font-weight:500">Suresh Pillai</td>
+      <td style="font-size:12px;color:var(--muted)">Maruti Ertiga VXI</td>
+      <td style="font-size:12.5px">Axis Bank</td>
+      <td style="font-family:&#39;DM Mono&#39;,monospace;font-size:12px">₹1.0L</td>
+      <td style="font-size:12px;font-weight:500">Anand R</td>
+      <td style="font-size:12px">Karthik M</td>
+      <td style="font-family:&#39;DM Mono&#39;,monospace;font-size:12px;color:var(--amber-text)">712</td>
+      <td><span class="badge badge-green">Sanctioned</span></td>
+      <td style="font-family:&#39;DM Mono&#39;,monospace;font-size:12px;color:var(--green-text);font-weight:600">₹4,275</td>
+      <td><button class="btn btn-xs" onclick="event.stopPropagation();openDocModal(&#39;CPG-019&#39;)"><i class="ti ti-files" style="font-size:11px"></i> View</button></td>
+      <td style="white-space:nowrap">
+        <button class="btn btn-sm" onclick="openCaseDetailModal(&#39;CPG-019&#39;)">View</button>
+        <button class="btn btn-sm" onclick="event.stopPropagation();openUnlockModal()" style="margin-left:4px"><i class="ti ti-lock-open" style="font-size:11px"></i></button>
+      </td>
+    </tr><tr>
+      <td><span style="font-family:&#39;DM Mono&#39;,monospace;font-size:11px">CPG-018</span></td>
+      <td style="font-size:11px;color:var(--muted)">2026-05-25</td>
+      <td style="font-weight:500">Priya Nair</td>
+      <td style="font-size:12px;color:var(--muted)">Tata Punch Creative</td>
+      <td style="font-size:12.5px">Kotak Bank</td>
+      <td style="font-family:&#39;DM Mono&#39;,monospace;font-size:12px">₹1.0L</td>
+      <td style="font-size:12px;font-weight:500">Anand R</td>
+      <td style="font-size:12px">Priya S</td>
+      <td style="font-family:&#39;DM Mono&#39;,monospace;font-size:12px;color:var(--green-text)">758</td>
+      <td><span class="badge badge-red">Rejected</span></td>
+      <td style="font-family:&#39;DM Mono&#39;,monospace;font-size:12px;color:var(--green-text);font-weight:600">—</td>
+      <td><button class="btn btn-xs" onclick="event.stopPropagation();openDocModal(&#39;CPG-018&#39;)"><i class="ti ti-files" style="font-size:11px"></i> View</button></td>
+      <td style="white-space:nowrap">
+        <button class="btn btn-sm" onclick="openCaseDetailModal(&#39;CPG-018&#39;)">View</button>
+        <button class="btn btn-sm" onclick="event.stopPropagation();openUnlockModal()" style="margin-left:4px"><i class="ti ti-lock-open" style="font-size:11px"></i></button>
+      </td>
+    </tr><tr>
+      <td><span style="font-family:&#39;DM Mono&#39;,monospace;font-size:11px">CPG-017</span></td>
+      <td style="font-size:11px;color:var(--muted)">2026-05-24</td>
+      <td style="font-weight:500">Arun Balasubramanian</td>
+      <td style="font-size:12px;color:var(--muted)">Hyundai Creta SX</td>
+      <td style="font-size:12.5px">HDFC Bank</td>
+      <td style="font-family:&#39;DM Mono&#39;,monospace;font-size:12px">₹1.0L</td>
+      <td style="font-size:12px;font-weight:500">Divya L</td>
+      <td style="font-size:12px">Sneha K</td>
+      <td style="font-family:&#39;DM Mono&#39;,monospace;font-size:12px;color:var(--green-text)">745</td>
+      <td><span class="badge badge-green">Disbursed</span></td>
+      <td style="font-family:&#39;DM Mono&#39;,monospace;font-size:12px;color:var(--green-text);font-weight:600">₹6,750</td>
+      <td><button class="btn btn-xs" onclick="event.stopPropagation();openDocModal(&#39;CPG-017&#39;)"><i class="ti ti-files" style="font-size:11px"></i> View</button></td>
+      <td style="white-space:nowrap">
+        <button class="btn btn-sm" onclick="openCaseDetailModal(&#39;CPG-017&#39;)">View</button>
+        <button class="btn btn-sm" onclick="event.stopPropagation();openUnlockModal()" style="margin-left:4px"><i class="ti ti-lock-open" style="font-size:11px"></i></button>
+      </td>
+    </tr><tr>
+      <td><span style="font-family:&#39;DM Mono&#39;,monospace;font-size:11px">CPG-016</span></td>
+      <td style="font-size:11px;color:var(--muted)">2026-05-23</td>
+      <td style="font-weight:500">Vijay Thiyagarajan</td>
+      <td style="font-size:12px;color:var(--muted)">MG Astor ST</td>
+      <td style="font-size:12.5px">ICICI Bank</td>
+      <td style="font-family:&#39;DM Mono&#39;,monospace;font-size:12px">₹1.0L</td>
+      <td style="font-size:12px;font-weight:500">Anand R</td>
+      <td style="font-size:12px">Priya S</td>
+      <td style="font-family:&#39;DM Mono&#39;,monospace;font-size:12px;color:var(--amber-text)">729</td>
+      <td><span class="badge badge-green">Sanctioned</span></td>
+      <td style="font-family:&#39;DM Mono&#39;,monospace;font-size:12px;color:var(--green-text);font-weight:600">₹5,605</td>
+      <td><button class="btn btn-xs" onclick="event.stopPropagation();openDocModal(&#39;CPG-016&#39;)"><i class="ti ti-files" style="font-size:11px"></i> View</button></td>
+      <td style="white-space:nowrap">
+        <button class="btn btn-sm" onclick="openCaseDetailModal(&#39;CPG-016&#39;)">View</button>
+        <button class="btn btn-sm" onclick="event.stopPropagation();openUnlockModal()" style="margin-left:4px"><i class="ti ti-lock-open" style="font-size:11px"></i></button>
+      </td>
+    </tr><tr>
+      <td><span style="font-family:&#39;DM Mono&#39;,monospace;font-size:11px">CPG-015</span></td>
+      <td style="font-size:11px;color:var(--muted)">2026-05-22</td>
+      <td style="font-weight:500">Deepika Rajan</td>
+      <td style="font-size:12px;color:var(--muted)">Toyota Urban Cruiser</td>
+      <td style="font-size:12.5px">IndusInd Bank</td>
+      <td style="font-family:&#39;DM Mono&#39;,monospace;font-size:12px">₹1.0L</td>
+      <td style="font-size:12px;font-weight:500">Divya L</td>
+      <td style="font-size:12px">Ravi T</td>
+      <td style="font-family:&#39;DM Mono&#39;,monospace;font-size:12px;color:var(--green-text)">743</td>
+      <td><span class="badge badge-green">Disbursed</span></td>
+      <td style="font-family:&#39;DM Mono&#39;,monospace;font-size:12px;color:var(--green-text);font-weight:600">₹5,775</td>
+      <td><button class="btn btn-xs" onclick="event.stopPropagation();openDocModal(&#39;CPG-015&#39;)"><i class="ti ti-files" style="font-size:11px"></i> View</button></td>
+      <td style="white-space:nowrap">
+        <button class="btn btn-sm" onclick="openCaseDetailModal(&#39;CPG-015&#39;)">View</button>
+        <button class="btn btn-sm" onclick="event.stopPropagation();openUnlockModal()" style="margin-left:4px"><i class="ti ti-lock-open" style="font-size:11px"></i></button>
+      </td>
+    </tr></tbody>
         </table>
       </div>
-      <!-- MOBILE CASE CARDS -->
-      <div class="case-cards" id="all-cases-cards"></div>
     </div>
 
     <!-- ══ TAB: TEAM PERFORMANCE ══ -->
@@ -920,7 +1025,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);fon
       <div class="kpi-label">Anand R</div>
       <div class="kpi-value" style="color:#1A4F3A;font-size:26px">5</div>
       <div class="kpi-sub" style="margin-bottom:4px">sanctioned of 8 files</div>
-      
+      <div class="kpi-bar"><div class="kpi-fill" style="width:50%;background:#1A4F3A"></div></div>
     </div>
   
     <div class="kpi">
@@ -930,7 +1035,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);fon
       <div class="kpi-label">Priya S</div>
       <div class="kpi-value" style="color:#1E40AF;font-size:26px">4</div>
       <div class="kpi-sub" style="margin-bottom:4px">sanctioned of 7 files</div>
-      
+      <div class="kpi-bar"><div class="kpi-fill" style="width:50%;background:#1E40AF"></div></div>
     </div>
   
     <div class="kpi">
@@ -940,7 +1045,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);fon
       <div class="kpi-label">Karthik M</div>
       <div class="kpi-value" style="color:#5B21B6;font-size:26px">3</div>
       <div class="kpi-sub" style="margin-bottom:4px">sanctioned of 5 files</div>
-      
+      <div class="kpi-bar"><div class="kpi-fill" style="width:38%;background:#5B21B6"></div></div>
     </div>
   
     <div class="kpi">
@@ -950,7 +1055,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);fon
       <div class="kpi-label">Divya L</div>
       <div class="kpi-value" style="color:#B45309;font-size:26px">2</div>
       <div class="kpi-sub" style="margin-bottom:4px">sanctioned of 4 files</div>
-      
+      <div class="kpi-bar"><div class="kpi-fill" style="width:25%;background:#B45309"></div></div>
     </div>
   
     <div class="kpi">
@@ -960,7 +1065,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);fon
       <div class="kpi-label">Ravi T</div>
       <div class="kpi-value" style="color:#0F766E;font-size:26px">1</div>
       <div class="kpi-sub" style="margin-bottom:4px">sanctioned of 2 files</div>
-      
+      <div class="kpi-bar"><div class="kpi-fill" style="width:13%;background:#0F766E"></div></div>
     </div>
   
     <div class="kpi">
@@ -970,7 +1075,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);fon
       <div class="kpi-label">Sneha K</div>
       <div class="kpi-value" style="color:#7C3AED;font-size:26px">1</div>
       <div class="kpi-sub" style="margin-bottom:4px">sanctioned of 1 files</div>
-      
+      <div class="kpi-bar"><div class="kpi-fill" style="width:13%;background:#7C3AED"></div></div>
     </div>
   </div>
       <div class="g-main" style="margin-bottom:18px">
@@ -1327,10 +1432,10 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);fon
     <!-- ══ TAB: ONLINE LEADS (was RTO) ══ -->
     <div class="tab-pane" id="tab-rto">
       <div class="g4" style="margin-bottom:18px">
-        <div class="kpi"><div class="kpi-label">Total Leads</div><div class="kpi-value">18</div></div>
-        <div class="kpi"><div class="kpi-label">Contacted</div><div class="kpi-value" style="color:var(--amber-text)">8</div></div>
-        <div class="kpi"><div class="kpi-label">Interested</div><div class="kpi-value" style="color:var(--blue-text)">5</div></div>
-        <div class="kpi"><div class="kpi-label">Converted</div><div class="kpi-value" style="color:var(--green-text)">3</div></div>
+        <div class="kpi"><div class="kpi-label">Total Leads</div><div class="kpi-value">18</div><div class="kpi-bar"><div class="kpi-fill" style="width:100%;background:var(--accent)"></div></div></div>
+        <div class="kpi"><div class="kpi-label">Contacted</div><div class="kpi-value" style="color:var(--amber-text)">8</div><div class="kpi-bar"><div class="kpi-fill" style="width:44%;background:var(--amber-text)"></div></div></div>
+        <div class="kpi"><div class="kpi-label">Interested</div><div class="kpi-value" style="color:var(--blue-text)">5</div><div class="kpi-bar"><div class="kpi-fill" style="width:28%;background:var(--blue-text)"></div></div></div>
+        <div class="kpi"><div class="kpi-label">Converted</div><div class="kpi-value" style="color:var(--green-text)">3</div><div class="kpi-bar"><div class="kpi-fill" style="width:17%;background:var(--green-text)"></div></div></div>
       </div>
       <div class="card">
         <div class="card-pad" style="padding-bottom:0">
@@ -2145,15 +2250,26 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);fon
 
 <script>
 // ── DATA ──────────────────────────────────────────────────────────────────────
-const cases=[];  // Populated from Supabase on load
+const cases=[
+  {id:'CPG-024',date:'2026-05-31',cust:'Senthil Rajan',car:'Hyundai Tucson',bank:'ICICI Bank',loan:1650000,member:'Anand R',cibil:772,status:'In process',payout:7838},
+  {id:'CPG-023',date:'2026-05-30',cust:'Meenakshi Devi',car:'Tata Nexon EV',bank:'HDFC Bank',loan:1420000,member:'Priya S',cibil:748,status:'Sanctioned',payout:7100},
+  {id:'CPG-022',date:'2026-05-29',cust:'Balaji Krishnan',car:'Maruti Brezza ZXI',bank:'SBI',loan:1100000,member:'Karthik M',cibil:691,status:'Disbursed',payout:2000},
+  {id:'CPG-021',date:'2026-05-28',cust:'Lavanya Subramanian',car:'Honda City V',bank:'IndusInd Bank',loan:1280000,member:'Divya L',cibil:734,status:'In process',payout:7040},
+  {id:'CPG-020',date:'2026-05-27',cust:'Raj Kumar',car:'Kia Seltos HTX+',bank:'HDFC Bank',loan:1500000,member:'Anand R',cibil:761,status:'Disbursed',payout:7500},
+  {id:'CPG-019',date:'2026-05-26',cust:'Suresh Pillai',car:'Maruti Ertiga VXI',bank:'Axis Bank',loan:950000,member:'Karthik M',cibil:712,status:'Sanctioned',payout:4275},
+  {id:'CPG-018',date:'2026-05-25',cust:'Priya Nair',car:'Tata Punch Creative',bank:'Kotak Bank',loan:820000,member:'Priya S',cibil:758,status:'Rejected',payout:0},
+  {id:'CPG-017',date:'2026-05-24',cust:'Arun Balasubramanian',car:'Hyundai Creta SX',bank:'HDFC Bank',loan:1350000,member:'Divya L',cibil:745,status:'Disbursed',payout:6750},
+  {id:'CPG-016',date:'2026-05-23',cust:'Vijay Thiyagarajan',car:'MG Astor ST',bank:'ICICI Bank',loan:1180000,member:'Anand R',cibil:729,status:'Sanctioned',payout:5605},
+  {id:'CPG-015',date:'2026-05-22',cust:'Deepika Rajan',car:'Toyota Urban Cruiser',bank:'IndusInd Bank',loan:1050000,member:'Priya S',cibil:743,status:'Disbursed',payout:5775},
+];
 
 let teamMembers=[
-  {id:1,name:'Anand R',  role:'BM',reportsTo:'',   phone:'9876541001',email:'anand.r@capriglobal.in',   uid:'e6d223f6-7ded-4780-88fb-bf3277ecd26a',files:8,sanctioned:5,target:10,color:'#1A4F3A',aiAccess:true},
-  {id:2,name:'Priya S',  role:'RM',reportsTo:'Anand R', phone:'9876541002',email:'priya.s@capriglobal.in',   uid:'6353e7f6-cae6-4186-8b9c-289090871940',files:7,sanctioned:4,target:8, color:'#1E40AF',aiAccess:true},
-  {id:3,name:'Karthik M',role:'RM',reportsTo:'Anand R', phone:'9876541003',email:'karthik.m@capriglobal.in', uid:'c8591d35-f276-4e2c-a35b-66b3cc1e0b62',files:5,sanctioned:3,target:8, color:'#5B21B6',aiAccess:false},
-  {id:4,name:'Divya L',  role:'BM',reportsTo:'',   phone:'9876541004',email:'divya.l@capriglobal.in',   uid:'c1edd82b-b26b-4258-bd8d-912caa786aff',files:4,sanctioned:2,target:8, color:'#B45309',aiAccess:true},
-  {id:5,name:'Ravi T',   role:'RM',reportsTo:'Divya L', phone:'9876541005',email:'ravi.t@capriglobal.in',    uid:'',files:2,sanctioned:1,target:8, color:'#0F766E',aiAccess:false},
-  {id:6,name:'Sneha K',  role:'RM',reportsTo:'Divya L', phone:'9876541006',email:'sneha.k@capriglobal.in',   uid:'',files:1,sanctioned:1,target:8, color:'#7C3AED',aiAccess:true},
+  {id:1,name:'Anand R',  role:'BM',reportsTo:'',   phone:'9876541001',email:'anand.r@capriglobal.in',   files:8,sanctioned:5,target:10,color:'#1A4F3A',aiAccess:true},
+  {id:2,name:'Priya S',  role:'RM',reportsTo:'Anand R', phone:'9876541002',email:'priya.s@capriglobal.in',   files:7,sanctioned:4,target:8, color:'#1E40AF',aiAccess:true},
+  {id:3,name:'Karthik M',role:'RM',reportsTo:'Anand R', phone:'9876541003',email:'karthik.m@capriglobal.in', files:5,sanctioned:3,target:8, color:'#5B21B6',aiAccess:false},
+  {id:4,name:'Divya L',  role:'BM',reportsTo:'',   phone:'9876541004',email:'divya.l@capriglobal.in',   files:4,sanctioned:2,target:8, color:'#B45309',aiAccess:true},
+  {id:5,name:'Ravi T',   role:'RM',reportsTo:'Divya L', phone:'9876541005',email:'ravi.t@capriglobal.in',    files:2,sanctioned:1,target:8, color:'#0F766E',aiAccess:false},
+  {id:6,name:'Sneha K',  role:'RM',reportsTo:'Divya L', phone:'9876541006',email:'sneha.k@capriglobal.in',   files:1,sanctioned:1,target:8, color:'#7C3AED',aiAccess:true},
 ];
 let nextMemberId = 7;
 
@@ -2177,7 +2293,18 @@ const orgHierarchy=[
 
 // Cases now include rm field — map existing cases to BM/RM structure
 // Anand R is BM; Priya S & Karthik M are his RMs; Divya L is BM with her own RMs
-const caseOrgMap={};  // Populated from Supabase on load
+const caseOrgMap={
+  'CPG-024':{bm:'Anand R',rm:'Priya S'},
+  'CPG-023':{bm:'Anand R',rm:'Priya S'},
+  'CPG-022':{bm:'Anand R',rm:'Karthik M'},
+  'CPG-021':{bm:'Divya L',rm:'Ravi T'},
+  'CPG-020':{bm:'Anand R',rm:'Karthik M'},
+  'CPG-019':{bm:'Anand R',rm:'Karthik M'},
+  'CPG-018':{bm:'Anand R',rm:'Priya S'},
+  'CPG-017':{bm:'Divya L',rm:'Sneha K'},
+  'CPG-016':{bm:'Anand R',rm:'Priya S'},
+  'CPG-015':{bm:'Divya L',rm:'Ravi T'},
+};
 
 const banks=[
   {name:'HDFC Bank',  type:'PVT Bank',minCibil:720,foir:50,ltv:85,payout:0.50,minRoi:8.50,slabs:[{label:'750+',roi:'8.50–9.25%'},{label:'720–749',roi:'9.25–10.00%'},{label:'700–719',roi:'10.00–10.50%'}],active:true},
@@ -2222,12 +2349,8 @@ const weights=[
 ];
 
 // ── HELPERS ──────────────────────────────────────────────────────────────────
-const fmt=n=>{
-  if(!n||isNaN(n)) return '—';
-  if(n>=10000000) return '₹'+(n/10000000).toFixed(2)+'Cr';
-  if(n>=100000)   return '₹'+(n/100000).toFixed(1)+'L';
-  return '₹'+Number(n).toLocaleString('en-IN');
-};
+const fmt=n=>n>=10000000?'₹'+Math.round(n/100000)+'L':n>=100000?'₹'+Math.round(n/100000/10).toFixed(1)+'L'
+  :'₹'+(n).toLocaleString('en-IN');
 const initials=name=>name.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
 const statusColor=s=>({
   'Disbursed':'badge-green','Sanctioned':'badge-green',
@@ -2398,32 +2521,30 @@ function applyDashFilters(){
   if(rm)   active++;
   if(activePeriod && activePeriod !== 'custom') active++;
   const badge = document.getElementById('dash-filter-badge');
-  if(badge){
-    if(active > 0){ badge.style.display='inline-block'; badge.textContent=active+' filter'+(active>1?'s':'')+' active'; }
-    else           { badge.style.display='none'; }
-  }
+  if(active > 0){ badge.style.display='inline-block'; badge.textContent=active+' filter'+(active>1?'s':'')+' active'; }
+  else           { badge.style.display='none'; }
 
   // ── KPI 1: Total Files
   const totalFiles = d.length;
   const totalLoan  = d.reduce((s,c)=>s+c.loan,0);
-  (document.getElementById('kpi-files')||{}).textContent = totalFiles;
-  (document.getElementById('kpi-files-val')||{}).textContent = totalLoan>=10000000
+  document.getElementById('kpi-files').textContent = totalFiles;
+  document.getElementById('kpi-files-val').textContent = totalLoan>=10000000
     ? '₹'+( totalLoan/10000000).toFixed(2)+' Cr total value'
     : '₹'+(totalLoan/100000).toFixed(1)+'L total value';
 
   // ── KPI 2: In Process
   const inProc     = d.filter(c=>c.status==='In process');
   const inProcLoan = inProc.reduce((s,c)=>s+c.loan,0);
-  (document.getElementById('kpi-inprocess')||{}).textContent = inProc.length;
-  (document.getElementById('kpi-inprocess-val')||{}).textContent = inProcLoan>=10000000
+  document.getElementById('kpi-inprocess').textContent = inProc.length;
+  document.getElementById('kpi-inprocess-val').textContent = inProcLoan>=10000000
     ? '₹'+(inProcLoan/10000000).toFixed(2)+' Cr pipeline value'
     : '₹'+(inProcLoan/100000).toFixed(1)+'L pipeline value';
 
   // ── KPI 3: Sanctioned (awaiting disbursal)
   const sanc     = d.filter(c=>c.status==='Sanctioned');
   const sancLoan = sanc.reduce((s,c)=>s+c.loan,0);
-  (document.getElementById('kpi-sanc')||{}).textContent = sanc.length;
-  (document.getElementById('kpi-sanc-val')||{}).textContent = sancLoan>=10000000
+  document.getElementById('kpi-sanc').textContent = sanc.length;
+  document.getElementById('kpi-sanc-val').textContent = sancLoan>=10000000
     ? '₹'+(sancLoan/10000000).toFixed(2)+' Cr pending disbursal'
     : '₹'+(sancLoan/100000).toFixed(1)+'L pending disbursal';
   const sancPct = totalFiles>0 ? Math.round(sanc.length/totalFiles*100) : 0;
@@ -2433,8 +2554,8 @@ function applyDashFilters(){
   // ── KPI 4: Disbursements
   const disb     = d.filter(c=>c.status==='Disbursed');
   const disbLoan = disb.reduce((s,c)=>s+c.loan,0);
-  (document.getElementById('disb-count')||{}).textContent = disb.length;
-  (document.getElementById('disb-amount')||{}).textContent = disbLoan>=10000000
+  document.getElementById('disb-count').textContent = disb.length;
+  document.getElementById('disb-amount').textContent = disbLoan>=10000000
     ? '₹'+(disbLoan/10000000).toFixed(2)+' Cr disbursed'
     : '₹'+(disbLoan/100000).toFixed(1)+'L disbursed';
 
@@ -2442,15 +2563,16 @@ function applyDashFilters(){
   const rej     = d.filter(c=>c.status==='Rejected');
   const rejLoan = rej.reduce((s,c)=>s+c.loan,0);
   const rejRate = totalFiles>0 ? (rej.length/totalFiles*100).toFixed(1) : '0.0';
-  (document.getElementById('kpi-rejected')||{}).textContent = rej.length;
-  (document.getElementById('kpi-rejected-val')||{}).textContent = rejLoan>=10000000
+  document.getElementById('kpi-rejected').textContent = rej.length;
+  document.getElementById('kpi-rejected-val').textContent = rejLoan>=10000000
     ? '₹'+(rejLoan/10000000).toFixed(2)+' Cr declined value'
     : '₹'+(rejLoan/100000).toFixed(1)+'L declined value';
-  (document.getElementById('kpi-rejected-rate')||{}).innerHTML = `<i class="ti ti-percentage" style="font-size:11px"></i> ${rejRate}% rejection rate`;
+  document.getElementById('kpi-rejected-rate').innerHTML =
+    `<i class="ti ti-percentage" style="font-size:11px"></i> ${rejRate}% rejection rate`;
 
   // ── KPI 6: Payout
   const totalPayout = d.reduce((s,c)=>s+c.payout,0);
-  (document.getElementById('kpi-payout-val')||{}).textContent = totalPayout>=100000
+  document.getElementById('kpi-payout-val').textContent = totalPayout>=100000
     ? '₹'+(totalPayout/100000).toFixed(2)+'L'
     : '₹'+totalPayout.toLocaleString('en-IN');
   const payoutPct = cases.reduce((s,c)=>s+c.payout,0);
@@ -2493,7 +2615,7 @@ function renderRecentTableData(data){
     <td><span class="badge ${statusColor(c.status)}">${c.status}</span></td>
     <td style="font-family:'DM Mono',monospace;font-size:12px;color:var(--green-text);font-weight:600">${c.payout>0?fmt(c.payout):'—'}</td>
   </tr>`).join('');
-  (document.getElementById('recent-tbody')||{}).innerHTML = rows;
+  document.getElementById('recent-tbody').innerHTML = rows;
 }
 
 function filterTable(val){
@@ -2531,13 +2653,12 @@ function renderTrendChart(){
       ${i===5?`<text x="${x}" y="${ys[i]-9}" text-anchor="middle" fill="#1A4F3A" font-size="9" font-weight="600" font-family="DM Sans">₹${values[i]/100}Cr</text>`:''}
     `).join('')}
   </svg>`;
-  const tcw=document.getElementById('trend-chart-wrap'); if(tcw) tcw.innerHTML=html;
+  document.getElementById('trend-chart-wrap').innerHTML=html;
 }
 
 // ── RENDER: TEAM SNAPSHOT ─────────────────────────────────────────────────────
 function renderTeamSnapshot(){
-  const ts=document.getElementById('team-snapshot'); if(!ts) return;
-  ts.innerHTML=teamMembers.map(m=>{
+  document.getElementById('team-snapshot').innerHTML=teamMembers.map(m=>{
     const pct=Math.round((m.sanctioned/m.target)*100);
     return `<div class="member-row">
       <div class="avatar" style="background:${m.color}">${initials(m.name)}</div>
@@ -2559,8 +2680,7 @@ function renderBankPayoutList(){
   const byBank={};
   cases.forEach(c=>{if(c.payout>0){byBank[c.bank]=(byBank[c.bank]||0)+c.payout;}});
   const sorted=Object.entries(byBank).sort((a,b)=>b[1]-a[1]).slice(0,5);
-  const bpl=document.getElementById('bank-payout-list'); if(!bpl) return;
-  bpl.innerHTML=sorted.map(([bank,amt],i)=>`
+  document.getElementById('bank-payout-list').innerHTML=sorted.map(([bank,amt],i)=>`
     <div class="payout-row">
       <div style="width:20px;height:20px;border-radius:50%;background:${i===0?'var(--accent)':'var(--border2)'};color:${i===0?'white':'var(--muted)'};font-size:9px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0">${i+1}</div>
       <div class="payout-bank">${bank}</div>
@@ -2573,95 +2693,30 @@ function renderBankPayoutList(){
 // ── RENDER: ALL CASES ─────────────────────────────────────────────────────────
 function renderAllCases(data){
   const d=data||cases;
-  const tbody   = document.getElementById('all-cases-tbody');
-  const cards   = document.getElementById('all-cases-cards');
-  const countEl = document.getElementById('cases-count');
-  if (countEl) countEl.textContent=`${d.length} case${d.length!==1?'s':''}`;
-
-  const emptyMsg = d.length===0;
-
-  // ── Desktop table ──
-  if (tbody) {
-    tbody.innerHTML = emptyMsg
-      ? `<tr><td colspan="12"><div class="empty-state" style="padding:28px"><i class="ti ti-search-off"></i><span>No cases found</span></div></td></tr>`
-      : d.map(c=>{
-          const org=caseOrgMap[c.id]||{bm:'—',rm:'—'};
-          return `<tr>
-          <td><span style="font-family:'DM Mono',monospace;font-size:11px">${c.id}</span></td>
-          <td style="font-size:11px;color:var(--muted)">${fmtDate(c.date)}</td>
-          <td style="font-weight:500">${c.cust}</td>
-          <td style="font-size:12px;color:var(--muted)">${c.car||'—'}</td>
-          <td style="font-size:12.5px">${c.bank||'—'}</td>
-          <td style="font-family:'DM Mono',monospace;font-size:12px">${fmt(c.loan)}</td>
-          <td style="font-size:12px;font-weight:500">${c.createdByName||org.bm||'—'}</td>
-          <td style="font-size:12px;color:var(--muted)">${c.reportsToName||org.rm||'—'}</td>
-          <td style="font-family:'DM Mono',monospace;font-size:12px;color:${cibilColor(c.cibil)}">${c.cibil||'—'}</td>
-          <td><span class="badge ${statusColor(c.status)}">${c.status}</span></td>
-          <td style="font-family:'DM Mono',monospace;font-size:12px;color:var(--green-text);font-weight:600">${c.payout>0?fmt(c.payout):'—'}</td>
-          <td style="white-space:nowrap">
-            <button class="btn btn-sm" onclick="openCaseDetailModal('${c.id}')">View</button>
-            ${c.status!=='Draft'?`<button class="btn btn-sm" onclick="event.stopPropagation();openUnlockModal()" style="margin-left:4px"><i class="ti ti-lock-open" style="font-size:11px"></i></button>`:''}
-          </td>
-        </tr>`;
-        }).join('');
-  }
-
-  // ── Mobile cards ──
-  if (cards) {
-    cards.innerHTML = emptyMsg
-      ? `<div style="text-align:center;padding:40px;color:var(--muted);font-size:13px"><i class="ti ti-search-off" style="font-size:20px;display:block;margin-bottom:8px"></i>No cases found</div>`
-      : d.map(c=>{
-          const org = caseOrgMap[c.id]||{bm:'—',rm:'—'};
-          return `<div class="case-card">
-            <div class="case-card-header">
-              <span class="case-card-id">${c.id}</span>
-              <span class="case-card-date">${fmtDate(c.date)}</span>
-            </div>
-            <div class="case-card-customer">${c.cust}</div>
-            <div class="case-card-grid">
-              <div class="case-card-field">
-                <span class="case-card-label">Bank</span>
-                <span class="case-card-value">${c.bank||'—'}</span>
-              </div>
-              <div class="case-card-field">
-                <span class="case-card-label">Loan</span>
-                <span class="case-card-value">${fmt(c.loan)}</span>
-              </div>
-              <div class="case-card-field">
-                <span class="case-card-label">Status</span>
-                <span class="case-card-value"><span class="badge ${statusColor(c.status)}">${c.status}</span></span>
-              </div>
-              <div class="case-card-field">
-                <span class="case-card-label">CIBIL</span>
-                <span class="case-card-value" style="color:${cibilColor(c.cibil)};font-family:'DM Mono',monospace">${c.cibil||'—'}</span>
-              </div>
-              <div class="case-card-field">
-                <span class="case-card-label">Car</span>
-                <span class="case-card-value">${c.car||'—'}</span>
-              </div>
-              <div class="case-card-field">
-                <span class="case-card-label">Payout</span>
-                <span class="case-card-value" style="color:var(--green-text)">${c.payout>0?fmt(c.payout):'—'}</span>
-              </div>
-              <div class="case-card-field">
-                <span class="case-card-label">Created by</span>
-                <span class="case-card-value">${c.createdByName||org.bm||'—'}</span>
-              </div>
-              <div class="case-card-field">
-                <span class="case-card-label">Reporting to</span>
-                <span class="case-card-value">${c.reportsToName||org.rm||'—'}</span>
-              </div>
-            </div>
-            <div class="case-card-actions">
-              <button class="btn btn-sm" onclick="openCaseDetailModal('${c.id}')">
-                <i class="ti ti-eye" style="font-size:13px"></i> View details
-              </button>
-
-              ${c.status!=='Draft'?`<button class="btn btn-xs" onclick="openUnlockModal()"><i class="ti ti-lock-open" style="font-size:12px"></i></button>`:''}
-            </div>
-          </div>`;
-        }).join('');
-  }
+  document.getElementById('cases-count').textContent=`${d.length} case${d.length!==1?'s':''}`;
+  document.getElementById('all-cases-tbody').innerHTML=d.length===0
+    ?`<tr><td colspan="13"><div class="empty-state" style="padding:28px"><i class="ti ti-search-off"></i><span>No cases match your filters</span></div></td></tr>`
+    :d.map(c=>{
+      const org=caseOrgMap[c.id]||{bm:'—',rm:'—'};
+      return `<tr>
+      <td><span style="font-family:'DM Mono',monospace;font-size:11px">${c.id}</span></td>
+      <td style="font-size:11px;color:var(--muted)">${c.date}</td>
+      <td style="font-weight:500">${c.cust}</td>
+      <td style="font-size:12px;color:var(--muted)">${c.car}</td>
+      <td style="font-size:12.5px">${c.bank}</td>
+      <td style="font-family:'DM Mono',monospace;font-size:12px">${fmt(c.loan)}</td>
+      <td style="font-size:12px;font-weight:500">${org.bm}</td>
+      <td style="font-size:12px">${org.rm}</td>
+      <td style="font-family:'DM Mono',monospace;font-size:12px;color:${cibilColor(c.cibil)}">${c.cibil}</td>
+      <td><span class="badge ${statusColor(c.status)}">${c.status}</span></td>
+      <td style="font-family:'DM Mono',monospace;font-size:12px;color:var(--green-text);font-weight:600">${c.payout>0?fmt(c.payout):'—'}</td>
+      <td><button class="btn btn-xs" onclick="event.stopPropagation();openDocModal('${c.id}')"><i class="ti ti-files" style="font-size:11px"></i> View</button></td>
+      <td style="white-space:nowrap">
+        <button class="btn btn-sm" onclick="openCaseDetailModal('${c.id}')">View</button>
+        ${c.status!=='Draft'?`<button class="btn btn-sm" onclick="event.stopPropagation();openUnlockModal()" style="margin-left:4px"><i class="ti ti-lock-open" style="font-size:11px"></i></button>`:''}
+      </td>
+    </tr>`;
+    }).join('');
 }
 
 function filterCases(){
@@ -2683,7 +2738,7 @@ function filterCases(){
     if(search && !c.cust.toLowerCase().includes(search)&&!c.id.toLowerCase().includes(search)) return false;
     return true;
   });
-  if(document.getElementById('all-cases-tbody')) renderAllCases(filtered);
+  renderAllCases(filtered);
 }
 
 function onCasesBMChange(){
@@ -2761,8 +2816,7 @@ function initCasesBMFilter(){
 
 // ── RENDER: TEAM TAB ──────────────────────────────────────────────────────────
 function renderTeamTab(){
-  const tk=document.getElementById('team-kpis'); if(!tk) return;
-  tk.innerHTML=teamMembers.map(m=>`
+  document.getElementById('team-kpis').innerHTML=teamMembers.map(m=>`
     <div class="kpi">
       <div class="kpi-icon" style="background:${m.color}18;color:${m.color}">
         <div style="width:26px;height:26px;border-radius:50%;background:${m.color};display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:white">${initials(m.name)}</div>
@@ -2770,12 +2824,11 @@ function renderTeamTab(){
       <div class="kpi-label">${m.name}</div>
       <div class="kpi-value" style="color:${m.color};font-size:26px">${m.sanctioned}</div>
       <div class="kpi-sub" style="margin-bottom:4px">sanctioned of ${m.files} files</div>
-      
+      <div class="kpi-bar"><div class="kpi-fill" style="width:${Math.round(m.sanctioned/m.target*100)}%;background:${m.color}"></div></div>
     </div>
   `).join('');
 
-  const td2=document.getElementById('team-detail'); if(!td2) return;
-  td2.innerHTML=teamMembers.map(m=>{
+  document.getElementById('team-detail').innerHTML=teamMembers.map(m=>{
     const pct=Math.round((m.sanctioned/m.target)*100);
     const memberCases=cases.filter(c=>c.member===m.name);
     const totalPayout=memberCases.reduce((s,c)=>s+c.payout,0);
@@ -2797,8 +2850,7 @@ function renderTeamTab(){
 
   const byBank={};
   cases.forEach(c=>{byBank[c.bank]=(byBank[c.bank]||0)+1;});
-  const bb=document.getElementById('bank-breakdown'); if(!bb) return;
-  bb.innerHTML=Object.entries(byBank).sort((a,b)=>b[1]-a[1]).map(([bank,cnt])=>`
+  document.getElementById('bank-breakdown').innerHTML=Object.entries(byBank).sort((a,b)=>b[1]-a[1]).map(([bank,cnt])=>`
     <div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border)">
       <div style="font-size:12.5px;font-weight:500;flex:1">${bank}</div>
       <div style="font-size:12px;color:var(--muted);min-width:20px;text-align:right;font-family:'DM Mono',monospace">${cnt}</div>
@@ -2811,7 +2863,7 @@ function renderTeamTab(){
 // ── RENDER: ONLINE LEADS (was RTO) ───────────────────────────────────────────
 function renderRTO(){
   const statusColors={'New':'badge-gray','Contacted':'badge-blue','Interested':'badge-amber','Converted':'badge-green','Not interested':'badge-red'};
-  (document.getElementById('rto-tbody')||{}).innerHTML = rtoLeads.map((r,i)=>`<tr>
+  document.getElementById('rto-tbody').innerHTML=rtoLeads.map((r,i)=>`<tr>
     <td style="font-weight:500">${r.owner}</td>
     <td style="font-size:12px;color:var(--muted)">${r.car}</td>
     <td style="font-family:'DM Mono',monospace;font-size:12px">${r.phone}</td>
@@ -2832,7 +2884,7 @@ const typeBadge={
   'NBFC':    'badge-purple',
 };
 function renderBanks(){
-  (document.getElementById('banks-tbody')||{}).innerHTML = banks.map((b,i)=>`<tr>
+  document.getElementById('banks-tbody').innerHTML=banks.map((b,i)=>`<tr>
     <td style="font-weight:500">${b.name}</td>
     <td><span class="badge ${typeBadge[b.type]||'badge-gray'}">${b.type}</span></td>
     <td style="font-family:'DM Mono',monospace;font-size:12.5px">${b.minCibil}</td>
@@ -2873,8 +2925,7 @@ function hideROISlab(){document.getElementById('roi-popup').style.display='none'
 
 // ── RENDER: AI TOGGLES ────────────────────────────────────────────────────────
 function renderAIToggles(){
-  const ait=document.getElementById('ai-toggles'); if(!ait) return;
-  ait.innerHTML=aiFeatures.map((f,i)=>`
+  document.getElementById('ai-toggles').innerHTML=aiFeatures.map((f,i)=>`
     <div class="setting-row">
       <div class="tog ${f.on?'on':''}" onclick="aiFeatures[${i}].on=!aiFeatures[${i}].on;this.classList.toggle('on');this.querySelector('.tog-k').style.left=this.classList.contains('on')?'18px':'2px';renderAIToggles()">
         <div class="tog-k" style="left:${f.on?'18':'2'}px"></div>
@@ -2890,11 +2941,10 @@ function renderAIToggles(){
 
 // ── RENDER: WEIGHT SLIDERS ────────────────────────────────────────────────────
 function renderWeightSliders(){
-  const ws=document.getElementById('weight-sliders'); if(!ws) return;
-  ws.innerHTML=weights.map((w,i)=>`
+  document.getElementById('weight-sliders').innerHTML=weights.map((w,i)=>`
     <div style="display:flex;align-items:center;gap:10px;padding:11px 0;border-bottom:1px solid var(--border)">
       <div style="flex:1;font-size:12.5px;color:var(--text2)">${w.label}</div>
-      <input type="range" min="0" max="60" value="${w.val}" style="width:100px;accent-color:var(--accent)" oninput="weights[${i}].val=parseInt(this.value);(document.getElementById('wv-${i}')||{}).textContent = this.value+' pts';updateTotalWeight()">
+      <input type="range" min="0" max="60" value="${w.val}" style="width:100px;accent-color:var(--accent)" oninput="weights[${i}].val=parseInt(this.value);document.getElementById('wv-${i}').textContent=this.value+' pts';updateTotalWeight()">
       <span style="font-size:13px;font-weight:600;color:${w.color};min-width:48px;text-align:right" id="wv-${i}">${w.val} pts</span>
     </div>
   `).join('')+`<div style="display:flex;justify-content:space-between;padding:11px 0;font-size:12.5px"><span style="color:var(--muted)">Total score</span><span style="font-weight:600" id="total-weight">${weights.reduce((s,w)=>s+w.val,0)} pts</span></div>`;
@@ -2910,8 +2960,7 @@ function updateTotalWeight(){
 
 // ── RENDER: TEAM MANAGEMENT ───────────────────────────────────────────────────
 function renderTeamManagement(){
-  const tm=document.getElementById('team-management'); if(!tm) return;
-  tm.innerHTML=teamMembers.map(m=>`
+  document.getElementById('team-management').innerHTML=teamMembers.map(m=>`
     <div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border)">
       <div class="avatar" style="background:${m.color}">${initials(m.name)}</div>
       <div style="flex:1">
@@ -2931,7 +2980,7 @@ function calcPayout(){
   const total=disbursed.reduce((s,c)=>s+c.payout,0);
   const totalLoan=disbursed.reduce((s,c)=>s+c.loan,0);
 
-  (document.getElementById('payout-result')||{}).innerHTML = `
+  document.getElementById('payout-result').innerHTML=`
     <div class="card-title">Payout Summary</div>
     <div class="g2" style="margin-bottom:14px">
       <div class="kpi" style="padding:14px 16px"><div class="kpi-label">Disbursed/Sanctioned</div><div class="kpi-value" style="font-size:24px">${disbursed.length}</div></div>
@@ -2955,7 +3004,7 @@ function calcPayout(){
     </div>
   `;
 
-  (document.getElementById('payout-tbody')||{}).innerHTML = disbursed.map(c=>`<tr>
+  document.getElementById('payout-tbody').innerHTML=disbursed.map(c=>`<tr>
     <td style="font-family:'DM Mono',monospace;font-size:11px">${c.id}</td>
     <td style="font-weight:500">${c.cust}</td>
     <td>${c.bank}</td>
@@ -2969,7 +3018,7 @@ function calcPayout(){
 
 // ── REPORT GENERATOR ──────────────────────────────────────────────────────────
 function generateReport(){
-  (document.getElementById('report-preview')||{}).innerHTML = `
+  document.getElementById('report-preview').innerHTML=`
     <div class="card-title">Preview <span class="stat-pill" style="font-size:10px">Daily summary · 31 May 2026</span></div>
     <div style="border:1px solid var(--border);border-radius:var(--radius-sm);overflow:hidden;font-size:12px">
       <div style="background:var(--accent);padding:14px 16px;color:white">
@@ -2998,9 +3047,9 @@ function generateReport(){
 // ── CASE DETAIL PANEL ─────────────────────────────────────────────────────────
 function openCase(id){
   const c=cases.find(x=>x.id===id);if(!c)return;
-  (document.getElementById('detail-case-id')||{}).textContent = 'Case '+c.id;
-  (document.getElementById('detail-case-sub')||{}).textContent = c.status+' · '+fmtDate(c.date);
-  (document.getElementById('detail-body')||{}).innerHTML = `
+  document.getElementById('detail-case-id').textContent='Case '+c.id;
+  document.getElementById('detail-case-sub').textContent=c.status+' · '+c.date;
+  document.getElementById('detail-body').innerHTML=`
     <div class="detail-section">
       <div class="detail-section-title">Customer</div>
       <div class="detail-row"><span class="detail-key">Name</span><span class="detail-val">${c.cust}</span></div>
@@ -3065,7 +3114,7 @@ function renderMembers(){
       ${rms.map(m=>memberCard(m)).join('')}
     </div>
   `;
-  const ml=document.getElementById('members-list'); if(ml) ml.innerHTML=html;
+  document.getElementById('members-list').innerHTML=html;
 }
 
 function memberCard(m){
@@ -3195,10 +3244,10 @@ const docTypes=[
 
 function openDocModal(caseId){
   const c=cases.find(x=>x.id===caseId);if(!c)return;
-  (document.getElementById('doc-modal-title')||{}).textContent = `Documents — ${c.id}`;
-  (document.getElementById('doc-modal-sub')||{}).textContent = `${c.cust} · ${c.bank}`;
+  document.getElementById('doc-modal-title').textContent=`Documents — ${c.id}`;
+  document.getElementById('doc-modal-sub').textContent=`${c.cust} · ${c.bank}`;
   // Build tabs
-  (document.getElementById('doc-tabs')||{}).innerHTML = docTypes.map((t,i)=>`
+  document.getElementById('doc-tabs').innerHTML=docTypes.map((t,i)=>`
     <div class="itab ${i===0?'active':''}" onclick="switchDocTab('${t.key}',this)">${t.label}
       ${t.docs.length?`<span style="font-size:9px;background:var(--accent);color:white;border-radius:8px;padding:1px 5px;margin-left:3px">${t.docs.length}</span>`:''}
     </div>`).join('');
@@ -3241,8 +3290,8 @@ function closeDocModal(){document.getElementById('doc-modal-overlay').classList.
 // ── CASE DETAIL MODAL (tabbed) ────────────────────────────────────────────────
 function openCaseDetailModal(id){
   const c=cases.find(x=>x.id===id);if(!c)return;
-  (document.getElementById('cdm-case-id')||{}).textContent = 'Case '+c.id;
-  (document.getElementById('cdm-case-sub')||{}).textContent = c.status+' · '+fmtDate(c.date);
+  document.getElementById('cdm-case-id').textContent='Case '+c.id;
+  document.getElementById('cdm-case-sub').textContent=c.status+' · '+c.date;
   document.querySelectorAll('.wide-modal .itab').forEach((t,i)=>t.classList.toggle('active',i===0));
   renderCDMTab('basic',c);
   document.getElementById('case-detail-modal').classList.add('open');
@@ -3258,40 +3307,18 @@ function switchCDMTab(tab,el){
 
 function renderCDMTab(tab,c){
   const body=document.getElementById('cdm-body');
-  const val = v => v && v !== '—' && v !== 0 ? v : '<span style="color:var(--muted)">—</span>';
-  const fmtInr = n => n ? '₹' + Number(n).toLocaleString('en-IN') : '<span style="color:var(--muted)">—</span>';
   if(tab==='basic'){
-    // Use real data from case object — live cases have extra fields stored in c._raw
-    const raw = c._raw || {};
-    const personalRows = [
-      ['Full Name',       val(c.cust)],
-      ['Date of Birth',   val(raw.cust_dob || c.dob)],
-      ['Gender',          val(raw.cust_gender || c.gender)],
-      ['Mobile',          val(raw.cust_mobile || c.mobile)],
-      ['Email',           val(raw.cust_email || c.email)],
-      ['PAN',             val(raw.cust_pan || c.pan)],
-      ['Aadhaar',         val(raw.cust_aadhaar)],
-      ['Marital Status',  val(raw.cust_marital)],
-      ['Dependants',      val(raw.cust_dependants)],
-      ['Current Pincode', val(raw.curr_pincode || c.pincode)],
-    ].filter(([k,v]) => !v.includes('—') || ['Full Name','Mobile'].includes(k));
-    const empRows = [
-      ['Employment Type', val(raw.emp_type || c.emp)],
-      ['Employer',        val(raw.emp_company || c.employer)],
-      ['Net Monthly Income', fmtInr(raw.inc_net_monthly || c.income)],
-      ['Residence Type',  val(raw.res_type)],
-    ].filter(([k,v]) => !v.includes('—'));
     body.innerHTML=`
       <div class="g2" style="gap:14px">
         <div>
           <div class="detail-section-title" style="margin-bottom:10px">Personal Details</div>
-          ${personalRows.map(([k,v])=>`
+          ${[['Full Name',c.cust],['Date of Birth','15 Mar 1988'],['Gender','Male'],['Father\'s Name','Rajan Kumar'],['Mobile','9876543210'],['Email','customer@email.com'],['PAN','ABCDE1234F'],['Aadhaar','XXXX XXXX 1234'],['Address','14/5 Anna Nagar, Chennai – 600040']].map(([k,v])=>`
           <div class="detail-row"><span class="detail-key">${k}</span><span class="detail-val">${v}</span></div>`).join('')}
         </div>
         <div>
           <div class="detail-section-title" style="margin-bottom:10px">Employment</div>
-          ${empRows.length ? empRows.map(([k,v])=>`
-          <div class="detail-row"><span class="detail-key">${k}</span><span class="detail-val">${v}</span></div>`).join('') : '<div style="color:var(--muted);font-size:12px;padding:8px 0">No employment data entered yet</div>'}
+          ${[['Employment Type','Salaried'],['Employer','Infosys Limited'],['Designation','Senior Engineer'],['Monthly Income','₹85,000'],['Experience','6 years 4 months'],['Office Address','Tidel Park, Chennai']].map(([k,v])=>`
+          <div class="detail-row"><span class="detail-key">${k}</span><span class="detail-val">${v}</span></div>`).join('')}
         </div>
       </div>`;
   } else if(tab==='loan'){
@@ -3309,16 +3336,8 @@ function renderCDMTab(tab,c){
         </div>
       </div>`;
   } else if(tab==='docs'){
-    body.innerHTML=`
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
-        <div class="itabs" id="cdm-doc-tabs" style="margin-bottom:0;border-bottom:none;flex:1"></div>
-        <button class="btn btn-sm btn-primary" onclick="shareCDMDocs('${c.id}','${c.cust}')" style="flex-shrink:0;margin-left:12px">
-          <i class="ti ti-share" style="font-size:12px"></i> Share all
-        </button>
-      </div>
-      <div style="height:1px;background:var(--border);margin-bottom:14px"></div>
-      <div id="cdm-doc-content"></div>`;
-    (document.getElementById('cdm-doc-tabs')||{}).innerHTML = docTypes.map((t,i)=>`
+    body.innerHTML=`<div class="itabs" id="cdm-doc-tabs"></div><div id="cdm-doc-content"></div>`;
+    document.getElementById('cdm-doc-tabs').innerHTML=docTypes.map((t,i)=>`
       <div class="itab ${i===0?'active':''}" onclick="switchCDMDocTab('${t.key}',this)">${t.label}
         ${t.docs.length?`<span style="font-size:9px;background:var(--accent);color:white;border-radius:8px;padding:1px 5px;margin-left:3px">${t.docs.length}</span>`:''}
       </div>`).join('');
@@ -3371,7 +3390,7 @@ function renderCDMDocContent(key,el){
 function closeCaseDetailModal(){document.getElementById('case-detail-modal').classList.remove('open');}
 const tabTitles={
   overview:['Dashboard','May 2026 · Chennai Operations'],
-  cases:['New Car Loan','New car loan pipeline'],
+  cases:['All Cases','Complete pipeline view · city head'],
   team:['Team Performance','Individual targets and actuals'],
   members:['Team Members','Manage BMs, RMs and access controls'],
   rto:['Online Leads','Digital lead pipeline'],
@@ -3384,14 +3403,13 @@ const tabTitles={
 };
 
 function showTab(id,el){
-  if(id==='cases'){setTimeout(()=>{if(typeof filterCases==='function')filterCases();},80);}
   document.querySelectorAll('.tab-pane').forEach(p=>p.classList.remove('on'));
   document.querySelectorAll('.nav-item').forEach(b=>b.classList.remove('active'));
   document.getElementById('tab-'+id).classList.add('on');
   if(el)el.classList.add('active');
   const t=tabTitles[id]||['Dashboard',''];
-  (document.getElementById('topbar-title')||{}).textContent = t[0];
-  (document.getElementById('topbar-sub')||{}).textContent = t[1];
+  document.getElementById('topbar-title').textContent=t[0];
+  document.getElementById('topbar-sub').textContent=t[1];
 }
 
 // ── INIT ──────────────────────────────────────────────────────────────────────
@@ -3399,411 +3417,311 @@ initOrgFilters();
 initPeriodDropdown();
 initCasesPeriodDropdown();
 initCasesBMFilter();
-if(document.getElementById('recent-cases-tbody')) renderRecentTable();
-if(document.getElementById('trend-chart')) renderTrendChart();
-if(document.getElementById('team-snapshot')) renderTeamSnapshot();
-if(document.getElementById('bank-payout-list')) renderBankPayoutList();
-if(document.getElementById('all-cases-tbody')) renderAllCases();
-if(document.getElementById('team-kpis')) renderTeamTab();
-if(document.getElementById('members-list')) renderMembers();
-if(document.getElementById('rto-list')) renderRTO();
-if(document.getElementById('banks-list')) renderBanks();
-if(document.getElementById('ai-toggles')) renderAIToggles();
-if(document.getElementById('weight-sliders')) renderWeightSliders();
-if(document.getElementById('team-management')) renderTeamManagement();
+renderRecentTable();
+renderTrendChart();
+renderTeamSnapshot();
+renderBankPayoutList();
+renderAllCases();
+renderTeamTab();
+renderMembers();
+renderRTO();
+renderBanks();
+renderAIToggles();
+renderWeightSliders();
+renderTeamManagement();
 applyDashFilters();
-
-// ── MOBILE SIDEBAR TOGGLE ─────────────────────────────────────────────────────
-function toggleSidebar() {
-  const sidebar  = document.querySelector('.sidebar');
-  const overlay  = document.getElementById('sidebar-overlay');
-  const isOpen   = sidebar.classList.contains('open');
-  sidebar.classList.toggle('open', !isOpen);
-  overlay.classList.toggle('open', !isOpen);
-  document.body.style.overflow = isOpen ? '' : 'hidden';
-}
-// Close sidebar when a nav item is clicked on mobile
-document.querySelectorAll('.nav-item').forEach(item => {
-  item.addEventListener('click', () => {
-    if (window.innerWidth <= 768) toggleSidebar();
-  });
-});
-
 </script>
 
 
 
-
-
-// ── ZERO KPI CARDS ON LOAD — prevents flash of hardcoded values ──────────────
-document.addEventListener('DOMContentLoaded', () => {
-  const kpiIds = [
-    'kpi-total','kpi-process','kpi-sanc','kpi-disb','kpi-rej','kpi-payout'
-  ];
-  kpiIds.forEach(id => {
-    const el = document.getElementById(id);
-    if (el) {
-      const val = el.querySelector('.kpi-value');
-      if (val) val.textContent = '—';
-    }
-  });
-});
-
-<!-- SUPABASE AUTH + LOGOUT -->
+<!-- SUPABASE + AUTH + LIVE DATA -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <script>
-const SUPABASE_URL = 'https://oceldpcobqzvqrlbbvvl.supabase.co';
-const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9jZWxkcGNvYnF6dnFybGJidnZsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA0MTI1ODksImV4cCI6MjA5NTk4ODU4OX0.ntz3DT6gV2LCcR9fNNGrLdDuxkgLLIIINy_L2Y7cDSQ';
-const dbAuth = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
-  auth: { autoRefreshToken:true, persistSession:true, detectSessionInUrl:false, storageKey:'capri_auth', storage:window.localStorage }
+const SURL = 'https://oceldpcobqzvqrlbbvvl.supabase.co';
+const SKEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9jZWxkcGNvYnF6dnFybGJidnZsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA0MTI1ODksImV4cCI6MjA5NTk4ODU4OX0.ntz3DT6gV2LCcR9fNNGrLdDuxkgLLIIINy_L2Y7cDSQ';
+const db = window.supabase.createClient(SURL, SKEY, {
+  auth:{ autoRefreshToken:true, persistSession:true, detectSessionInUrl:false, storageKey:'capri_auth', storage:window.localStorage }
 });
 
-// Run after all dashboard JS is ready
+// ── AUTH INIT ─────────────────────────────────────────────────────────────────
 window.addEventListener('DOMContentLoaded', async () => {
   try {
-    const { data:{ session } } = await dbAuth.auth.getSession();
-    if (!session) { window.location.href = 'capri_login.html'; return; }
+    const { data:{ session } } = await db.auth.getSession();
+    if (!session) { window.location.href='capri_login.html'; return; }
 
-    const { data: user } = await dbAuth.from('users')
-      .select('id,name,role,color,reports_to')
-      .eq('id', session.user.id)
-      .single();
-    if (!user) { window.location.href = 'capri_login.html'; return; }
+    const { data:user } = await db.from('users').select('id,name,role,color,reports_to').eq('id', session.user.id).single();
+    if (!user) { window.location.href='capri_login.html'; return; }
 
-    // ── Sidebar ──
+    // Update sidebar avatar
     const ini = user.name.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
-    const avatarEl = document.getElementById('sidebar-avatar');
-    const nameEl   = document.getElementById('sidebar-name');
-    const roleEl   = document.getElementById('sidebar-role');
-    const badgeEl  = document.getElementById('role-badge-nav');
-    if (avatarEl) avatarEl.textContent = ini;
-    if (nameEl)   nameEl.textContent   = user.name;
+    const avatarEl = document.querySelector('.user-avatar');
+    if (avatarEl) { avatarEl.textContent=ini; avatarEl.title=user.name+' · '+user.role; }
 
-    const roleLabel = { city_head:'Chennai · Full access', bm:'Branch Manager', rm:'Relationship Manager' };
-    const roleBadge = { city_head:'CITY HEAD', bm:'BRANCH MGR', rm:'REL. MGR' };
-    if (roleEl)  roleEl.textContent  = roleLabel[user.role] || user.role;
-    if (badgeEl) badgeEl.textContent = roleBadge[user.role] || user.role.toUpperCase();
+    // Update sidebar name/role
+    const nameEl = document.querySelector('.user-name');
+    const roleEl = document.querySelector('.user-role');
+    if (nameEl) nameEl.textContent = user.name;
+    if (roleEl) roleEl.textContent = {city_head:'Chennai · Full access', bm:'Branch Manager', rm:'Relationship Manager'}[user.role] || user.role;
 
-    // brand badge removed
+    // Update role badge
+    const badgeEl = document.querySelector('.brand-badge');
+    if (badgeEl) badgeEl.innerHTML = '<i class="ti ti-shield-check" style="font-size:10px"></i> ' + {city_head:'City Head', bm:'Branch Mgr', rm:'Rel. Mgr'}[user.role];
 
-    // ── BM role ──
+    // Update topbar avatar button
+    const topBtn = document.getElementById('topbar-avatar-btn');
+    if (topBtn) topBtn.textContent = ini;
+    const dropName = document.getElementById('dropdown-name');
+    const dropRole = document.getElementById('dropdown-role');
+    const dropAvatar = document.getElementById('dropdown-avatar');
+    if (dropName) dropName.textContent = user.name;
+    if (dropRole) dropRole.textContent = {city_head:'Chennai · Full access', bm:'Branch Manager', rm:'Relationship Manager'}[user.role];
+    if (dropAvatar) dropAvatar.textContent = ini;
+
+    // Role-based filter restrictions
     if (user.role === 'bm') {
-      // Hide BM filter
       const bmWrap = document.getElementById('bm-filter-wrap');
       if (bmWrap) bmWrap.style.display = 'none';
-
-      // Populate RM filter with only this BM's RMs
-      const rmSel = document.getElementById('dash-rm-filter');
-      if (rmSel) {
-        const { data: myRMs } = await dbAuth.from('users')
-          .select('id,name').eq('reports_to', user.id).eq('role','rm');
-        rmSel.innerHTML = '<option value="">All my RMs</option>';
-        (myRMs||[]).forEach(rm => {
-          const o = document.createElement('option');
-          o.value = rm.name; o.textContent = rm.name;
-          rmSel.appendChild(o);
-        });
-        rmSel.disabled = false;
-      }
-
-      // Pre-filter cases to BM's team
-      const bmSel = document.getElementById('dash-bm-filter');
-      if (bmSel) { bmSel.value = user.name; }
-      if (typeof applyDashFilters === 'function') applyDashFilters();
-
-      // Update topbar
       const sub = document.getElementById('topbar-sub');
-      if (sub) sub.textContent = 'May 2026 · ' + user.name + "'s Team";
-
-      // Hide restricted nav items
+      if (sub) sub.textContent = 'May 2026 · '+user.name+"'s Team";
       document.querySelectorAll('.nav-item').forEach(el => {
-        if (['Bank management','AI settings','System settings'].some(t => el.textContent.includes(t)))
-          el.style.display = 'none';
+        if (['Bank management','AI settings','System settings'].some(t=>el.textContent.includes(t))) el.style.display='none';
+      });
+    }
+    if (user.role === 'rm') {
+      ['bm-filter-wrap','rm-filter-wrap'].forEach(id => { const el=document.getElementById(id); if(el) el.style.display='none'; });
+      const sub = document.getElementById('topbar-sub');
+      if (sub) sub.textContent = 'May 2026 · '+user.name;
+      document.querySelectorAll('.nav-item').forEach(el => {
+        if (['Bank management','AI settings','System settings','Team members','Team performance','Payout calculator','Reports'].some(t=>el.textContent.includes(t))) el.style.display='none';
       });
     }
 
-    // ── Hide BM/RM filters in cases tab based on role ──────────────────────────
-    if (user.role === 'bm') {
-      const bmWrap2 = document.getElementById('cases-bm-wrap');
-      if (bmWrap2) bmWrap2.style.display = 'none';
-    } else if (user.role === 'rm') {
-      const bmWrap2 = document.getElementById('cases-bm-wrap');
-      const rmWrap2 = document.getElementById('cases-rm-wrap');
-      if (bmWrap2) bmWrap2.style.display = 'none';
-      if (rmWrap2) rmWrap2.style.display = 'none';
-    }
-
-    // ── Load live cases from Supabase ────────────────────────────────────────
+    // Load live cases
     await loadLiveCases(user);
 
-    // ── RM role ──
-    if (user.role === 'rm') {
-      // Hide both filters
-      const bmWrap = document.getElementById('bm-filter-wrap');
-      const rmWrap = document.getElementById('rm-filter-wrap');
-      if (bmWrap) bmWrap.style.display = 'none';
-      if (rmWrap) rmWrap.style.display = 'none';
-
-      // Pre-filter to RM's own cases
-      const rmSel = document.getElementById('dash-rm-filter');
-      if (rmSel) {
-        rmSel.innerHTML = '<option value="' + user.name + '">' + user.name + '</option>';
-        rmSel.value = user.name;
-        rmSel.disabled = false;
-      }
-      const bmSel = document.getElementById('dash-bm-filter');
-      // Find this RM's BM name
-      if (user.reports_to) {
-        const { data: bm } = await dbAuth.from('users').select('name').eq('id', user.reports_to).single();
-        if (bm && bmSel) { bmSel.value = bm.name; }
-      }
-      if (typeof applyDashFilters === 'function') applyDashFilters();
-
-      // Update topbar
-      const sub = document.getElementById('topbar-sub');
-      if (sub) sub.textContent = 'May 2026 · ' + user.name;
-
-      // Hide restricted nav items
-      document.querySelectorAll('.nav-item').forEach(el => {
-        if (['Bank management','AI settings','System settings',
-             'Team members','Team performance','Payout calculator','Reports']
-            .some(t => el.textContent.includes(t)))
-          el.style.display = 'none';
-      });
-    }
-
-  } catch(e) {
-    console.error('Dashboard auth error:', e.message);
-  }
+  } catch(e) { console.error('Auth error:', e.message); }
 });
 
-
-// ── LIVE DATA LOADER ──────────────────────────────────────────────────────────
+// ── LOAD LIVE CASES ───────────────────────────────────────────────────────────
 async function loadLiveCases(user) {
   try {
-    // Build query based on role
-    let query = dbAuth.from('cases')
-      .select('id,cust_name,cust_mobile,car_model,preferred_bank_name,loan_amount,status,created_by,bm_id,cibil_score,submitted_at,created_at,payout_amount,inc_net_monthly,emp_type,curr_pincode,perm_pincode')
-      .neq('status', 'Draft')
-      .order('created_at', { ascending: false });
+    let q = db.from('cases')
+      .select('id,cust_name,car_model,preferred_bank_name,loan_amount,status,cibil_score,submitted_at,created_at,payout_amount,created_by,bm_id,cust_mobile,curr_pincode,perm_pincode,inc_net_monthly,emp_type')
+      .neq('status','Draft')
+      .order('created_at',{ascending:false});
 
-    // Filter by role
-    if (user.role === 'bm') {
-      // BM sees cases they created + cases their RMs created (bm_id = their id)
-      query = query.or('created_by.eq.' + user.id + ',bm_id.eq.' + user.id);
-    } else if (user.role === 'rm') {
-      query = query.eq('created_by', user.id);
-    }
-    // city_head sees all
+    if (user.role==='bm') q = q.or('created_by.eq.'+user.id+',bm_id.eq.'+user.id);
+    else if (user.role==='rm') q = q.eq('created_by',user.id);
 
-    const { data: liveCases, error } = await query;
-    if (error) { console.error('Cases fetch error:', error.message); return; }
-    if (!liveCases || liveCases.length === 0) return;
+    const { data:liveCases, error } = await q;
+    if (error||!liveCases||!liveCases.length) return;
 
-    // ── Load ALL relevant user names in one query ────────────────────────────
-    const allUserIds = [...new Set([
-      ...liveCases.map(c => c.created_by),
-      ...liveCases.map(c => c.bm_id)
-    ].filter(Boolean))];
+    // Load all users for name lookup
+    const { data:allUsers } = await db.from('users').select('id,name,role,reports_to');
+    const ul = {};
+    (allUsers||[]).forEach(u => { ul[u.id]=u; });
 
-    // Load ALL users in one query — covers created_by, bm_id and reports_to
-    const { data: allUsers } = await dbAuth.from('users')
-      .select('id,name,role,reports_to');
-
-    const userLookup = {};
-    (allUsers||[]).forEach(u => { userLookup[u.id] = u; });
-    console.log('Users loaded:', Object.keys(userLookup).length);
-
-    // ── Convert to dashboard case format ──────────────────────────────────────
-    const liveMapped = liveCases.map(c => {
-      const creator = userLookup[c.created_by];
-      const bm      = userLookup[c.bm_id];
-
-      // If creator is BM — they are both BM and RM for display
-      // If creator is RM — show BM from bm_id
-      const isCreatorBM = creator?.role === 'bm';
-      const bmName  = isCreatorBM ? (creator?.name || '—') : (bm?.name || '—');
-      const rmName  = isCreatorBM ? '—' : (creator?.name || '—');
-
-      // Creator = the person who made the case
-      const creatorName  = creator?.name || '—';
-      // ReportsTo = who the creator reports to
-      const reportsTo    = creator?.reports_to ? userLookup[creator.reports_to] : null;
-      const reportsToName = reportsTo?.name || (isCreatorBM ? 'City Head' : bmName) || '—';
-
+    const mapped = liveCases.map(c => {
+      const creator = ul[c.created_by];
+      const bm = ul[c.bm_id];
+      const reportsTo = creator?.reports_to ? ul[creator.reports_to] : null;
       return {
-        id:            c.id,
-        date:          c.submitted_at ? c.submitted_at.slice(0,10) : c.created_at.slice(0,10),
-        cust:          c.cust_name || '(No name)',
-        car:           c.car_model || '—',
-        bank:          c.preferred_bank_name || '—',
-        loan:          c.loan_amount || 0,
-        member:        rmName,
-        bm:            bmName,
-        createdByName: creatorName,
-        reportsToName: reportsToName,
-        cibil:         c.cibil_score || 0,
-        status:        c.status,
-        payout:        c.payout_amount || 0,
-        mobile:        c.cust_mobile || '',
-        pincode:       c.curr_pincode || c.perm_pincode || '',
-        income:        c.inc_net_monthly || 0,
-        emp:           c.emp_type || '',
-        isLive:        true,
-        _raw:          c
+        id: c.id,
+        date: (c.submitted_at||c.created_at||'').slice(0,10),
+        cust: c.cust_name||'—',
+        car: c.car_model||'—',
+        bank: c.preferred_bank_name||'—',
+        loan: c.loan_amount||0,
+        member: creator?.name||'—',
+        bm: bm?.name||'—',
+        createdByName: creator?.name||'—',
+        reportsToName: reportsTo?.name||(creator?.role==='city_head'?'—':bm?.name||'—'),
+        cibil: c.cibil_score||0,
+        status: c.status,
+        payout: c.payout_amount||0,
+        mobile: c.cust_mobile||'',
+        pincode: c.curr_pincode||c.perm_pincode||'',
+        income: c.inc_net_monthly||0,
+        emp: c.emp_type||'',
+        isLive: true,
+        _raw: c
       };
     });
 
-    // ── Merge: prepend live cases, keep sample cases for history context ───────
-    // Remove sample cases that conflict with live IDs
-    const liveIds = new Set(liveMapped.map(c => c.id));
-    const filteredSample = cases.filter(c => !liveIds.has(c.id));
-
-    // Update global cases array
+    // Replace cases array with live only
     cases.length = 0;
-    liveMapped.forEach(c => cases.push(c));
-    filteredSample.forEach(c => cases.push(c));
+    mapped.forEach(c => cases.push(c));
 
-    // ── Update caseOrgMap for live cases ──────────────────────────────────────
-    liveMapped.forEach(c => {
-      caseOrgMap[c.id] = { bm: c.bm, rm: c.member };
-    });
-    console.log('caseOrgMap updated for', liveMapped.length, 'live cases');
-    console.log('Sample caseOrgMap entry:', liveMapped[0]?.id, caseOrgMap[liveMapped[0]?.id]);
+    // Update caseOrgMap
+    mapped.forEach(c => { caseOrgMap[c.id] = { bm: c.createdByName, rm: c.reportsToName }; });
 
-    // ── Update All Cases badge count ──────────────────────────────────────────
-    const allCasesBadge = document.querySelector('.nav-item .nav-badge');
-    if (allCasesBadge) allCasesBadge.textContent = cases.length;
+    // Update nav badge
+    const badge = document.getElementById('nav-cases-badge');
+    if (badge) badge.textContent = cases.length;
 
-    // ── Re-render only what's visible ────────────────────────────────────────
-    applyDashFilters();
-    showOnlyLiveCases();
+    // Re-render
+    if (typeof applyDashFilters === 'function') applyDashFilters();
+    if (typeof renderAllCases === 'function' && document.getElementById('all-cases-tbody')) renderAllCases();
 
-  } catch(e) {
-    console.error('loadLiveCases error:', e.message);
-  }
+    console.log('Live cases loaded:', mapped.length);
+  } catch(e) { console.error('loadLiveCases error:', e.message); }
 }
+
+// ── AVATAR DROPDOWN ───────────────────────────────────────────────────────────
+function toggleAvatarMenu() {
+  const dd = document.getElementById('avatar-dropdown');
+  if (!dd) return;
+  dd.style.display = dd.style.display === 'none' ? 'block' : 'none';
+}
+document.addEventListener('click', e => {
+  const wrap = document.getElementById('avatar-menu-wrap');
+  if (wrap && !wrap.contains(e.target)) {
+    const dd = document.getElementById('avatar-dropdown');
+    if (dd) dd.style.display = 'none';
+  }
+});
+
+// ── LOGOUT ────────────────────────────────────────────────────────────────────
+function confirmLogout() {
+  if (!confirm('Sign out of Capri Global?')) return;
+  db.auth.signOut().finally(() => { window.location.href='capri_login.html'; });
+}
+
+// ── MOBILE SIDEBAR ────────────────────────────────────────────────────────────
+function toggleSidebar() {
+  const sidebar = document.querySelector('.sidebar');
+  const overlay = document.getElementById('sidebar-overlay');
+  if (!sidebar) return;
+  const open = sidebar.classList.toggle('open');
+  if (overlay) overlay.classList.toggle('open', open);
+  document.body.style.overflow = open ? 'hidden' : '';
+}
+
+// ── showTab patch: re-render cases when tab opens ─────────────────────────────
+const _origST = window.showTab;
+window.showTab = function(id, el) {
+  if (_origST) _origST.call(this, id, el);
+  if (id === 'cases') setTimeout(() => {
+    if (typeof filterCases === 'function') filterCases();
+    else if (typeof renderAllCases === 'function') renderAllCases();
+  }, 100);
+};
 </script>
 
-<!-- ── NEW CASE FULL PAGE VIEW ── -->
+<!-- MOBILE STYLES -->
 <style>
-.fab-new-case {
-  position: fixed;
-  bottom: 28px;
-  left: calc(var(--sidebar-w, 240px) + 24px);
-  z-index: 300;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 13px 22px;
-  background: rgba(200,168,82,.5);
-  color: #1A1200;
-  border: none;
-  border-radius: 40px;
-  font-family: inherit;
-  font-size: 13px;
-  font-weight: 700;
-  cursor: pointer;
-  box-shadow: 0 4px 20px rgba(200,168,82,.25);
-  transition: all .2s ease;
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-}
-.fab-new-case:hover {
-  background: rgba(200,168,82,.85);
-  transform: translateY(-2px);
-  box-shadow: 0 8px 28px rgba(200,168,82,.45);
-}
-.fab-icon {
-  width: 28px; height: 28px;
-  background: rgba(0,0,0,.10);
-  border-radius: 50%;
-  display: flex; align-items: center; justify-content: center;
-  font-size: 16px; flex-shrink: 0;
-  transition: transform .2s;
-}
-.fab-new-case:hover .fab-icon { transform: rotate(90deg); }
-.fab-label { display: flex; flex-direction: column; line-height: 1.2; }
-.fab-label-main { font-size: 13px; font-weight: 700; }
-.fab-label-sub  { font-size: 10px; font-weight: 500; opacity: .65; }
-
-@media (max-width: 768px) {
-  .fab-new-case {
-    left: 16px;
-    bottom: 20px;
-    padding: 0;
-    width: 48px;
-    height: 48px;
-    border-radius: 50%;
-    justify-content: center;
-  }
-  .fab-label { display: none; }
-  .fab-icon {
-    width: auto; height: auto;
-    background: transparent;
-    font-size: 22px;
-  }
-}
-
-/* Full page form wrapper */
-#form-fullpage {
-  display: none;
-  position: fixed;
-  inset: 0;
-  z-index: 500;
-  background: #F2EFE8;
-  flex-direction: column;
-}
-#form-fullpage.open {
-  display: flex;
-}
-.form-topbar {
-  height: 52px;
-  background: #0F3326;
-  display: flex;
-  align-items: center;
-  padding: 0 20px;
-  gap: 14px;
-  flex-shrink: 0;
-}
-.form-back-btn {
-  display: flex;
-  align-items: center;
-  gap: 7px;
-  padding: 7px 14px;
-  border-radius: 8px;
-  border: 1px solid rgba(255,255,255,.2);
-  background: rgba(255,255,255,.08);
-  color: white;
-  font-family: inherit;
-  font-size: 12px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all .15s;
-}
-.form-back-btn:hover { background: rgba(255,255,255,.15); }
-.form-topbar-title {
-  font-size: 14px;
-  font-weight: 600;
-  color: white;
-  flex: 1;
-}
-.form-topbar-badge {
-  font-size: 10px;
-  font-weight: 600;
-  padding: 3px 10px;
-  border-radius: 10px;
-  background: #C8A852;
-  color: #1A1200;
-  letter-spacing: .04em;
-}
-#form-iframe {
-  flex: 1;
-  border: none;
-  width: 100%;
+.hamburger{display:none;width:36px;height:36px;border-radius:var(--radius-sm);border:1px solid var(--border);background:var(--surface2);align-items:center;justify-content:center;cursor:pointer;color:var(--text);font-size:18px;flex-shrink:0}
+.sidebar-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:99}
+.sidebar-overlay.open{display:block}
+@media(max-width:768px){
+  .sidebar{transform:translateX(-100%);transition:transform .28s cubic-bezier(.4,0,.2,1);z-index:200}
+  .sidebar.open{transform:translateX(0)}
+  .main{margin-left:0!important}
+  .hamburger{display:flex}
+  #kpi-grid{grid-template-columns:1fr 1fr!important;gap:10px!important}
+  .kpi{padding:14px 12px!important}
+  .fab-new-case{left:16px!important;bottom:20px!important;padding:0!important;width:48px!important;height:48px!important;border-radius:50%!important;justify-content:center!important}
+  .fab-label{display:none!important}
+  .fab-icon{width:auto!important;height:auto!important;background:transparent!important;font-size:22px!important}
 }
 </style>
 
-<!-- Full page form container -->
+<!-- SIDEBAR OVERLAY -->
+<div class="sidebar-overlay" id="sidebar-overlay" onclick="toggleSidebar()"></div>
+
+<!-- AVATAR DROPDOWN -->
+<style>
+#avatar-dropdown{position:absolute;top:calc(100% + 8px);right:0;width:220px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow-md);z-index:500;overflow:hidden;display:none}
+.av-user{padding:14px 16px;border-bottom:1px solid var(--border);background:var(--surface2);display:flex;align-items:center;gap:10px}
+.av-circle{width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,var(--gold),var(--gold-light));display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#1A1814;flex-shrink:0}
+.av-item{display:flex;align-items:center;gap:10px;padding:11px 16px;cursor:pointer;font-size:13px;color:var(--text);transition:background .15s}
+.av-item:hover{background:var(--surface2)}
+.av-item.danger{color:var(--red-text)}
+.av-item.danger:hover{background:var(--red-bg)}
+</style>
+
+<!-- FAB + FULLPAGE FORM -->
+<style>
+.fab-new-case{position:fixed;bottom:28px;left:calc(var(--sidebar-w,240px) + 24px);z-index:300;display:flex;align-items:center;gap:10px;padding:13px 22px;background:rgba(200,168,82,.5);color:#1A1200;border:none;border-radius:40px;font-family:inherit;font-size:13px;font-weight:700;cursor:pointer;box-shadow:0 4px 20px rgba(200,168,82,.25);transition:all .2s;backdrop-filter:blur(8px)}
+.fab-new-case:hover{background:rgba(200,168,82,.85);transform:translateY(-2px)}
+.fab-icon{width:28px;height:28px;background:rgba(0,0,0,.10);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;transition:transform .2s}
+.fab-new-case:hover .fab-icon{transform:rotate(90deg)}
+.fab-label{display:flex;flex-direction:column;line-height:1.2}
+.fab-label-main{font-size:13px;font-weight:700}
+.fab-label-sub{font-size:10px;font-weight:500;opacity:.65}
+#form-fullpage{display:none;position:fixed;inset:0;z-index:500;background:#F2EFE8;flex-direction:column}
+#form-fullpage.open{display:flex}
+.form-topbar{height:52px;background:#0F3326;display:flex;align-items:center;padding:0 20px;gap:14px;flex-shrink:0}
+.form-back-btn{display:flex;align-items:center;gap:7px;padding:7px 14px;border-radius:8px;border:1px solid rgba(255,255,255,.2);background:rgba(255,255,255,.08);color:white;font-family:inherit;font-size:12px;font-weight:500;cursor:pointer;transition:all .15s}
+.form-back-btn:hover{background:rgba(255,255,255,.15)}
+.form-topbar-title{font-size:14px;font-weight:600;color:white;flex:1}
+.form-topbar-badge{font-size:10px;font-weight:600;padding:3px 10px;border-radius:10px;background:#C8A852;color:#1A1200}
+#form-iframe{flex:1;border:none;width:100%}
+</style>
+<!-- TOPBAR AVATAR BUTTON (replaces existing topbar-right) -->
+<script>
+// Replace topbar-right with avatar button after DOM loads
+document.addEventListener('DOMContentLoaded', () => {
+  const topbarRight = document.querySelector('.topbar-right');
+  if (topbarRight) {
+    topbarRight.innerHTML = `
+      <div style="position:relative" id="avatar-menu-wrap">
+        <button id="topbar-avatar-btn" onclick="toggleAvatarMenu()"
+          style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,var(--gold),var(--gold-light));border:2px solid rgba(200,168,82,.4);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#1A1814;cursor:pointer">CH</button>
+        <div id="avatar-dropdown">
+          <div class="av-user">
+            <div class="av-circle" id="dropdown-avatar">CH</div>
+            <div>
+              <div style="font-size:13px;font-weight:600;color:var(--text)" id="dropdown-name">Loading...</div>
+              <div style="font-size:11px;color:var(--muted)" id="dropdown-role">Chennai</div>
+            </div>
+          </div>
+          <div class="av-item" onclick="toggleAvatarMenu()"><i class="ti ti-bell" style="font-size:16px;color:var(--muted)"></i> Notifications <span style="margin-left:auto;background:var(--accent);color:white;font-size:10px;padding:2px 7px;border-radius:10px">3</span></div>
+          <div style="height:1px;background:var(--border)"></div>
+          <div class="av-item danger" onclick="confirmLogout()"><i class="ti ti-logout" style="font-size:16px"></i> Sign out</div>
+        </div>
+      </div>`;
+  }
+
+  // Add hamburger to topbar
+  const topbarLeft = document.querySelector('.topbar-left');
+  if (topbarLeft) {
+    const ham = document.createElement('button');
+    ham.className = 'hamburger';
+    ham.innerHTML = '<i class="ti ti-menu-2"></i>';
+    ham.onclick = toggleSidebar;
+    topbarLeft.prepend(ham);
+  }
+
+  // Rename All cases → New Car in nav
+  document.querySelectorAll('.nav-item').forEach(el => {
+    if (el.textContent.includes('All cases')) {
+      el.innerHTML = el.innerHTML
+        .replace('ti-files','ti-car')
+        .replace('All cases','New Car');
+      const badge = el.querySelector('.nav-badge');
+      if (badge) badge.id = 'nav-cases-badge';
+    }
+  });
+
+  // Zero KPI cards initially
+  ['kpi-files','kpi-inprocess','kpi-sanc','disb-count','kpi-rejected','kpi-payout-val'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.textContent = '—';
+  });
+});
+</script>
+
+<!-- FAB BUTTON -->
+<button class="fab-new-case" onclick="openFormPage()">
+  <div class="fab-icon"><i class="ti ti-plus"></i></div>
+  <div class="fab-label">
+    <span class="fab-label-main">New Case</span>
+    <span class="fab-label-sub">Fill form →</span>
+  </div>
+</button>
+
+<!-- FULL PAGE FORM -->
 <div id="form-fullpage">
   <div class="form-topbar">
     <button class="form-back-btn" onclick="closeFormPage()">
@@ -3815,139 +3733,15 @@ async function loadLiveCases(user) {
   <iframe id="form-iframe" src=""></iframe>
 </div>
 
-<!-- FAB -->
-<button class="fab-new-case" onclick="openFormPage()">
-  <div class="fab-icon" style="background:rgba(26,72,0,.18)">
-    <i class="ti ti-plus" style="font-size:16px;color:#1A1200;font-weight:700"></i>
-  </div>
-  <div class="fab-label">
-    <span class="fab-label-main">New Case</span>
-    <span class="fab-label-sub">Fill form →</span>
-  </div>
-</button>
-
 <script>
 function openFormPage() {
-  // Reload iframe to get fresh form every time
-  const iframe = document.getElementById('form-iframe');
-  iframe.src = 'capri_customer_form.html?embedded=1&t=' + Date.now();
+  document.getElementById('form-iframe').src = 'capri_customer_form.html?embedded=1&t=' + Date.now();
   document.getElementById('form-fullpage').classList.add('open');
   document.body.style.overflow = 'hidden';
 }
 function closeFormPage() {
   document.getElementById('form-fullpage').classList.remove('open');
   document.body.style.overflow = '';
-}
-
-// ── FILTER TOGGLE ─────────────────────────────────────────────────────────────
-function toggleDashFilters() {
-  const panel   = document.getElementById('dash-filter-panel');
-  const chevron = document.getElementById('filter-chevron');
-  const btn     = document.getElementById('filter-toggle-btn');
-  if (!panel) return;
-  const isOpen  = panel.style.display !== 'none';
-  panel.style.display = isOpen ? 'none' : 'block';
-  if (chevron) chevron.style.transform = isOpen ? 'rotate(0deg)' : 'rotate(180deg)';
-  if (btn) btn.style.background = isOpen ? 'var(--surface)' : 'var(--surface2)';
-}
-
-// ── AVATAR DROPDOWN ───────────────────────────────────────────────────────────
-function toggleAvatarMenu() {
-  const dd = document.getElementById('avatar-dropdown');
-  if (!dd) return;
-  const isOpen = dd.style.display !== 'none';
-  dd.style.display = isOpen ? 'none' : 'block';
-}
-// Close dropdown when clicking outside
-document.addEventListener('click', function(e) {
-  const wrap = document.getElementById('avatar-menu-wrap');
-  if (wrap && !wrap.contains(e.target)) {
-    const dd = document.getElementById('avatar-dropdown');
-    if (dd) dd.style.display = 'none';
-  }
-});
-
-// ── DATE FORMAT dd/mm/yyyy ────────────────────────────────────────────────────
-function fmtDate(d) {
-  if (!d) return '—';
-  // Handle ISO date strings like 2026-06-07 or 2026-06-07T...
-  const parts = d.slice(0,10).split('-');
-  if (parts.length === 3) return parts[2] + '/' + parts[1] + '/' + parts[0];
-  return d;
-}
-
-// ── CASES FILTER TOGGLE ───────────────────────────────────────────────────────
-function toggleCasesFilters() {
-  const panel   = document.getElementById('cases-filter-panel');
-  const chevron = document.getElementById('cases-filter-chevron');
-  const btn     = document.getElementById('cases-filter-btn');
-  if (!panel) return;
-  const isOpen = panel.style.display !== 'none';
-  panel.style.display = isOpen ? 'none' : 'block';
-  if (chevron) chevron.style.transform = isOpen ? 'rotate(0deg)' : 'rotate(180deg)';
-  if (btn) btn.style.background = isOpen ? 'var(--surface)' : 'var(--surface2)';
-}
-
-function resetCasesFilters() {
-  ['cases-bm-filter','cases-rm-filter','cases-status-filter',
-   'cases-bank-filter','cases-period-filter','cases-search'].forEach(id => {
-    const el = document.getElementById(id);
-    if (el) el.value = '';
-  });
-  const cr = document.getElementById('cases-custom-range');
-  if (cr) cr.style.display = 'none';
-  filterCases();
-}
-
-// ── HIDE HARDCODED SAMPLE CASES — show only live Supabase cases ───────────────
-function showOnlyLiveCases() {
-  // Filter out sample cases (non-live) from the cases array
-  const liveCasesOnly = cases.filter(c => c.isLive);
-  // Replace global cases with live only — even if empty
-  cases.length = 0;
-  liveCasesOnly.forEach(c => cases.push(c));
-
-  // Update nav badge
-  const badge = document.getElementById('nav-cases-badge');
-  if (badge) badge.textContent = cases.length;
-
-  // Update count label
-  const count = document.getElementById('cases-count');
-  if (count) count.textContent = cases.length + ' case' + (cases.length !== 1 ? 's' : '');
-
-  // Only render if the cases tab tbody is visible in DOM
-  const tbody = document.getElementById('all-cases-tbody');
-  if (tbody) {
-    if (typeof filterCases === 'function') filterCases();
-  }
-  // If tab not open yet, data will render correctly when user opens the tab
-  // because renderAllCases always reads from the cases array
-}
-
-
-
-// ── SHARE ALL DOCS FROM CASE DETAIL MODAL ─────────────────────────────────────
-function shareCDMDocs(caseId, custName) {
-  // Count total uploaded docs
-  const total = docTypes.reduce((s,t) => s + t.docs.length, 0);
-  if (total === 0) {
-    alert('No documents uploaded for this case yet.');
-    return;
-  }
-  // Open share options
-  const msg = encodeURIComponent(
-    'Dear Team,\n\n' +
-    'Please find all documents for case ' + caseId + ' — ' + custName + ':\n\n' +
-    docTypes.filter(t => t.docs.length > 0)
-      .map(t => '• ' + t.label + ': ' + t.docs.join(', ')).join('\n') +
-    '\n\nTotal: ' + total + ' document(s)\n\nCapri Global Capital — Chennai'
-  );
-  const choice = confirm('Share all ' + total + ' documents?\n\nOK = WhatsApp\nCancel = Email');
-  if (choice) {
-    window.open('https://wa.me/?text=' + msg, '_blank');
-  } else {
-    window.location.href = 'mailto:?subject=Case ' + caseId + ' Documents&body=' + msg;
-  }
 }
 </script>
 

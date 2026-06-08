@@ -749,7 +749,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);fon
         <div class="kpi">
           <div class="kpi-icon" style="background:var(--green-bg);color:var(--green-text)"><i class="ti ti-files"></i></div>
           <div class="kpi-label">Total Files — May</div>
-          <div class="kpi-value" style="color:var(--accent)" id="kpi-files">10</div>
+          <div class="kpi-value" style="color:var(--accent)" id="kpi-files">—</div>
           <div style="font-size:11px;font-weight:600;color:var(--muted);margin-bottom:4px" id="kpi-files-val">₹1.23 Cr total value</div>
           <div class="kpi-sub"><span class="trend-up"><i class="ti ti-trending-up" style="font-size:11px"></i> +4 vs April</span></div>
           
@@ -760,7 +760,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);fon
           <div style="position:absolute;right:-16px;bottom:-16px;width:72px;height:72px;border-radius:50%;background:rgba(139,74,12,.06)"></div>
           <div class="kpi-icon" style="background:#FDE68A;color:var(--amber-text)"><i class="ti ti-loader"></i></div>
           <div class="kpi-label" style="color:var(--amber-text)">In Process — May</div>
-          <div class="kpi-value" style="color:var(--amber-text)" id="kpi-inprocess">2</div>
+          <div class="kpi-value" style="color:var(--amber-text)" id="kpi-inprocess">—</div>
           <div style="font-size:11px;font-weight:600;color:var(--amber-text);margin-bottom:4px" id="kpi-inprocess-val">₹29.3L pipeline value</div>
           <div class="kpi-sub" style="color:var(--amber-text)"><i class="ti ti-trending-up" style="font-size:11px"></i> +3 vs April (4 in process)</div>
         </div>
@@ -769,8 +769,8 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);fon
         <div class="kpi">
           <div class="kpi-icon" style="background:var(--green-bg);color:var(--green-text)"><i class="ti ti-check"></i></div>
           <div class="kpi-label">Sanctioned — Awaiting Disbursal</div>
-          <div class="kpi-value" style="color:var(--green-text)" id="kpi-sanc">3</div>
-          <div style="font-size:11px;font-weight:600;color:var(--green-text);margin-bottom:4px" id="kpi-sanc-val">₹35.5L pending disbursal</div>
+          <div class="kpi-value" style="color:var(--green-text)" id="kpi-sanc">—</div>
+          <div style="font-size:11px;font-weight:600;color:var(--green-text);margin-bottom:4px" id="kpi-sanc-val">—</div>
           <div class="kpi-sub"><span style="color:var(--muted)">Cases yet to be disbursed</span></div>
           
         </div>
@@ -780,7 +780,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);fon
           <div style="position:absolute;right:-16px;bottom:-16px;width:72px;height:72px;border-radius:50%;background:rgba(21,94,53,.07)"></div>
           <div class="kpi-icon" style="background:#BBF7D0;color:#166534"><i class="ti ti-circle-check"></i></div>
           <div class="kpi-label" style="color:#166534">Disbursements — May</div>
-          <div class="kpi-value" style="color:#166534" id="disb-count">4</div>
+          <div class="kpi-value" style="color:#166534" id="disb-count">—</div>
           <div style="font-size:11px;font-weight:600;color:#166534;margin-bottom:4px" id="disb-amount">₹50.0L disbursed</div>
           <div class="kpi-sub" style="color:#166534"><i class="ti ti-trending-up" style="font-size:11px"></i> +2 vs April (4 disb.)</div>
         </div>
@@ -790,7 +790,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);fon
           <div style="position:absolute;right:-16px;bottom:-16px;width:72px;height:72px;border-radius:50%;background:rgba(178,28,28,.05)"></div>
           <div class="kpi-icon" style="background:#FECACA;color:var(--red-text)"><i class="ti ti-circle-x"></i></div>
           <div class="kpi-label" style="color:var(--red-text)">Rejected — May</div>
-          <div class="kpi-value" style="color:var(--red-text)" id="kpi-rejected">1</div>
+          <div class="kpi-value" style="color:var(--red-text)" id="kpi-rejected">—</div>
           <div style="font-size:11px;font-weight:600;color:var(--red-text);margin-bottom:4px" id="kpi-rejected-val">₹8.2L declined value</div>
           <div class="kpi-sub" style="color:var(--red-text)" id="kpi-rejected-rate"><i class="ti ti-percentage" style="font-size:11px"></i> 10.0% rejection rate</div>
         </div>
@@ -799,7 +799,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);fon
         <div class="kpi">
           <div class="kpi-icon" style="background:var(--purple-bg);color:var(--purple-text)"><i class="ti ti-cash"></i></div>
           <div class="kpi-label">Total Payout — May</div>
-          <div class="kpi-value" style="color:var(--purple-text);font-size:22px" id="kpi-payout-val">₹53,883</div>
+          <div class="kpi-value" style="color:var(--purple-text);font-size:22px" id="kpi-payout-val">—</div>
           <div class="kpi-sub"><span class="trend-up"><i class="ti ti-trending-up" style="font-size:11px"></i> +₹14K vs April</span></div>
           
         </div>
@@ -3425,6 +3425,21 @@ document.querySelectorAll('.nav-item').forEach(item => {
 
 
 
+
+// ── ZERO KPI CARDS ON LOAD — prevents flash of hardcoded values ──────────────
+document.addEventListener('DOMContentLoaded', () => {
+  const kpiIds = [
+    'kpi-total','kpi-process','kpi-sanc','kpi-disb','kpi-rej','kpi-payout'
+  ];
+  kpiIds.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) {
+      const val = el.querySelector('.kpi-value');
+      if (val) val.textContent = '—';
+    }
+  });
+});
+
 <!-- SUPABASE AUTH + LOGOUT -->
 <script>
 const SUPABASE_URL = 'https://oceldpcobqzvqrlbbvvl.supabase.co';
@@ -3688,16 +3703,12 @@ async function loadLiveCases(user) {
       ...liveCases.map(c => c.bm_id)
     ].filter(Boolean))];
 
-    const { data: allUsers } = allUserIds.length > 0
-      ? await dbAuth.from('users').select('id,name,role,reports_to').in('id', allUserIds)
-      : { data: [] };
+    // Load ALL users in one query — covers created_by, bm_id and reports_to
+    const { data: allUsers } = await dbAuth.from('users')
+      .select('id,name,role,reports_to');
 
-    // Also load the reports_to targets (BMs and city head)
-    const reportsToIds = [...new Set((allUsers||[]).map(u => u.reports_to).filter(Boolean))];
-    const { data: reportsToUsers } = reportsToIds.length > 0
-      ? await dbAuth.from('users').select('id,name,role').in('id', reportsToIds)
-      : { data: [] };
-    (reportsToUsers||[]).forEach(u => { if (!userLookup[u.id]) userLookup[u.id] = u; });
+    (allUsers||[]).forEach(u => { userLookup[u.id] = u; });
+    console.log('Users loaded:', Object.keys(userLookup).length);
 
     const userLookup = {};
     (allUsers || []).forEach(u => { userLookup[u.id] = u; });

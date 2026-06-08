@@ -1422,15 +1422,15 @@ async function autoSaveDraft(showMsg = true) {
           completion_pct: completionPct
         });
       }
-      document.getElementById('draft-time').textContent = currentCaseId + ' · ' + t;
+      const _dt=document.getElementById('draft-time'); if(_dt) _dt.textContent = currentCaseId + ' · ' + t;
       if (showMsg) showFlash('Draft saved — ' + currentCaseId);
     } catch(e) {
       console.error('Supabase save failed:', e);
-      document.getElementById('draft-time').textContent = currentCaseId + ' · ' + t;
+      const _dt=document.getElementById('draft-time'); if(_dt) _dt.textContent = currentCaseId + ' · ' + t;
     if (showMsg) showFlash('Saved locally — ' + currentCaseId);
     }
   } else {
-    document.getElementById('draft-time').textContent = 'Saved locally ' + t;
+    const _dt=document.getElementById('draft-time'); if(_dt) _dt.textContent = 'Saved locally ' + t;
   }
 }
 
@@ -1449,7 +1449,7 @@ async function loadExistingDraft() {
         currentCaseId = draft.case_id;
         restoreFormData(draft.form_data);
         if (draft.section && draft.section !== currentSection) goTo(draft.section);
-        document.getElementById('draft-time').textContent = 'Draft restored';
+        const _dt=document.getElementById('draft-time'); if(_dt) _dt.textContent = 'Draft restored';
         return;
       }
     } catch(e) {
@@ -1463,7 +1463,7 @@ async function loadExistingDraft() {
       const { formData, section } = JSON.parse(local);
       restoreFormData(formData);
       if (section && section !== currentSection) goTo(section);
-      document.getElementById('draft-time').textContent = 'Local draft restored';
+      const _dt=document.getElementById('draft-time'); if(_dt) _dt.textContent = 'Local draft restored';
     }
   } catch(e) {}
 }

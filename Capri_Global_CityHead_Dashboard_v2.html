@@ -2398,8 +2398,10 @@ function applyDashFilters(){
   if(rm)   active++;
   if(activePeriod && activePeriod !== 'custom') active++;
   const badge = document.getElementById('dash-filter-badge');
-  if(active > 0){ badge.style.display='inline-block'; badge.textContent=active+' filter'+(active>1?'s':'')+' active'; }
-  else           { badge.style.display='none'; }
+  if(badge){
+    if(active > 0){ badge.style.display='inline-block'; badge.textContent=active+' filter'+(active>1?'s':'')+' active'; }
+    else           { badge.style.display='none'; }
+  }
 
   // ── KPI 1: Total Files
   const totalFiles = d.length;

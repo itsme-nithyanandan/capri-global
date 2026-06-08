@@ -901,7 +901,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);fon
       <div class="card">
         <table class="data-table" id="all-cases-table">
           <thead>
-            <tr><th>Case ID</th><th>Date</th><th>Customer</th><th>Car</th><th>Bank</th><th>Loan (₹)</th><th>BM</th><th>RM</th><th>CIBIL</th><th>Status</th><th>Payout</th><th>Action</th></tr>
+            <tr><th>Case ID</th><th>Date</th><th>Customer</th><th>Car</th><th>Bank</th><th>Loan (₹)</th><th>Created by</th><th>Reporting to</th><th>CIBIL</th><th>Status</th><th>Payout</th><th>Action</th></tr>
           </thead>
           <tbody id="all-cases-tbody"><tr><td colspan="12" style="text-align:center;padding:40px;color:var(--muted);font-size:13px"><i class="ti ti-loader" style="font-size:18px;display:block;margin-bottom:8px"></i>Loading cases...</td></tr></tbody>
         </table>
@@ -2590,8 +2590,8 @@ function renderAllCases(data){
           <td style="font-size:12px;color:var(--muted)">${c.car||'—'}</td>
           <td style="font-size:12.5px">${c.bank||'—'}</td>
           <td style="font-family:'DM Mono',monospace;font-size:12px">${fmt(c.loan)}</td>
-          <td style="font-size:12px;font-weight:500">${org.bm}</td>
-          <td style="font-size:12px">${org.rm}</td>
+          <td style="font-size:12px;font-weight:500">${c.createdByName||org.bm||'—'}</td>
+          <td style="font-size:12px;color:var(--muted)">${c.reportsToName||org.rm||'—'}</td>
           <td style="font-family:'DM Mono',monospace;font-size:12px;color:${cibilColor(c.cibil)}">${c.cibil||'—'}</td>
           <td><span class="badge ${statusColor(c.status)}">${c.status}</span></td>
           <td style="font-family:'DM Mono',monospace;font-size:12px;color:var(--green-text);font-weight:600">${c.payout>0?fmt(c.payout):'—'}</td>
@@ -2641,12 +2641,12 @@ function renderAllCases(data){
                 <span class="case-card-value" style="color:var(--green-text)">${c.payout>0?fmt(c.payout):'—'}</span>
               </div>
               <div class="case-card-field">
-                <span class="case-card-label">BM</span>
-                <span class="case-card-value">${org.bm}</span>
+                <span class="case-card-label">Created by</span>
+                <span class="case-card-value">${c.createdByName||org.bm||'—'}</span>
               </div>
               <div class="case-card-field">
-                <span class="case-card-label">RM</span>
-                <span class="case-card-value">${org.rm}</span>
+                <span class="case-card-label">Reporting to</span>
+                <span class="case-card-value">${c.reportsToName||org.rm||'—'}</span>
               </div>
             </div>
             <div class="case-card-actions">
@@ -3692,6 +3692,13 @@ async function loadLiveCases(user) {
       ? await dbAuth.from('users').select('id,name,role,reports_to').in('id', allUserIds)
       : { data: [] };
 
+    // Also load the reports_to targets (BMs and city head)
+    const reportsToIds = [...new Set((allUsers||[]).map(u => u.reports_to).filter(Boolean))];
+    const { data: reportsToUsers } = reportsToIds.length > 0
+      ? await dbAuth.from('users').select('id,name,role').in('id', reportsToIds)
+      : { data: [] };
+    (reportsToUsers||[]).forEach(u => { if (!userLookup[u.id]) userLookup[u.id] = u; });
+
     const userLookup = {};
     (allUsers || []).forEach(u => { userLookup[u.id] = u; });
 
@@ -3708,24 +3715,32 @@ async function loadLiveCases(user) {
       const bmName  = isCreatorBM ? (creator?.name || '—') : (bm?.name || '—');
       const rmName  = isCreatorBM ? '—' : (creator?.name || '—');
 
+      // Creator = the person who made the case
+      const creatorName  = creator?.name || '—';
+      // ReportsTo = who the creator reports to
+      const reportsTo    = creator?.reports_to ? userLookup[creator.reports_to] : null;
+      const reportsToName = reportsTo?.name || (isCreatorBM ? 'City Head' : bmName) || '—';
+
       return {
-        id:      c.id,
-        date:    c.submitted_at ? c.submitted_at.slice(0,10) : c.created_at.slice(0,10),
-        cust:    c.cust_name || '(No name)',
-        car:     c.car_model || '—',
-        bank:    c.preferred_bank_name || '—',
-        loan:    c.loan_amount || 0,
-        member:  rmName,
-        bm:      bmName,
-        cibil:   c.cibil_score || 0,
-        status:  c.status,
-        payout:  c.payout_amount || 0,
-        mobile:  c.cust_mobile || '',
-        pincode: c.curr_pincode || c.perm_pincode || '',
-        income:  c.inc_net_monthly || 0,
-        emp:     c.emp_type || '',
-        isLive:  true,
-        _raw:    c   // store full raw object for modal detail view
+        id:            c.id,
+        date:          c.submitted_at ? c.submitted_at.slice(0,10) : c.created_at.slice(0,10),
+        cust:          c.cust_name || '(No name)',
+        car:           c.car_model || '—',
+        bank:          c.preferred_bank_name || '—',
+        loan:          c.loan_amount || 0,
+        member:        rmName,
+        bm:            bmName,
+        createdByName: creatorName,
+        reportsToName: reportsToName,
+        cibil:         c.cibil_score || 0,
+        status:        c.status,
+        payout:        c.payout_amount || 0,
+        mobile:        c.cust_mobile || '',
+        pincode:       c.curr_pincode || c.perm_pincode || '',
+        income:        c.inc_net_monthly || 0,
+        emp:           c.emp_type || '',
+        isLive:        true,
+        _raw:          c
       };
     });
 

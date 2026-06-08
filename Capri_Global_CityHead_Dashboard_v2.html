@@ -3707,13 +3707,9 @@ async function loadLiveCases(user) {
     const { data: allUsers } = await dbAuth.from('users')
       .select('id,name,role,reports_to');
 
+    const userLookup = {};
     (allUsers||[]).forEach(u => { userLookup[u.id] = u; });
     console.log('Users loaded:', Object.keys(userLookup).length);
-
-    const userLookup = {};
-    (allUsers || []).forEach(u => { userLookup[u.id] = u; });
-
-    console.log('User lookup:', userLookup);
 
     // ── Convert to dashboard case format ──────────────────────────────────────
     const liveMapped = liveCases.map(c => {

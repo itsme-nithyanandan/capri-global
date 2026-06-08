@@ -3382,7 +3382,7 @@ const tabTitles={
 };
 
 function showTab(id,el){
-  if(id==='cases'){setTimeout(()=>{console.log('cases tab opened, cases array:', cases.length); if(typeof filterCases==='function')filterCases();},80);}
+  if(id==='cases'){setTimeout(()=>{if(typeof filterCases==='function')filterCases();},80);}
   document.querySelectorAll('.tab-pane').forEach(p=>p.classList.remove('on'));
   document.querySelectorAll('.nav-item').forEach(b=>b.classList.remove('active'));
   document.getElementById('tab-'+id).classList.add('on');
@@ -3574,113 +3574,6 @@ window.addEventListener('DOMContentLoaded', async () => {
   }
 });
 
-// ── LOAD LIVE CASES FROM SUPABASE ────────────────────────────────────────────
-async function loadLiveCases(user) {
-  try {
-    // Build query based on role
-    let query = dbAuth.from('cases')
-      .select('id,cust_name,cust_mobile,car_model,preferred_bank_name,loan_amount,status,payout_amount,cibil_score,created_at,created_by,bm_id,emp_type,inc_net_monthly')
-      .not('status', 'eq', 'Draft')
-      .order('created_at', { ascending: false });
-
-    // BM: only their team cases
-    if (user.role === 'bm') {
-      query = query.eq('bm_id', user.id);
-    }
-    // RM: only their own cases
-    else if (user.role === 'rm') {
-      query = query.eq('created_by', user.id);
-    }
-    // city_head: all cases — no filter
-
-    const { data: liveCases, error } = await query;
-    if (error) { console.error('Cases fetch error:', error.message); return; }
-    if (!liveCases || liveCases.length === 0) return;
-
-    // Convert Supabase rows to dashboard case format
-    const liveFormatted = liveCases.map(c => {
-      // Find member name from teamMembers array
-      const memberName = c.created_by ? getMemberName(c.created_by) : 'Unknown';
-      return {
-        id:      c.id,
-        date:    c.created_at ? c.created_at.slice(0,10) : new Date().toISOString().slice(0,10),
-        cust:    c.cust_name || 'Customer',
-        car:     c.car_model || '—',
-        bank:    c.preferred_bank_name || '—',
-        loan:    c.loan_amount || 0,
-        member:  memberName,
-        cibil:   c.cibil_score || 0,
-        status:  c.status || 'In process',
-        payout:  c.payout_amount || 0,
-        _live:   true  // flag to identify live cases
-      };
-    });
-
-    // Remove any existing live cases and prepend new ones
-    const staticCases = cases.filter(c => !c._live);
-    // Replace cases array with live data first, then static as fallback
-    cases.length = 0;
-    liveFormatted.forEach(c => cases.push(c));
-    // Add static cases that don't conflict with live IDs
-    const liveIds = new Set(liveFormatted.map(c => c.id));
-    staticCases.filter(c => !liveIds.has(c.id)).forEach(c => cases.push(c));
-
-    // Update caseOrgMap for live cases
-    liveFormatted.forEach(c => {
-      if (!caseOrgMap[c.id]) {
-        caseOrgMap[c.id] = { bm: getMemberNameById(c._bm_id), rm: c.member };
-      }
-    });
-
-    // Update All Cases badge count
-    const badge = document.querySelector('.nav-item .nav-badge');
-    if (badge) badge.textContent = cases.length;
-
-    // Re-render dashboard components — guard each against null elements
-    if (typeof applyDashFilters === 'function') applyDashFilters();
-    if (document.getElementById('recent-cases-tbody') && typeof renderRecentTable === 'function') renderRecentTable();
-    if (document.getElementById('team-snapshot') && typeof renderTeamSnapshot === 'function') renderTeamSnapshot();
-    if (document.getElementById('bank-payout-list') && typeof renderBankPayoutList === 'function') renderBankPayoutList();
-    // All cases tab rendered by showOnlyLiveCases only if tab is open
-
-    console.log('Live cases loaded:', liveMapped.length, 'cases');
-  } catch(e) {
-    console.error('loadLiveCases error:', e.message);
-  }
-}
-
-// Helper: get member name from users table (cached)
-const _memberCache = {};
-async function fetchMemberCache() {
-  if (Object.keys(_memberCache).length > 0) return;
-  try {
-    const { data } = await dbAuth.from('users').select('id,name,color');
-    if (data) data.forEach(u => { _memberCache[u.id] = { name: u.name, color: u.color }; });
-  } catch(e) {}
-}
-
-function getMemberName(userId) {
-  // Check teamMembers uid mapping first
-  const tm = teamMembers.find(m => m.uid === userId);
-  if (tm) return tm.name;
-  // Check cache
-  if (_memberCache[userId]) return _memberCache[userId].name;
-  return 'Team Member';
-}
-function getMemberNameById(id) {
-  if (_memberCache[id]) return _memberCache[id].name;
-  return '';
-}
-
-function confirmLogout() {
-  if (!confirm('Sign out of Capri Global?')) return;
-  doLogout();
-}
-async function doLogout() {
-  try { await dbAuth.auth.signOut(); } catch(e) {}
-  localStorage.removeItem('capri_auth');
-  window.location.href = 'capri_login.html';
-}
 
 // ── LIVE DATA LOADER ──────────────────────────────────────────────────────────
 async function loadLiveCases(user) {

@@ -3398,18 +3398,18 @@ initOrgFilters();
 initPeriodDropdown();
 initCasesPeriodDropdown();
 initCasesBMFilter();
-renderRecentTable();
-renderTrendChart();
-renderTeamSnapshot();
-renderBankPayoutList();
-renderAllCases();
-renderTeamTab();
-renderMembers();
-renderRTO();
-renderBanks();
-renderAIToggles();
-renderWeightSliders();
-renderTeamManagement();
+if(document.getElementById('recent-cases-tbody')) renderRecentTable();
+if(document.getElementById('trend-chart')) renderTrendChart();
+if(document.getElementById('team-snapshot')) renderTeamSnapshot();
+if(document.getElementById('bank-payout-list')) renderBankPayoutList();
+if(document.getElementById('all-cases-tbody')) renderAllCases();
+if(document.getElementById('team-kpis')) renderTeamTab();
+if(document.getElementById('members-list')) renderMembers();
+if(document.getElementById('rto-list')) renderRTO();
+if(document.getElementById('banks-list')) renderBanks();
+if(document.getElementById('ai-toggles')) renderAIToggles();
+if(document.getElementById('weight-sliders')) renderWeightSliders();
+if(document.getElementById('team-management')) renderTeamManagement();
 applyDashFilters();
 
 // ── MOBILE SIDEBAR TOGGLE ─────────────────────────────────────────────────────
@@ -3637,14 +3637,14 @@ async function loadLiveCases(user) {
     const badge = document.querySelector('.nav-item .nav-badge');
     if (badge) badge.textContent = cases.length;
 
-    // Re-render dashboard with live data
-    applyDashFilters();
-    renderRecentTable();
-    renderAllCases();
-    renderTeamSnapshot();
-    renderBankPayoutList();
+    // Re-render dashboard components — guard each against null elements
+    if (typeof applyDashFilters === 'function') applyDashFilters();
+    if (document.getElementById('recent-cases-tbody') && typeof renderRecentTable === 'function') renderRecentTable();
+    if (document.getElementById('team-snapshot') && typeof renderTeamSnapshot === 'function') renderTeamSnapshot();
+    if (document.getElementById('bank-payout-list') && typeof renderBankPayoutList === 'function') renderBankPayoutList();
+    // All cases tab rendered by showOnlyLiveCases only if tab is open
 
-    console.log('Live cases loaded:', liveFormatted.length, 'cases');
+    console.log('Live cases loaded:', liveMapped.length, 'cases');
   } catch(e) {
     console.error('loadLiveCases error:', e.message);
   }

@@ -3780,22 +3780,8 @@ async function loadLiveCases(user) {
     const allCasesBadge = document.querySelector('.nav-item .nav-badge');
     if (allCasesBadge) allCasesBadge.textContent = cases.length;
 
-    // ── Re-render all dashboard components with merged data ───────────────────
-    if (typeof applyDashFilters === 'function') applyDashFilters();
-    if (typeof renderTeamSnapshot === 'function') renderTeamSnapshot();
-    if (typeof renderBankPayoutList === 'function') renderBankPayoutList();
-    if (typeof renderAllCases === 'function') renderAllCases();
-
-    // ── Update All Cases nav badge ─────────────────────────────────────────────
-    const navBadges = document.querySelectorAll('.nav-item');
-    navBadges.forEach(el => {
-      if (el.textContent.includes('All cases')) {
-        const badge = el.querySelector('.nav-badge');
-        if (badge) badge.textContent = cases.length;
-      }
-    });
-
-    console.log('Live cases loaded:', liveMapped.length, '| Total with sample:', cases.length);
+    // ── Re-render only what's visible ────────────────────────────────────────
+    applyDashFilters();
     showOnlyLiveCases();
 
   } catch(e) {

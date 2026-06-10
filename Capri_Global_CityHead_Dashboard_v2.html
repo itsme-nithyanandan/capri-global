@@ -3575,7 +3575,6 @@ async function saveUser() {
   const phone = document.getElementById('um-phone').value.trim();
   const role = document.getElementById('um-role').value;
   const reportsTo = document.getElementById('um-reports-to').value || null;
-  const password = document.getElementById('um-password').value;
 
   if (!name || !email || !role) {
     errEl.textContent = 'Name, email and role are required';

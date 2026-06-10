@@ -3376,7 +3376,7 @@ function resetDashFilters(){
         </select>
       </div>
       <div id="um-password-wrap">
-        <label style="font-size:11px;font-weight:600;color:var(--muted);display:block;margin-bottom:5px;text-transform:uppercase;letter-spacing:.05em">Temporary Password</label>
+        <label style="font-size:11px;font-weight:600;color:var(--muted);display:block;margin-bottom:5px;text-transform:uppercase;letter-spacing:.05em">Password <span style="color:var(--red-text)">*</span></label>
         <input id="um-password" type="password" placeholder="Min 8 characters" class="filter-input" style="width:100%;padding:9px 12px;font-size:13px">
         <div style="font-size:11px;color:var(--muted);margin-top:4px">User can change this after first login</div>
       </div>
@@ -3523,7 +3523,8 @@ async function openUserModal() {
   document.getElementById('um-email').value = '';
   document.getElementById('um-phone').value = '';
   document.getElementById('um-role').value = '';
-  document.getElementById('um-password').value = '';
+  const pwEl = document.getElementById('um-password');
+  if (pwEl) pwEl.value = '';
   document.getElementById('um-password-wrap').style.display = 'block';
   document.getElementById('um-reports-wrap').style.display = 'none';
   document.getElementById('um-error').style.display = 'none';
@@ -3605,13 +3606,46 @@ async function saveUser() {
       }
       // Note: Creating auth users requires admin key — store pending and show instruction
       // For now insert into users table only (admin must create auth user manually)
+      const password = document.getElementById('um-password').value;
+      if (!password || password.length < 8) {
+        errEl.textContent = 'Password must be at least 8 characters';
+        errEl.style.display = 'block';
+        btn.disabled = false;
+        btn.textContent = 'Create user';
+        return;
+      }
+
+      // Step 1: Create auth user via Admin API using service role key
+      const adminRes = await fetch('https://oceldpcobqzvqrlbbvvl.supabase.co/auth/v1/admin/users', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9jZWxkcGNvYnF6dnFybGJidnZsIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc4MDQxMjU4OSwiZXhwIjoyMDk1OTg4NTg5fQ.j2uqXCRShoeG9fRdyX-9a6-SNrCsv9ZvvQTV7LNXjc8',
+          'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9jZWxkcGNvYnF6dnFybGJidnZsIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc4MDQxMjU4OSwiZXhwIjoyMDk1OTg4NTg5fQ.j2uqXCRShoeG9fRdyX-9a6-SNrCsv9ZvvQTV7LNXjc8'
+        },
+        body: JSON.stringify({
+          email,
+          password,
+          email_confirm: true
+        })
+      });
+
+      const adminData = await adminRes.json();
+      if (!adminRes.ok) {
+        throw new Error(adminData.message || adminData.msg || 'Failed to create auth user');
+      }
+
+      const authUid = adminData.id;
+
+      // Step 2: Insert into users table with the auth UID
       const { error } = await db.from('users').insert({
+        id: authUid,
         name, email, phone: phone||null, role, reports_to: reportsTo,
         monthly_target: role==='city_head'?0:8,
         ai_access: true, active: true
       });
       if (error) throw error;
-      showUsersFlash('User added — create Supabase Auth account for ' + email);
+      showUsersFlash('User created — ' + name + ' can now log in');
     }
     closeUserModal();
     await loadUsersTab();

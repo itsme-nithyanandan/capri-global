@@ -3595,16 +3595,6 @@ async function saveUser() {
       if (error) throw error;
       showUsersFlash('User updated successfully');
     } else {
-      // Create new user in Supabase Auth first
-      if (!password || password.length < 8) {
-        errEl.textContent = 'Password must be at least 8 characters';
-        errEl.style.display = 'block';
-        btn.disabled = false;
-        btn.textContent = 'Create user';
-        return;
-      }
-      // Note: Creating auth users requires admin key — store pending and show instruction
-      // For now insert into users table only (admin must create auth user manually)
       const password = document.getElementById('um-password').value;
       if (!password || password.length < 8) {
         errEl.textContent = 'Password must be at least 8 characters';

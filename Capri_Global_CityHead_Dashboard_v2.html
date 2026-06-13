@@ -3511,20 +3511,21 @@ window.showTab = function(id, el) {
 <script>
 // ── MAKE TABLE CARD FILL FULL HEIGHT ─────────────────────────────────────────
 function fitTableCard() {
-  const tab = document.getElementById('tab-cases');
-  const card = tab ? tab.querySelector('.card') : null;
-  const filterBar = tab ? tab.querySelector('div:first-child') : null;
-  if (!card || !filterBar) return;
+  const scrollWrap = document.getElementById('cases-scroll-wrap');
+  const filterBar  = document.querySelector('#tab-cases > div:first-child');
+  const exportRow  = document.querySelector('#tab-cases > div:nth-child(2)');
+  const topbar     = document.querySelector('.topbar');
+  if (!scrollWrap) return;
 
-  const topbar = document.querySelector('.topbar');
-  const topbarH = topbar ? topbar.offsetHeight : 56;
-  const filterH = filterBar.offsetHeight;
-  const padding = 48; // 24px top + 24px bottom content padding
-  const cardH = window.innerHeight - topbarH - filterH - padding - 10;
-  card.style.height = cardH + 'px';
-  card.style.overflow = 'hidden';
-  card.style.display = 'flex';
-  card.style.flexDirection = 'column';
+  const topbarH  = topbar     ? topbar.offsetHeight     : 56;
+  const filterH  = filterBar  ? filterBar.offsetHeight  : 50;
+  const exportH  = exportRow  ? exportRow.offsetHeight  : 32;
+  const padding  = 48; // 24px top + 24px bottom
+  const usedH    = topbarH + filterH + exportH + padding + 20;
+  const available = window.innerHeight - usedH;
+
+  scrollWrap.style.height = Math.max(available, 200) + 'px';
+  scrollWrap.style.overflow = 'auto';
 }
 
 window.addEventListener('resize', fitTableCard);

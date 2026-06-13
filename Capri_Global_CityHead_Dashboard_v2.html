@@ -2070,26 +2070,33 @@ function renderBankPayoutList(){
 }
 
 // ── RENDER: ALL CASES ─────────────────────────────────────────────────────────
+
+function fmtDate(d) {
+  if (!d) return '—';
+  const parts = d.slice(0,10).split('-');
+  if (parts.length === 3) return parts[2] + '/' + parts[1] + '/' + parts[0];
+  return d;
+}
+
 function renderAllCases(data){
   const d=data||cases;
   document.getElementById('cases-count').textContent=`${d.length} case${d.length!==1?'s':''}`;
   document.getElementById('all-cases-tbody').innerHTML=d.length===0
-    ?`<tr><td colspan="13"><div class="empty-state" style="padding:28px"><i class="ti ti-search-off"></i><span>No cases match your filters</span></div></td></tr>`
+    ?`<tr><td colspan="11"><div class="empty-state" style="padding:28px"><i class="ti ti-search-off"></i><span>No cases match your filters</span></div></td></tr>`
     :d.map(c=>{
       const org=caseOrgMap[c.id]||{bm:'—',rm:'—'};
       return `<tr>
       <td><span style="font-family:'DM Mono',monospace;font-size:11px">${c.id}</span></td>
-      <td style="font-size:11px;color:var(--muted)">${c.date}</td>
+      <td style="font-size:11px;color:var(--muted)">${fmtDate(c.date)}</td>
       <td style="font-weight:500">${c.cust}</td>
       <td style="font-size:12px;color:var(--muted)">${c.car}</td>
       <td style="font-size:12.5px">${c.bank}</td>
       <td style="font-family:'DM Mono',monospace;font-size:12px">${fmt(c.loan)}</td>
-      <td style="font-size:12px;font-weight:500">${org.bm}</td>
-      <td style="font-size:12px">${org.rm}</td>
+      <td style="font-size:12px;font-weight:500">${c.createdByName||org.bm||'—'}</td>
+      <td style="font-size:12px;color:var(--muted)">${c.reportsToName||org.rm||'—'}</td>
       <td style="font-family:'DM Mono',monospace;font-size:12px;color:${cibilColor(c.cibil)}">${c.cibil}</td>
       <td><span class="badge ${statusColor(c.status)}">${c.status}</span></td>
       <td style="font-family:'DM Mono',monospace;font-size:12px;color:var(--green-text);font-weight:600">${c.payout>0?fmt(c.payout):'—'}</td>
-      <td><button class="btn btn-xs" onclick="event.stopPropagation();openDocModal('${c.id}')"><i class="ti ti-files" style="font-size:11px"></i> View</button></td>
       <td style="white-space:nowrap">
         <button class="btn btn-sm" onclick="openCaseDetailModal('${c.id}')">View</button>
         ${c.status!=='Draft'?`<button class="btn btn-sm" onclick="event.stopPropagation();openUnlockModal()" style="margin-left:4px"><i class="ti ti-lock-open" style="font-size:11px"></i></button>`:''}
@@ -2884,8 +2891,9 @@ window.addEventListener('DOMContentLoaded', async () => {
 // ── LOAD LIVE CASES ───────────────────────────────────────────────────────────
 async function loadLiveCases(user) {
   try {
-    let q = db.from('cases')
-      .select('id,cust_name,car_model,preferred_bank_name,loan_amount,status,cibil_score,submitted_at,created_at,payout_amount,created_by,bm_id,cust_mobile,curr_pincode,perm_pincode,inc_net_monthly,emp_type')
+    // Query the view which already has created_by_name and reporting_to_name
+    let q = db.from('cases_with_names')
+      .select('id,cust_name,car_model,preferred_bank_name,loan_amount,status,cibil_score,submitted_at,created_at,payout_amount,created_by,bm_id,cust_mobile,curr_pincode,perm_pincode,inc_net_monthly,emp_type,created_by_name,creator_role,reporting_to_name')
       .neq('status','Draft')
       .order('created_at',{ascending:false});
 
@@ -2893,17 +2901,10 @@ async function loadLiveCases(user) {
     else if (user.role==='rm') q = q.eq('created_by',user.id);
 
     const { data:liveCases, error } = await q;
-    if (error||!liveCases||!liveCases.length) return;
-
-    // Load all users for name lookup
-    const { data:allUsers } = await db.from('users').select('id,name,role,reports_to');
-    const ul = {};
-    (allUsers||[]).forEach(u => { ul[u.id]=u; });
+    if (error) { console.error('Cases fetch error:', error.message); return; }
+    if (!liveCases||!liveCases.length) return;
 
     const mapped = liveCases.map(c => {
-      const creator = ul[c.created_by];
-      const bm = ul[c.bm_id];
-      const reportsTo = creator?.reports_to ? ul[creator.reports_to] : null;
       return {
         id: c.id,
         date: (c.submitted_at||c.created_at||'').slice(0,10),
@@ -2911,10 +2912,10 @@ async function loadLiveCases(user) {
         car: c.car_model||'—',
         bank: c.preferred_bank_name||'—',
         loan: c.loan_amount||0,
-        member: creator?.name||'—',
-        bm: bm?.name||'—',
-        createdByName: creator?.name||'—',
-        reportsToName: reportsTo?.name||(creator?.role==='city_head'?'—':bm?.name||'—'),
+        member: c.created_by_name||'—',
+        bm: c.reporting_to_name||'—',
+        createdByName: c.created_by_name||'—',
+        reportsToName: c.reporting_to_name||'—',
         cibil: c.cibil_score||0,
         status: c.status,
         payout: c.payout_amount||0,

@@ -615,7 +615,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);fon
       </div>
 
       <div class="card" style="flex:1;display:flex;flex-direction:column;overflow:hidden;min-height:0;padding:0;border-radius:var(--radius)">
-        <div style="overflow:auto;flex:1;height:100%">
+        <div id="cases-scroll-wrap" style="overflow:auto;flex:1;height:100%">
         <table class="data-table" id="all-cases-table" style="width:100%">
           <thead>
             <tr><th>Case ID</th><th>Date</th><th>Customer</th><th>Car</th><th>Bank</th><th>Loan (₹)</th><th>Created By</th><th>Reporting To</th><th>CIBIL</th><th>Status</th><th>Payout</th><th>Action</th></tr>
@@ -3508,4 +3508,34 @@ window.showTab = function(id, el) {
 };
 </script>
 
+<script>
+// ── MAKE TABLE CARD FILL FULL HEIGHT ─────────────────────────────────────────
+function fitTableCard() {
+  const tab = document.getElementById('tab-cases');
+  const card = tab ? tab.querySelector('.card') : null;
+  const filterBar = tab ? tab.querySelector('div:first-child') : null;
+  if (!card || !filterBar) return;
+
+  const topbar = document.querySelector('.topbar');
+  const topbarH = topbar ? topbar.offsetHeight : 56;
+  const filterH = filterBar.offsetHeight;
+  const padding = 48; // 24px top + 24px bottom content padding
+  const cardH = window.innerHeight - topbarH - filterH - padding - 10;
+  card.style.height = cardH + 'px';
+  card.style.overflow = 'hidden';
+  card.style.display = 'flex';
+  card.style.flexDirection = 'column';
+}
+
+window.addEventListener('resize', fitTableCard);
+// Run when cases tab opens
+const _fitOrigST = window.showTab;
+window.showTab = function(id, el) {
+  if (_fitOrigST) _fitOrigST.call(this, id, el);
+  if (id === 'cases') {
+    setTimeout(fitTableCard, 50);
+    setTimeout(() => { if (typeof filterCases === 'function') filterCases(); }, 100);
+  }
+};
+</script>
 </body></html>

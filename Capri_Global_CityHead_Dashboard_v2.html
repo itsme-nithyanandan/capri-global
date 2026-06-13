@@ -4,8 +4,8 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Capri Global — City Head Dashboard</title>
-<link href="./Capri Global — City Head Dashboard_files/css2" rel="stylesheet">
-<link rel="stylesheet" href="./Capri Global — City Head Dashboard_files/tabler-icons.min.css">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&family=DM+Mono:wght@400;500&family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,500;1,9..144,300&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
 <style>
 :root {
   --bg: #EEECEA;
@@ -2822,7 +2822,7 @@ function shareAllDocs(){alert('Sharing all documents as a zip via WhatsApp / Ema
 function closeDocModal(){document.getElementById('doc-modal-overlay').classList.remove('open');}
 
 // ── CASE DETAIL MODAL (tabbed) ────────────────────────────────────────────────
-function openCaseDetailModal(id){
+function openCaseDetailModal(id){ window._currentCaseId = id; caseEditMode = false; const editBtn = document.getElementById("detail-edit-btn"); if(editBtn){editBtn.innerHTML='<i class="ti ti-edit" style="font-size:12px"></i> Edit';editBtn.style.background='';}
   const c=cases.find(x=>x.id===id);if(!c)return;
   document.getElementById('cdm-case-id').textContent='Case '+c.id;
   document.getElementById('cdm-case-sub').textContent=c.status+' · '+c.date;
@@ -3705,6 +3705,103 @@ function resetCasesFilter() {
   const cr = document.getElementById('cases-custom-range');
   if (cr) cr.style.display = 'none';
   if (typeof filterCases === 'function') filterCases();
+}
+</script>
+<script>
+// ── CASE DETAIL EDIT MODE ─────────────────────────────────────────────────────
+let caseEditMode = false;
+function toggleCaseEdit() {
+  caseEditMode = !caseEditMode;
+  const btn = document.getElementById('detail-edit-btn');
+  if (!btn) return;
+  if (caseEditMode) {
+    btn.innerHTML = '<i class="ti ti-device-floppy" style="font-size:12px"></i> Save';
+    btn.style.background = 'var(--accent)';
+    btn.style.color = 'white';
+    btn.style.border = 'none';
+    enableCaseEditFields();
+  } else {
+    btn.innerHTML = '<i class="ti ti-edit" style="font-size:12px"></i> Edit';
+    btn.style.background = '';
+    btn.style.color = '';
+    btn.style.border = '';
+    saveCaseEdits();
+  }
+}
+
+function enableCaseEditFields() {
+  // Make all detail-val spans editable
+  document.querySelectorAll('#detail-panel .detail-val').forEach(el => {
+    const val = el.textContent.trim();
+    if (val && val !== '—') {
+      el.innerHTML = `<input type="text" value="${val}"
+        style="border:1px solid var(--border);border-radius:6px;padding:4px 8px;
+               font-size:12px;font-family:inherit;width:100%;background:var(--surface2)">`;
+    }
+  });
+}
+
+async function saveCaseEdits() {
+  // Collect edited values
+  const updates = {};
+  document.querySelectorAll('#detail-panel .detail-row').forEach(row => {
+    const key = row.querySelector('.detail-key')?.textContent?.trim();
+    const input = row.querySelector('input');
+    if (key && input) {
+      const fieldMap = {
+        'Full Name': 'cust_name', 'Mobile': 'cust_mobile', 'Email': 'cust_email',
+        'PAN': 'cust_pan', 'Aadhaar': 'cust_aadhaar', 'Date of Birth': 'cust_dob',
+        'Monthly Income': 'inc_net_monthly', 'Employer': 'emp_company',
+      };
+      const dbField = fieldMap[key];
+      if (dbField) updates[dbField] = input.value;
+      // Restore display
+      row.querySelector('.detail-val').textContent = input.value;
+    }
+  });
+
+  if (Object.keys(updates).length > 0 && window._currentCaseId) {
+    try {
+      await db.from('cases').update(updates).eq('id', window._currentCaseId);
+      showFlash('Case updated');
+    } catch(e) { console.error('Save failed:', e.message); }
+  }
+}
+
+// ── SHARE ALL DOCUMENTS ───────────────────────────────────────────────────────
+function shareAllCaseDocs() {
+  const caseId = window._currentCaseId || '';
+  const tabs = document.querySelectorAll('#cdm-doc-tabs .itab');
+  const docList = [];
+  tabs.forEach(t => {
+    const badge = t.querySelector('span');
+    if (badge && parseInt(badge.textContent) > 0) {
+      docList.push(t.textContent.trim().replace(/\d+/g,'').trim());
+    }
+  });
+  if (docList.length === 0) {
+    alert('No documents uploaded for this case yet.');
+    return;
+  }
+  const msg = encodeURIComponent(
+    'Documents for case ' + caseId + ':\n' +
+    docList.map(d => '• ' + d).join('\n') +
+    '\n\nCapri Global Capital — Chennai Operations'
+  );
+  const choice = confirm('Share ' + docList.length + ' document type(s)?\n\nOK = WhatsApp   Cancel = Email');
+  if (choice) {
+    window.open('https://wa.me/?text=' + msg, '_blank');
+  } else {
+    window.location.href = 'mailto:?subject=Case ' + caseId + ' Documents&body=' + decodeURIComponent(msg);
+  }
+}
+
+function showFlash(msg) {
+  const f = document.createElement('div');
+  f.style.cssText = 'position:fixed;bottom:90px;left:50%;transform:translateX(-50%);background:#1A4F3A;color:white;padding:10px 20px;border-radius:30px;font-size:13px;font-weight:500;z-index:9999;box-shadow:0 4px 20px rgba(0,0,0,.2)';
+  f.textContent = msg;
+  document.body.appendChild(f);
+  setTimeout(() => f.remove(), 2500);
 }
 </script>
 </body></html>

@@ -393,6 +393,35 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);fon
 }
 </style>
 
+
+<style>
+#tab-cases.on {
+  display: flex !important;
+  flex-direction: column;
+  position: fixed;
+  top: 56px;
+  left: var(--sidebar-w);
+  right: 0;
+  bottom: 0;
+  background: var(--bg);
+  z-index: 10;
+  overflow: hidden;
+}
+#cases-card {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  min-height: 0;
+  margin: 0 20px 20px;
+}
+#cases-scroll-wrap {
+  flex: 1;
+  overflow: auto;
+  min-height: 0;
+}
+</style>
+
 </head>
 <body>
 

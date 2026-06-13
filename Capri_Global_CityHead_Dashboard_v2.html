@@ -655,7 +655,9 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);fon
           </button>
           <input class="filter-input" placeholder="Search customer, case ID..." style="flex:1;max-width:240px;padding:7px 12px;font-size:12.5px" id="cases-search" oninput="filterCases()">
           <span id="cases-count" style="font-size:12px;color:var(--muted)">— cases</span>
-          <button class="btn btn-sm" onclick="exportCases()" style="margin-left:auto"><i class="ti ti-download" style="font-size:12px"></i> Export</button>
+          <span style="font-size:12px;color:var(--muted);margin-left:8px">|</span>
+          <span id="cases-loan-total" style="font-size:12px;font-weight:600;color:var(--accent);margin-left:8px">₹0</span>
+          
         </div>
 
         <!-- Collapsible panel -->
@@ -942,18 +944,19 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);fon
       <i class="ti ti-shield-check" style="color:var(--accent);font-size:14px"></i> Role Access Control
     </div>
     <div style="font-size:12px;color:var(--muted);margin-bottom:14px">Define which tabs each role can access</div>
+    <div style="overflow-x:auto">
     <table style="width:100%;border-collapse:collapse;font-size:12px">
       <thead>
-        <tr style="border-bottom:2px solid var(--border)">
-          <th style="text-align:left;padding:8px 10px;color:var(--muted);font-weight:600;text-transform:uppercase;font-size:10px;letter-spacing:.05em">Tab</th>
-          <th style="text-align:center;padding:8px 10px;color:var(--accent);font-weight:600;text-transform:uppercase;font-size:10px;letter-spacing:.05em">City Head</th>
-          <th style="text-align:center;padding:8px 10px;color:#1E40AF;font-weight:600;text-transform:uppercase;font-size:10px;letter-spacing:.05em">BM</th>
-          <th style="text-align:center;padding:8px 10px;color:#5B21B6;font-weight:600;text-transform:uppercase;font-size:10px;letter-spacing:.05em">RM</th>
+        <tr style="background:var(--surface2);border-bottom:2px solid var(--border)">
+          <th style="text-align:left;padding:10px 14px;font-weight:600;text-transform:uppercase;font-size:10px;letter-spacing:.05em;color:var(--muted)">Module / Tab</th>
+          <th style="text-align:center;padding:10px 14px;font-weight:700;font-size:11px;color:var(--accent)">City Head</th>
+          <th style="text-align:center;padding:10px 14px;font-weight:700;font-size:11px;color:#1E40AF">Branch Manager</th>
+          <th style="text-align:center;padding:10px 14px;font-weight:700;font-size:11px;color:#5B21B6">Rel. Manager</th>
         </tr>
       </thead>
-      <tbody id="access-table-body">
-      </tbody>
+      <tbody id="access-table-body"></tbody>
     </table>
+    </div>
     <div style="margin-top:12px;display:flex;justify-content:flex-end">
       <button class="btn btn-primary btn-sm" onclick="saveAccessConfig()">
         <i class="ti ti-device-floppy" style="font-size:12px"></i> Save access config
@@ -962,7 +965,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);fon
   </div>
 
   <!-- Users list -->
-  <div id="users-list-container">
+  <div id="users-list-container" style="overflow-x:auto">
     <div style="text-align:center;padding:40px;color:var(--muted)">
       <i class="ti ti-loader" style="font-size:24px;display:block;margin-bottom:8px"></i>
       Loading users...
@@ -1667,7 +1670,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);fon
       <div style="font-size:12px;color:var(--muted);margin-top:2px" id="detail-case-sub">Submitted · 28 May 2026</div>
     </div>
     <div style="display:flex;gap:7px;align-items:center">
-      <button class="btn btn-sm" onclick="openUnlockModal()"><i class="ti ti-lock-open" style="font-size:12px"></i> Unlock</button>
+      
       <div class="close-btn" onclick="closeDetail()"><i class="ti ti-x"></i></div>
     </div>
   </div>
@@ -1705,7 +1708,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);fon
         <div style="font-size:12px;color:var(--muted);margin-top:2px" id="cdm-case-sub"></div>
       </div>
       <div style="display:flex;gap:7px;align-items:center">
-        <button class="btn btn-sm" onclick="openUnlockModal()"><i class="ti ti-lock-open" style="font-size:12px"></i> Unlock</button>
+        
         <div class="close-btn" onclick="closeCaseDetailModal()"><i class="ti ti-x"></i></div>
       </div>
     </div>
@@ -2220,6 +2223,10 @@ function fmtDate(d) {
 
 function renderAllCases(data){
   const d=data||cases;
+  // Update loan total
+  const loanTotal = d.reduce((sum,c) => sum + (parseFloat(c.loan)||0), 0);
+  const loanTotalEl = document.getElementById('cases-loan-total');
+  if (loanTotalEl) loanTotalEl.textContent = fmt(loanTotal);
   document.getElementById('cases-count').textContent=`${d.length} case${d.length!==1?'s':''}`;
   document.getElementById('all-cases-tbody').innerHTML=d.length===0
     ?`<tr><td colspan="11"><div class="empty-state" style="padding:28px"><i class="ti ti-search-off"></i><span>No cases match your filters</span></div></td></tr>`
@@ -2239,7 +2246,7 @@ function renderAllCases(data){
       <td style="font-family:'DM Mono',monospace;font-size:12px;color:var(--green-text);font-weight:600">${c.payout>0?fmt(c.payout):'—'}</td>
       <td style="white-space:nowrap">
         <button class="btn btn-sm" onclick="openCaseDetailModal('${c.id}')">View</button>
-        ${c.status!=='Draft'?`<button class="btn btn-sm" onclick="event.stopPropagation();openUnlockModal()" style="margin-left:4px"><i class="ti ti-lock-open" style="font-size:11px"></i></button>`:''}
+        
       </td>
     </tr>`;
     }).join('');
@@ -2255,8 +2262,9 @@ function filterCases(){
   const to     = document.getElementById('cases-date-to')?.value||'';
   const filtered=cases.filter(c=>{
     const org=caseOrgMap[c.id]||{};
-    if(bm     && org.bm!==bm)   return false;
-    if(rm     && org.rm!==rm)   return false;
+    // BM filter: show cases created by that BM + cases created by RMs under that BM
+    if(bm && c.createdByName!==bm && c.reportsToName!==bm) return false;
+    if(rm && c.createdByName!==rm) return false;
     if(status && c.status!==status) return false;
     if(bank   && c.bank!==bank)  return false;
     if(from   && c.date<from)    return false;
@@ -2611,7 +2619,7 @@ function openCase(id){
     </div>
     <div style="display:flex;gap:7px">
       <button class="btn btn-primary btn-sm" onclick="closeDetail()"><i class="ti ti-x" style="font-size:12px"></i> Close</button>
-      <button class="btn btn-sm" onclick="openUnlockModal()"><i class="ti ti-lock-open" style="font-size:12px"></i> Unlock for edit</button>
+      
     </div>
   `;
   document.getElementById('detail-panel').classList.add('open');
@@ -3373,22 +3381,55 @@ function renderAccessTable() {
   if (!tbody) return;
   tbody.innerHTML = Object.entries(accessConfig).map(([tab, roles]) => `
     <tr style="border-bottom:1px solid var(--border)">
-      <td style="padding:9px 10px;font-size:12px;font-weight:500">${tabLabels[tab]||tab}</td>
-      ${['city_head','bm','rm'].map(role => `
-        <td style="text-align:center;padding:9px 10px">
-          ${role === 'city_head'
-            ? '<i class="ti ti-lock" style="color:var(--muted);font-size:13px" title="Always on"></i>'
-            : `<input type="checkbox" ${roles[role]?'checked':''} 
-                onchange="accessConfig['${tab}']['${role}']=this.checked"
-                style="width:16px;height:16px;cursor:pointer;accent-color:var(--accent)">`
-          }
-        </td>`).join('')}
+      <td style="padding:10px 14px;font-size:12px;font-weight:600;color:var(--text)">${tabLabels[tab]||tab}</td>
+      <td style="text-align:center;padding:10px 14px">
+        <i class="ti ti-check" style="color:var(--accent);font-size:16px;font-weight:700" title="Always enabled"></i>
+      </td>
+      <td style="text-align:center;padding:10px 14px">
+        <input type="checkbox" ${roles['bm']?'checked':''}
+          onchange="accessConfig['${tab}']['bm']=this.checked"
+          style="width:16px;height:16px;cursor:pointer;accent-color:#1E40AF">
+      </td>
+      <td style="text-align:center;padding:10px 14px">
+        <input type="checkbox" ${roles['rm']?'checked':''}
+          onchange="accessConfig['${tab}']['rm']=this.checked"
+          style="width:16px;height:16px;cursor:pointer;accent-color:#5B21B6">
+      </td>
     </tr>`).join('');
 }
 
-function saveAccessConfig() {
-  localStorage.setItem('capri_access_config', JSON.stringify(accessConfig));
-  showUsersFlash('Access config saved', false);
+async function saveAccessConfig() {
+  try {
+    const { error } = await db.from('system_settings')
+      .upsert({ key: 'role_access_config', value: JSON.stringify(accessConfig) }, { onConflict: 'key' });
+    if (error) throw error;
+    showUsersFlash('Access config saved');
+  } catch(e) {
+    // Fallback to localStorage
+    localStorage.setItem('capri_access_config', JSON.stringify(accessConfig));
+    showUsersFlash('Saved locally');
+  }
+}
+
+async function loadAccessConfig() {
+  try {
+    const { data } = await db.from('system_settings').select('value').eq('key','role_access_config').single();
+    if (data?.value) {
+      const saved = JSON.parse(data.value);
+      Object.keys(saved).forEach(tab => {
+        if (accessConfig[tab]) Object.assign(accessConfig[tab], saved[tab]);
+      });
+    }
+  } catch(e) {
+    // Try localStorage fallback
+    const local = localStorage.getItem('capri_access_config');
+    if (local) {
+      const saved = JSON.parse(local);
+      Object.keys(saved).forEach(tab => {
+        if (accessConfig[tab]) Object.assign(accessConfig[tab], saved[tab]);
+      });
+    }
+  }
 }
 
 function showUsersFlash(msg, isError=false) {
@@ -3418,44 +3459,50 @@ async function loadUsersTab() {
     const roleColor = { city_head:'var(--accent)', bm:'#1E40AF', rm:'#5B21B6' };
     const roleBadge = { city_head:'badge-green', bm:'badge-blue', rm:'badge-purple' };
 
-    let html = '';
-    for (const [role, members] of Object.entries(groups)) {
-      if (!members.length) continue;
-      const reportsToMap = {};
-      users.forEach(u => { reportsToMap[u.id] = u.name; });
-
-      html += `<div style="margin-bottom:20px">
-        <div class="sec-div">${roleLabel[role]} <span style="font-size:11px;font-weight:400;text-transform:none;letter-spacing:0">(${members.length})</span></div>
-        ${members.map(u => `
-        <div class="card card-pad" style="margin-bottom:10px">
-          <div style="display:flex;align-items:flex-start;gap:14px">
-            <div class="avatar" style="background:${roleColor[role]};width:42px;height:42px;font-size:14px;flex-shrink:0">
-              ${u.name.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase()}
-            </div>
-            <div style="flex:1;min-width:0">
-              <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
-                <span style="font-size:14px;font-weight:600">${u.name}</span>
-                <span class="badge ${roleBadge[role]}">${roleLabel[role]}</span>
-                ${!u.active ? '<span class="badge badge-red">Inactive</span>' : ''}
-                ${u.ai_access ? '<span class="badge badge-green" style="font-size:10px"><i class="ti ti-brain" style="font-size:10px"></i> AI on</span>' : ''}
+    const reportsToMap = {};
+    users.forEach(u => { reportsToMap[u.id] = u.name; });
+    const allMembers = [...groups.city_head, ...groups.bm, ...groups.rm];
+    
+    container.innerHTML = `
+    <table style="width:100%;border-collapse:collapse;font-size:13px">
+      <thead>
+        <tr style="background:var(--surface2);border-bottom:2px solid var(--border)">
+          <th style="text-align:left;padding:10px 14px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--muted)">Name</th>
+          <th style="text-align:left;padding:10px 14px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--muted)">Role</th>
+          <th style="text-align:left;padding:10px 14px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--muted)">Email</th>
+          <th style="text-align:left;padding:10px 14px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--muted)">Phone</th>
+          <th style="text-align:left;padding:10px 14px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--muted)">Reports To</th>
+          <th style="text-align:center;padding:10px 14px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--muted)">Status</th>
+          <th style="text-align:center;padding:10px 14px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--muted)">Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${allMembers.map(u => `
+        <tr style="border-bottom:1px solid var(--border)">
+          <td style="padding:10px 14px">
+            <div style="display:flex;align-items:center;gap:10px">
+              <div style="width:32px;height:32px;border-radius:50%;background:${roleColor[u.role]};display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:white;flex-shrink:0">
+                ${u.name.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase()}
               </div>
-              <div style="display:flex;gap:20px;margin-top:8px;flex-wrap:wrap">
-                ${u.phone ? `<div style="font-size:12px;color:var(--muted);display:flex;align-items:center;gap:5px"><i class="ti ti-phone" style="font-size:12px"></i>${u.phone}</div>` : ''}
-                <div style="font-size:12px;color:var(--muted);display:flex;align-items:center;gap:5px"><i class="ti ti-mail" style="font-size:12px"></i>${u.email}</div>
-                ${u.reports_to && reportsToMap[u.reports_to] ? `<div style="font-size:12px;color:var(--muted);display:flex;align-items:center;gap:5px"><i class="ti ti-arrow-up" style="font-size:12px"></i>Reports to ${reportsToMap[u.reports_to]}</div>` : ''}
-              </div>
+              <span style="font-weight:600">${u.name}</span>
             </div>
-            <div style="display:flex;flex-direction:column;gap:6px;flex-shrink:0">
-              <button class="btn btn-sm" onclick="openEditUserModal('${u.id}')"><i class="ti ti-edit" style="font-size:12px"></i> Edit</button>
-              <button class="btn btn-sm" onclick="toggleUserActive('${u.id}',${u.active})" style="font-size:11.5px">
-                <i class="ti ti-${u.active?'user-off':'user-check'}" style="font-size:12px"></i> ${u.active?'Deactivate':'Activate'}
-              </button>
-            </div>
-          </div>
-        </div>`).join('')}
-      </div>`;
-    }
-    container.innerHTML = html;
+          </td>
+          <td style="padding:10px 14px"><span class="badge ${roleBadge[u.role]}">${roleLabel[u.role]}</span></td>
+          <td style="padding:10px 14px;color:var(--muted);font-size:12px">${u.email}</td>
+          <td style="padding:10px 14px;color:var(--muted);font-size:12px">${u.phone||'—'}</td>
+          <td style="padding:10px 14px;font-size:12px">${u.reports_to&&reportsToMap[u.reports_to]?reportsToMap[u.reports_to]:'—'}</td>
+          <td style="padding:10px 14px;text-align:center">
+            <span class="badge ${u.active?'badge-green':'badge-red'}">${u.active?'Active':'Inactive'}</span>
+          </td>
+          <td style="padding:10px 14px;text-align:center;white-space:nowrap">
+            <button class="btn btn-sm" onclick="openEditUserModal('${u.id}')"><i class="ti ti-edit" style="font-size:12px"></i> Edit</button>
+            <button class="btn btn-sm" onclick="toggleUserActive('${u.id}',${u.active})" style="margin-left:4px">
+              <i class="ti ti-${u.active?'user-off':'user-check'}" style="font-size:12px"></i> ${u.active?'Deactivate':'Activate'}
+            </button>
+          </td>
+        </tr>`).join('')}
+      </tbody>
+    </table>`;
     renderAccessTable();
   } catch(e) {
     container.innerHTML = `<div style="color:var(--red-text);padding:20px">Error loading users: ${e.message}</div>`;
@@ -3605,7 +3652,7 @@ async function toggleUserActive(userId, currentActive) {
 const _st2 = window.showTab;
 window.showTab = function(id, el) {
   if (_st2) _st2.call(this, id, el);
-  if (id === 'members') { loadUsersTab(); renderAccessTable(); }
+  if (id === 'members') { loadAccessConfig().then(() => { renderAccessTable(); loadUsersTab(); }); }
 };
 </script>
 

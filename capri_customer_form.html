@@ -1372,6 +1372,9 @@ function collectFormData() {
 }
 
 // ── AUTO SAVE DRAFT ───────────────────────────────────────────────────────────
+// Track whether the draft record has been inserted into Supabase yet
+let _draftSavedToDb = false;
+
 async function autoSaveDraft(showMsg = true) {
   const formData = collectFormData();
   const completionPct = Math.round((currentSection / totalSections) * 100);
@@ -1399,35 +1402,58 @@ async function autoSaveDraft(showMsg = true) {
   // Save to Supabase if we have a user
   if (currentUser) {
     try {
-      if (currentCaseId) {
-        await db.from('case_drafts')
+      // Ensure we have a case ID
+      if (!currentCaseId) {
+        currentCaseId = await generateCaseId();
+      }
+
+      if (_draftSavedToDb) {
+        // Record already exists — UPDATE both tables
+        const { error: draftErr } = await db.from('case_drafts')
           .update({ form_data: formData, section: currentSection, completion_pct: completionPct, last_saved_at: now.toISOString() })
           .eq('case_id', currentCaseId);
-        await db.from('cases')
+        if (draftErr) console.error('Draft update error:', draftErr.message);
+
+        const { error: caseErr } = await db.from('cases')
           .update({ ...formData, updated_at: now.toISOString() })
           .eq('id', currentCaseId);
+        if (caseErr) console.error('Case update error:', caseErr.message);
+
       } else {
-        currentCaseId = await generateCaseId();
-        await db.from('cases').insert({
+        // First save — INSERT into both tables
+        const { error: caseErr } = await db.from('cases').insert({
           id: currentCaseId,
           created_by: currentUser.id,
           status: 'Draft',
           ...formData
         });
-        await db.from('case_drafts').insert({
+        if (caseErr) {
+          console.error('Cases insert error:', caseErr.message, caseErr.details);
+          throw caseErr;
+        }
+
+        const { error: draftErr } = await db.from('case_drafts').insert({
           case_id: currentCaseId,
           created_by: currentUser.id,
           form_data: formData,
           section: currentSection,
           completion_pct: completionPct
         });
+        if (draftErr) {
+          console.error('case_drafts insert error:', draftErr.message, draftErr.details);
+          throw draftErr;
+        }
+
+        _draftSavedToDb = true;
+        console.log('Draft inserted to Supabase — case ID:', currentCaseId);
       }
+
       const _dt=document.getElementById('draft-time'); if(_dt) _dt.textContent = currentCaseId + ' · ' + t;
       if (showMsg) showFlash('Draft saved — ' + currentCaseId);
     } catch(e) {
-      console.error('Supabase save failed:', e);
-      const _dt=document.getElementById('draft-time'); if(_dt) _dt.textContent = currentCaseId + ' · ' + t;
-    if (showMsg) showFlash('Saved locally — ' + currentCaseId);
+      console.error('Supabase save failed:', e.message || e);
+      const _dt=document.getElementById('draft-time'); if(_dt) _dt.textContent = 'Saved locally · ' + t;
+      if (showMsg) showFlash('Saved locally — ' + (currentCaseId || 'pending'));
     }
   } else {
     const _dt=document.getElementById('draft-time'); if(_dt) _dt.textContent = 'Saved locally ' + t;
@@ -1447,6 +1473,7 @@ async function loadExistingDraft() {
       if (drafts && drafts.length > 0) {
         const draft = drafts[0];
         currentCaseId = draft.case_id;
+        _draftSavedToDb = true; // record already exists in DB
         restoreFormData(draft.form_data);
         if (draft.section && draft.section !== currentSection) goTo(draft.section);
         const _dt=document.getElementById('draft-time'); if(_dt) _dt.textContent = 'Draft restored';

@@ -666,7 +666,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);fon
   </div>
 </div>
 <!-- KPI ROW -->
-      <div id="kpi-grid" style="display:grid;grid-template-columns:repeat(6,1fr);gap:13px;margin-bottom:18px">
+      <div id="kpi-grid" style="display:grid;grid-template-columns:repeat(7,1fr);gap:13px;margin-bottom:18px">
 
         <!-- 1. Total Files -->
         <div class="kpi">
@@ -678,7 +678,17 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);fon
           
         </div>
 
-        <!-- 2. In Process -->
+        <!-- 2. Logged In -->
+        <div class="kpi" style="border-color:var(--blue-border);background:linear-gradient(145deg,#EFF6FF 0%,#DBEAFE 100%)">
+          <div style="position:absolute;right:-16px;bottom:-16px;width:72px;height:72px;border-radius:50%;background:rgba(26,58,138,.06)"></div>
+          <div class="kpi-icon" style="background:#BFDBFE;color:var(--blue-text)"><i class="ti ti-login"></i></div>
+          <div class="kpi-label" style="color:var(--blue-text)">Logged In — May</div>
+          <div class="kpi-value" style="color:var(--blue-text)" id="kpi-loggedin">0</div>
+          <div style="font-size:11px;font-weight:600;color:var(--blue-text);margin-bottom:4px" id="kpi-loggedin-val">₹0 pipeline value</div>
+          <div class="kpi-sub" style="color:var(--blue-text)"><span style="color:var(--blue-text)">Yet to move to processing</span></div>
+        </div>
+
+        <!-- 3. In Process -->
         <div class="kpi" style="border-color:var(--amber-border);background:linear-gradient(145deg,#FFFBEB 0%,#FEF3C7 100%)">
           <div style="position:absolute;right:-16px;bottom:-16px;width:72px;height:72px;border-radius:50%;background:rgba(139,74,12,.06)"></div>
           <div class="kpi-icon" style="background:#FDE68A;color:var(--amber-text)"><i class="ti ti-loader"></i></div>
@@ -688,7 +698,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);fon
           <div class="kpi-sub" style="color:var(--amber-text)"><i class="ti ti-trending-up" style="font-size:11px"></i> +3 vs April (4 in process)</div>
         </div>
 
-        <!-- 3. Sanctioned -->
+        <!-- 4. Sanctioned -->
         <div class="kpi">
           <div class="kpi-icon" style="background:var(--green-bg);color:var(--green-text)"><i class="ti ti-check"></i></div>
           <div class="kpi-label">Sanctioned — Awaiting Disbursal</div>
@@ -698,7 +708,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);fon
           
         </div>
 
-        <!-- 4. Disbursements -->
+        <!-- 5. Disbursements -->
         <div class="kpi" style="border-color:#A7F3D0;background:linear-gradient(145deg,#F0FDF4 0%,#DCFCE7 100%)">
           <div style="position:absolute;right:-16px;bottom:-16px;width:72px;height:72px;border-radius:50%;background:rgba(21,94,53,.07)"></div>
           <div class="kpi-icon" style="background:#BBF7D0;color:#166534"><i class="ti ti-circle-check"></i></div>
@@ -708,7 +718,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);fon
           <div class="kpi-sub" style="color:#166534"><i class="ti ti-trending-up" style="font-size:11px"></i> +2 vs April (4 disb.)</div>
         </div>
 
-        <!-- 5. Rejected -->
+        <!-- 6. Rejected -->
         <div class="kpi" style="border-color:var(--red-border);background:linear-gradient(145deg,#FFF5F5 0%,#FEE8E8 100%)">
           <div style="position:absolute;right:-16px;bottom:-16px;width:72px;height:72px;border-radius:50%;background:rgba(178,28,28,.05)"></div>
           <div class="kpi-icon" style="background:#FECACA;color:var(--red-text)"><i class="ti ti-circle-x"></i></div>
@@ -718,7 +728,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);fon
           <div class="kpi-sub" style="color:var(--red-text)" id="kpi-rejected-rate"><i class="ti ti-percentage" style="font-size:11px"></i> 10.0% rejection rate</div>
         </div>
 
-        <!-- 6. Payout -->
+        <!-- 7. Payout -->
         <div class="kpi">
           <div class="kpi-icon" style="background:var(--purple-bg);color:var(--purple-text)"><i class="ti ti-cash"></i></div>
           <div class="kpi-label">Total Payout — May</div>
@@ -773,7 +783,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);fon
               <label style="font-size:10px;font-weight:700;color:var(--muted);letter-spacing:.06em;text-transform:uppercase">Status</label>
               <select class="filter-select" id="cases-status-filter" onchange="filterCases()" style="padding:6px 10px;font-size:12px;min-width:120px">
                 <option value="">All statuses</option>
-                <option>In process</option><option>Sanctioned</option><option>Disbursed</option><option>Rejected</option>
+                <option>Logged In</option><option>In process</option><option>Sanctioned</option><option>Disbursed</option><option>Rejected</option>
               </select>
             </div>
             <div style="display:flex;flex-direction:column;gap:4px">
@@ -1915,7 +1925,7 @@ const fmt=n=>n>=10000000?'₹'+(n/10000000).toFixed(2)+' Cr':n>=100000?'₹'+(n/
 const initials=name=>name.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
 const statusColor=s=>({
   'Disbursed':'badge-green','Sanctioned':'badge-green',
-  'In process':'badge-amber','Draft':'badge-gray','Rejected':'badge-red'
+  'In process':'badge-amber','Draft':'badge-gray','Rejected':'badge-red','Logged In':'badge-blue'
 }[s]||'badge-gray');
 const cibilColor=s=>s>=740?'var(--green-text)':s>=700?'var(--amber-text)':'var(--red-text)';
 
@@ -2093,7 +2103,17 @@ function applyDashFilters(){
     ? '₹'+( totalLoan/10000000).toFixed(2)+' Cr total value'
     : '₹'+(totalLoan/100000).toFixed(1)+'L total value';
 
-  // ── KPI 2: In Process
+  // ── KPI 2: Logged In
+  const loggedIn     = d.filter(c=>c.status==='Logged In');
+  const loggedInLoan = loggedIn.reduce((s,c)=>s+c.loan,0);
+  const loggedInEl = document.getElementById('kpi-loggedin');
+  const loggedInValEl = document.getElementById('kpi-loggedin-val');
+  if (loggedInEl) loggedInEl.textContent = loggedIn.length;
+  if (loggedInValEl) loggedInValEl.textContent = loggedInLoan>=10000000
+    ? '₹'+(loggedInLoan/10000000).toFixed(2)+' Cr pipeline value'
+    : '₹'+(loggedInLoan/100000).toFixed(1)+'L pipeline value';
+
+  // ── KPI 3: In Process
   const inProc     = d.filter(c=>c.status==='In process');
   const inProcLoan = inProc.reduce((s,c)=>s+c.loan,0);
   document.getElementById('kpi-inprocess').textContent = inProc.length;
@@ -2101,7 +2121,7 @@ function applyDashFilters(){
     ? '₹'+(inProcLoan/10000000).toFixed(2)+' Cr pipeline value'
     : '₹'+(inProcLoan/100000).toFixed(1)+'L pipeline value';
 
-  // ── KPI 3: Sanctioned (awaiting disbursal)
+  // ── KPI 4: Sanctioned (awaiting disbursal)
   const sanc     = d.filter(c=>c.status==='Sanctioned');
   const sancLoan = sanc.reduce((s,c)=>s+c.loan,0);
   document.getElementById('kpi-sanc').textContent = sanc.length;

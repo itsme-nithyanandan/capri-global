@@ -2981,12 +2981,27 @@ async function submitStatusChange(newStatus) {
   if (!caseId) return;
   closeStatusChangeModal();
   try {
+    const c = cases.find(x => x.id === caseId);
+    const oldStatus = c ? c.status : null;
+
     const { error } = await db.from('cases').update({ status: newStatus, updated_at: new Date().toISOString() }).eq('id', caseId);
     if (error) { console.error('Status update error:', error.message); showFlash('Could not update status'); return; }
 
     // Update in-memory cases array so the table reflects it immediately
-    const c = cases.find(x => x.id === caseId);
     if (c) c.status = newStatus;
+
+    // Write an audit log entry so the Audit Trail tab has real history to show
+    try {
+      const uid = (window.currentLoggedInUser && window.currentLoggedInUser.id) || null;
+      await db.from('audit_log').insert({
+        user_id: uid,
+        action: 'Status changed: ' + (oldStatus||'—') + ' → ' + newStatus,
+        table_name: 'cases',
+        record_id: caseId,
+        old_value: { status: oldStatus },
+        new_value: { status: newStatus }
+      });
+    } catch(auditErr) { console.error('Audit log write failed:', auditErr.message); }
 
     if (typeof applyDashFilters === 'function') applyDashFilters();
     if (typeof renderAllCases === 'function') renderAllCases();
@@ -3083,21 +3098,143 @@ function renderCDMTab(tab,c){
         </div>
       </div>`;
   } else if(tab==='docs'){
-    // TODO: wire to real `documents` table once schema is confirmed.
-    // Showing an honest "not connected yet" state instead of fake file names.
-    body.innerHTML=`<div class="empty-state" style="padding:40px 20px">
-      <i class="ti ti-file-off"></i>
-      <span style="font-size:13px;font-weight:500">Document records not connected yet</span>
-      <span style="font-size:12px;color:var(--muted2)">This tab will show real uploaded documents once wired to the documents table</span>
-    </div>`;
+    body.innerHTML=`<div class="itabs" id="cdm-doc-tabs"></div><div id="cdm-doc-content" style="padding:24px;text-align:center;color:var(--muted);font-size:13px"><i class="ti ti-loader" style="font-size:20px;display:block;margin-bottom:6px;opacity:.4"></i> Loading documents…</div>`;
+    loadCaseDocuments(c.id);
   } else if(tab==='audit'){
-    // TODO: wire to real `audit_log` table once schema is confirmed.
-    // Showing an honest "not connected yet" state instead of fake names/timeline.
-    body.innerHTML=`<div class="empty-state" style="padding:40px 20px">
-      <i class="ti ti-history-toggle"></i>
-      <span style="font-size:13px;font-weight:500">Audit trail not connected yet</span>
-      <span style="font-size:12px;color:var(--muted2)">This tab will show the real change history once wired to the audit log table</span>
+    body.innerHTML=`<div id="cdm-audit-content" style="padding:24px;text-align:center;color:var(--muted);font-size:13px"><i class="ti ti-loader" style="font-size:20px;display:block;margin-bottom:6px;opacity:.4"></i> Loading audit trail…</div>`;
+    loadCaseAuditTrail(c.id);
+  }
+}
+
+// ── DOCUMENTS TAB (live from `documents` table) ──────────────────────────────
+const docTypeMeta = {
+  pan:     {label:'PAN',      icon:'ti-id',             color:'#1E40AF'},
+  aadhaar: {label:'Aadhaar',  icon:'ti-id-badge-2',     color:'#0F766E'},
+  dl:      {label:'DL',       icon:'ti-car',            color:'#7C3AED'},
+  salary:  {label:'Salary',   icon:'ti-cash',           color:'#1A4F3A'},
+  bank:    {label:'Bank Stmt',icon:'ti-building-bank',  color:'#5B21B6'},
+  form16:  {label:'Form 16',  icon:'ti-file-invoice',   color:'#B45309'},
+  cic:     {label:'CIBIL',    icon:'ti-chart-bar',      color:'#B21C1C'},
+  itr:     {label:'ITR',      icon:'ti-receipt-2',      color:'#8B4A0C'},
+  invoice: {label:'Invoice',  icon:'ti-file-text',      color:'#0E7490'},
+  other:   {label:'Other',    icon:'ti-file',           color:'#6B6760'},
+};
+
+async function loadCaseDocuments(caseId) {
+  const tabsEl = document.getElementById('cdm-doc-tabs');
+  const contentEl = document.getElementById('cdm-doc-content');
+  try {
+    const { data, error } = await db.from('documents').select('*').eq('case_id', caseId).order('uploaded_at', {ascending:false});
+    if (error) { console.error('Documents fetch error:', error.message); if(contentEl) contentEl.innerHTML = '<div class="empty-state"><i class="ti ti-alert-circle"></i><span>Could not load documents</span></div>'; return; }
+
+    const docs = data || [];
+    if (!docs.length) {
+      if (tabsEl) tabsEl.innerHTML = '';
+      if (contentEl) contentEl.innerHTML = '<div class="empty-state"><i class="ti ti-file-off"></i><span>No documents uploaded yet</span></div>';
+      return;
+    }
+
+    // Group by doc_type
+    const grouped = {};
+    docs.forEach(d => { (grouped[d.doc_type] = grouped[d.doc_type] || []).push(d); });
+    const types = Object.keys(grouped);
+
+    if (tabsEl) {
+      tabsEl.innerHTML = types.map((key, i) => {
+        const meta = docTypeMeta[key] || docTypeMeta.other;
+        return `<div class="itab ${i===0?'active':''}" onclick="renderCDMDocGroup('${key}',this)">${meta.label}
+          <span style="font-size:9px;background:var(--accent);color:white;border-radius:8px;padding:1px 5px;margin-left:3px">${grouped[key].length}</span>
+        </div>`;
+      }).join('');
+    }
+    window._cdmDocGroups = grouped;
+    renderCDMDocGroup(types[0], tabsEl ? tabsEl.querySelector('.itab') : null);
+  } catch(e) {
+    console.error('loadCaseDocuments failed:', e.message);
+    if(contentEl) contentEl.innerHTML = '<div class="empty-state"><i class="ti ti-alert-circle"></i><span>Could not load documents</span></div>';
+  }
+}
+
+function renderCDMDocGroup(key, el) {
+  if (el) {
+    document.querySelectorAll('#cdm-doc-tabs .itab').forEach(t=>t.classList.remove('active'));
+    el.classList.add('active');
+  }
+  const content = document.getElementById('cdm-doc-content');
+  if (!content) return;
+  const docs = (window._cdmDocGroups || {})[key] || [];
+  if (!docs.length) { content.innerHTML = '<div class="empty-state"><i class="ti ti-file-off"></i><span>No documents in this category</span></div>'; return; }
+
+  const meta = docTypeMeta[key] || docTypeMeta.other;
+  const exts={'pdf':'ti-file-type-pdf','jpg':'ti-photo','jpeg':'ti-photo','png':'ti-photo'};
+  content.innerHTML = docs.map(d => {
+    const name = d.file_name || d.doc_label || 'Document';
+    const ext = name.split('.').pop().toLowerCase();
+    const sizeKb = d.file_size_kb;
+    const sizeDisplay = sizeKb ? (sizeKb >= 1024 ? (sizeKb/1024).toFixed(1)+' MB' : sizeKb+' KB') : '—';
+    const uploadedDate = d.uploaded_at ? new Date(d.uploaded_at).toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'}) : '—';
+    return `<div class="doc-file-row">
+      <div class="doc-file-icon" style="background:${meta.color}15;color:${meta.color}"><i class="ti ${exts[ext]||'ti-file'}"></i></div>
+      <div><div class="doc-file-name">${name}</div><div class="doc-file-size">${sizeDisplay} · Uploaded ${uploadedDate}</div></div>
+      <div style="margin-left:auto;display:flex;gap:5px">
+        <button class="btn btn-xs" onclick="viewDocument('${d.storage_path||''}')"><i class="ti ti-eye" style="font-size:11px"></i></button>
+        <button class="btn btn-xs btn-primary" onclick="viewDocument('${d.storage_path||''}')"><i class="ti ti-share" style="font-size:11px"></i></button>
+      </div>
     </div>`;
+  }).join('');
+}
+
+function viewDocument(storagePath) {
+  if (!storagePath) { showFlash('File location not available'); return; }
+  try {
+    const { data } = db.storage.from('documents').getPublicUrl(storagePath);
+    if (data && data.publicUrl) window.open(data.publicUrl, '_blank');
+    else showFlash('Could not open document');
+  } catch(e) { console.error('viewDocument failed:', e.message); showFlash('Could not open document'); }
+}
+
+// ── AUDIT TRAIL TAB (live from `audit_log` table) ─────────────────────────────
+async function loadCaseAuditTrail(caseId) {
+  const contentEl = document.getElementById('cdm-audit-content');
+  try {
+    const { data, error } = await db.from('audit_log')
+      .select('*, users:user_id(name)')
+      .eq('table_name', 'cases')
+      .eq('record_id', caseId)
+      .order('created_at', {ascending:false});
+
+    if (error) {
+      console.error('Audit log fetch error:', error.message);
+      if (contentEl) contentEl.innerHTML = '<div class="empty-state"><i class="ti ti-alert-circle"></i><span>Could not load audit trail</span></div>';
+      return;
+    }
+
+    const entries = data || [];
+    if (!entries.length) {
+      if (contentEl) contentEl.innerHTML = '<div class="empty-state"><i class="ti ti-history-toggle"></i><span>No audit history recorded for this case yet</span></div>';
+      return;
+    }
+
+    if (contentEl) {
+      contentEl.style.padding = '0';
+      contentEl.style.textAlign = 'left';
+      contentEl.innerHTML = `<div style="position:relative;padding-left:16px;border-left:2px solid var(--border)">
+        ${entries.map(e => {
+          const dateStr = e.created_at ? new Date(e.created_at).toLocaleString('en-IN',{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'}) : '—';
+          const userName = (e.users && e.users.name) || 'System';
+          let actionText = e.action || 'Updated';
+          if (e.reason) actionText += ' — ' + e.reason;
+          return `<div style="position:relative;padding:0 0 16px 16px">
+            <div style="position:absolute;left:-21px;top:3px;width:8px;height:8px;border-radius:50%;background:var(--accent);border:2px solid white"></div>
+            <div style="font-size:10.5px;color:var(--muted);margin-bottom:2px">${dateStr} · ${userName}</div>
+            <div style="font-size:13px;font-weight:500">${actionText}</div>
+          </div>`;
+        }).join('')}
+      </div>`;
+    }
+  } catch(e) {
+    console.error('loadCaseAuditTrail failed:', e.message);
+    if (contentEl) contentEl.innerHTML = '<div class="empty-state"><i class="ti ti-alert-circle"></i><span>Could not load audit trail</span></div>';
   }
 }
 

@@ -2169,6 +2169,17 @@ async function submitForm() {
 
     if (error) throw error;
 
+    // Write an audit log entry for this submission/edit
+    try {
+      await db.from('audit_log').insert({
+        user_id: currentUser.id,
+        action: _editId ? 'Case edited and resubmitted' : 'Case created and submitted',
+        table_name: 'cases',
+        record_id: currentCaseId,
+        new_value: { status: statusToSave, cust_name: formData.cust_name }
+      });
+    } catch(auditErr) { console.error('Audit log write failed:', auditErr.message); }
+
     // Delete the draft record (case is now submitted)
     await db.from('case_drafts').delete().eq('case_id', currentCaseId);
 

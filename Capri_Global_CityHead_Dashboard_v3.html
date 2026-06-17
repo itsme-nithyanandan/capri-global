@@ -466,7 +466,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);fon
     <div class="nav-item" onclick="showTab('payout',this)">
       <i class="ti ti-report-money"></i> Payout Report
     </div>
-    <div class="nav-item" onclick="showTab('team',this)">
+    <div class="nav-item" onclick="showTab('team',this);if(window.currentLoggedInUser)loadTeamPerformance(window.currentLoggedInUser)">
       <i class="ti ti-users"></i> Team Performance
     </div>
     <div class="nav-item" onclick="showTab('rto',this)">
@@ -479,15 +479,15 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);fon
 
     <!-- New Car -->
     <div class="nav-group" id="grp-newcar">
-      <div class="nav-group-header open" onclick="toggleNavGroup('newcar')">
+      <div class="nav-group-header" onclick="toggleNavGroup('newcar')">
         <i class="ti ti-car nav-icon"></i>
         <span>New Car</span>
         <i class="ti ti-chevron-down nav-chevron"></i>
       </div>
-      <div class="nav-sub open" id="sub-newcar">
-        <div class="nav-sub-item active" id="nsub-cases" onclick="navSubClick('cases','newcar',this)">
+      <div class="nav-sub" id="sub-newcar">
+        <div class="nav-sub-item" id="nsub-cases" onclick="navSubClick('cases','newcar',this)">
           <i class="ti ti-files"></i> All Files
-          <span class="nav-badge" id="nav-badge-cases">24</span>
+          <span class="nav-badge" id="nav-cases-badge" style="display:none"></span>
         </div>
         <div class="nav-sub-item" id="nsub-drafts" onclick="navSubClick('drafts','newcar',this);loadDrafts()">
           <i class="ti ti-pencil"></i> Drafts
@@ -550,7 +550,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);fon
 
     <!-- ── INFO ── -->
     <div class="nav-section">Info</div>
-    <div class="nav-item" onclick="showTab('banks',this)">
+    <div class="nav-item" onclick="showTab('banks',this);loadBanks()">
       <i class="ti ti-building-bank"></i> Bank Management
     </div>
     <div class="nav-item" onclick="showTab('branches',this)">
@@ -1238,7 +1238,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);fon
           <div class="card-title">Payout Settings</div>
           <div class="setting-row">
             <div class="setting-info"><div class="setting-label">Calculation period</div></div>
-            <select class="filter-select"><option>May 2026</option><option>April 2026</option><option>March 2026</option></select>
+            <select class="filter-select" id="report-month-select"></select>
           </div>
           <div class="setting-row">
             <div class="setting-info"><div class="setting-label">Team member</div></div>
@@ -1284,7 +1284,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);fon
           </div>
           <div class="setting-row">
             <div class="setting-info"><div class="setting-label">Period</div></div>
-            <select class="filter-select"><option>Today — 31 May 2026</option><option>May 2026</option><option>April 2026</option></select>
+            <select class="filter-select" id="report-period-select"></select>
           </div>
           <div class="setting-row">
             <div class="setting-info"><div class="setting-label">Delivery channel</div></div>
@@ -1313,219 +1313,23 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);fon
     <div class="tab-pane" id="tab-banks">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
         <div style="display:flex;gap:8px">
-          <input class="filter-input" placeholder="Search bank..." style="width:210px">
-          <select class="filter-select"><option value="">All types</option><option>Bank</option><option>NBFC</option></select>
+          <input class="filter-input" id="banks-search" placeholder="Search bank..." style="width:210px" oninput="renderBanks()">
+          <select class="filter-select" id="banks-type-filter" onchange="renderBanks()"><option value="">All types</option><option value="Bank">Bank</option><option value="NBFC">NBFC</option></select>
         </div>
         <button class="btn btn-primary btn-sm"><i class="ti ti-plus" style="font-size:12px"></i> Add new bank</button>
       </div>
       <div class="card">
-        <table class="data-table">
+        <div id="banks-loading" style="padding:32px;text-align:center;color:var(--muted);font-size:13px">
+          <i class="ti ti-loader" style="font-size:24px;display:block;margin-bottom:8px;opacity:.4"></i> Loading banks…
+        </div>
+        <div id="banks-empty" style="display:none;padding:48px 20px;text-align:center">
+          <i class="ti ti-building-bank" style="font-size:36px;display:block;margin-bottom:10px;color:var(--muted2)"></i>
+          <div style="font-size:13px;font-weight:500;color:var(--muted)">No banks configured yet</div>
+          <div style="font-size:12px;color:var(--muted2);margin-top:4px">Add banks in Supabase to see them here</div>
+        </div>
+        <table class="data-table" id="banks-table" style="display:none">
           <thead><tr><th>Bank / NBFC</th><th>Type</th><th>Min CIBIL</th><th>FOIR %</th><th>LTV %</th><th>Team Payout</th><th>ROI Slab</th><th>Status</th><th>Action</th></tr></thead>
-          <tbody id="banks-tbody"><tr>
-    <td style="font-weight:500">HDFC Bank</td>
-    <td><span class="badge badge-blue">PVT Bank</span></td>
-    <td style="font-family:&#39;DM Mono&#39;,monospace;font-size:12.5px">720</td>
-    <td style="font-family:&#39;DM Mono&#39;,monospace;font-size:12.5px">50%</td>
-    <td style="font-family:&#39;DM Mono&#39;,monospace;font-size:12.5px">85%</td>
-    <td style="font-family:&#39;DM Mono&#39;,monospace;color:var(--green-text);font-weight:500;font-size:12.5px">0.5%</td>
-    <td>
-      <button class="btn btn-xs" onclick="showROISlab(event,0)" style="font-family:&#39;DM Mono&#39;,monospace;font-size:12px;color:var(--accent);font-weight:600;border-color:var(--green-border);background:var(--green-bg)">
-        8.50% <i class="ti ti-chevron-down" style="font-size:10px"></i>
-      </button>
-    </td>
-    <td><span class="badge badge-green">Active</span></td>
-    <td style="white-space:nowrap">
-      <button class="btn btn-sm">Edit</button>
-      <button class="btn btn-sm btn-danger" style="margin-left:4px" onclick="banks[0].active=!banks[0].active;renderBanks()">Deactivate</button>
-    </td>
-  </tr><tr>
-    <td style="font-weight:500">ICICI Bank</td>
-    <td><span class="badge badge-blue">PVT Bank</span></td>
-    <td style="font-family:&#39;DM Mono&#39;,monospace;font-size:12.5px">700</td>
-    <td style="font-family:&#39;DM Mono&#39;,monospace;font-size:12.5px">55%</td>
-    <td style="font-family:&#39;DM Mono&#39;,monospace;font-size:12.5px">85%</td>
-    <td style="font-family:&#39;DM Mono&#39;,monospace;color:var(--green-text);font-weight:500;font-size:12.5px">0.475%</td>
-    <td>
-      <button class="btn btn-xs" onclick="showROISlab(event,1)" style="font-family:&#39;DM Mono&#39;,monospace;font-size:12px;color:var(--accent);font-weight:600;border-color:var(--green-border);background:var(--green-bg)">
-        8.60% <i class="ti ti-chevron-down" style="font-size:10px"></i>
-      </button>
-    </td>
-    <td><span class="badge badge-green">Active</span></td>
-    <td style="white-space:nowrap">
-      <button class="btn btn-sm">Edit</button>
-      <button class="btn btn-sm btn-danger" style="margin-left:4px" onclick="banks[1].active=!banks[1].active;renderBanks()">Deactivate</button>
-    </td>
-  </tr><tr>
-    <td style="font-weight:500">Axis Bank</td>
-    <td><span class="badge badge-blue">PVT Bank</span></td>
-    <td style="font-family:&#39;DM Mono&#39;,monospace;font-size:12.5px">700</td>
-    <td style="font-family:&#39;DM Mono&#39;,monospace;font-size:12.5px">55%</td>
-    <td style="font-family:&#39;DM Mono&#39;,monospace;font-size:12.5px">80%</td>
-    <td style="font-family:&#39;DM Mono&#39;,monospace;color:var(--green-text);font-weight:500;font-size:12.5px">0.45%</td>
-    <td>
-      <button class="btn btn-xs" onclick="showROISlab(event,2)" style="font-family:&#39;DM Mono&#39;,monospace;font-size:12px;color:var(--accent);font-weight:600;border-color:var(--green-border);background:var(--green-bg)">
-        8.70% <i class="ti ti-chevron-down" style="font-size:10px"></i>
-      </button>
-    </td>
-    <td><span class="badge badge-green">Active</span></td>
-    <td style="white-space:nowrap">
-      <button class="btn btn-sm">Edit</button>
-      <button class="btn btn-sm btn-danger" style="margin-left:4px" onclick="banks[2].active=!banks[2].active;renderBanks()">Deactivate</button>
-    </td>
-  </tr><tr>
-    <td style="font-weight:500">Kotak Bank</td>
-    <td><span class="badge badge-blue">PVT Bank</span></td>
-    <td style="font-family:&#39;DM Mono&#39;,monospace;font-size:12.5px">750</td>
-    <td style="font-family:&#39;DM Mono&#39;,monospace;font-size:12.5px">50%</td>
-    <td style="font-family:&#39;DM Mono&#39;,monospace;font-size:12.5px">85%</td>
-    <td style="font-family:&#39;DM Mono&#39;,monospace;color:var(--green-text);font-weight:500;font-size:12.5px">0.5%</td>
-    <td>
-      <button class="btn btn-xs" onclick="showROISlab(event,3)" style="font-family:&#39;DM Mono&#39;,monospace;font-size:12px;color:var(--accent);font-weight:600;border-color:var(--green-border);background:var(--green-bg)">
-        8.40% <i class="ti ti-chevron-down" style="font-size:10px"></i>
-      </button>
-    </td>
-    <td><span class="badge badge-green">Active</span></td>
-    <td style="white-space:nowrap">
-      <button class="btn btn-sm">Edit</button>
-      <button class="btn btn-sm btn-danger" style="margin-left:4px" onclick="banks[3].active=!banks[3].active;renderBanks()">Deactivate</button>
-    </td>
-  </tr><tr>
-    <td style="font-weight:500">SBI</td>
-    <td><span class="badge badge-gold">PSU Bank</span></td>
-    <td style="font-family:&#39;DM Mono&#39;,monospace;font-size:12.5px">650</td>
-    <td style="font-family:&#39;DM Mono&#39;,monospace;font-size:12.5px">60%</td>
-    <td style="font-family:&#39;DM Mono&#39;,monospace;font-size:12.5px">80%</td>
-    <td style="font-family:&#39;DM Mono&#39;,monospace;color:var(--green-text);font-weight:500;font-size:12.5px">₹2,000/file</td>
-    <td>
-      <button class="btn btn-xs" onclick="showROISlab(event,4)" style="font-family:&#39;DM Mono&#39;,monospace;font-size:12px;color:var(--accent);font-weight:600;border-color:var(--green-border);background:var(--green-bg)">
-        8.35% <i class="ti ti-chevron-down" style="font-size:10px"></i>
-      </button>
-    </td>
-    <td><span class="badge badge-green">Active</span></td>
-    <td style="white-space:nowrap">
-      <button class="btn btn-sm">Edit</button>
-      <button class="btn btn-sm btn-danger" style="margin-left:4px" onclick="banks[4].active=!banks[4].active;renderBanks()">Deactivate</button>
-    </td>
-  </tr><tr>
-    <td style="font-weight:500">IndusInd</td>
-    <td><span class="badge badge-blue">PVT Bank</span></td>
-    <td style="font-family:&#39;DM Mono&#39;,monospace;font-size:12.5px">680</td>
-    <td style="font-family:&#39;DM Mono&#39;,monospace;font-size:12.5px">60%</td>
-    <td style="font-family:&#39;DM Mono&#39;,monospace;font-size:12.5px">85%</td>
-    <td style="font-family:&#39;DM Mono&#39;,monospace;color:var(--green-text);font-weight:500;font-size:12.5px">0.55%</td>
-    <td>
-      <button class="btn btn-xs" onclick="showROISlab(event,5)" style="font-family:&#39;DM Mono&#39;,monospace;font-size:12px;color:var(--accent);font-weight:600;border-color:var(--green-border);background:var(--green-bg)">
-        8.75% <i class="ti ti-chevron-down" style="font-size:10px"></i>
-      </button>
-    </td>
-    <td><span class="badge badge-green">Active</span></td>
-    <td style="white-space:nowrap">
-      <button class="btn btn-sm">Edit</button>
-      <button class="btn btn-sm btn-danger" style="margin-left:4px" onclick="banks[5].active=!banks[5].active;renderBanks()">Deactivate</button>
-    </td>
-  </tr><tr>
-    <td style="font-weight:500">Tata Capital</td>
-    <td><span class="badge badge-purple">NBFC</span></td>
-    <td style="font-family:&#39;DM Mono&#39;,monospace;font-size:12.5px">650</td>
-    <td style="font-family:&#39;DM Mono&#39;,monospace;font-size:12.5px">65%</td>
-    <td style="font-family:&#39;DM Mono&#39;,monospace;font-size:12.5px">85%</td>
-    <td style="font-family:&#39;DM Mono&#39;,monospace;color:var(--green-text);font-weight:500;font-size:12.5px">0.6%</td>
-    <td>
-      <button class="btn btn-xs" onclick="showROISlab(event,6)" style="font-family:&#39;DM Mono&#39;,monospace;font-size:12px;color:var(--accent);font-weight:600;border-color:var(--green-border);background:var(--green-bg)">
-        9.25% <i class="ti ti-chevron-down" style="font-size:10px"></i>
-      </button>
-    </td>
-    <td><span class="badge badge-green">Active</span></td>
-    <td style="white-space:nowrap">
-      <button class="btn btn-sm">Edit</button>
-      <button class="btn btn-sm btn-danger" style="margin-left:4px" onclick="banks[6].active=!banks[6].active;renderBanks()">Deactivate</button>
-    </td>
-  </tr><tr>
-    <td style="font-weight:500">Mahindra Finance</td>
-    <td><span class="badge badge-purple">NBFC</span></td>
-    <td style="font-family:&#39;DM Mono&#39;,monospace;font-size:12.5px">600</td>
-    <td style="font-family:&#39;DM Mono&#39;,monospace;font-size:12.5px">65%</td>
-    <td style="font-family:&#39;DM Mono&#39;,monospace;font-size:12.5px">90%</td>
-    <td style="font-family:&#39;DM Mono&#39;,monospace;color:var(--green-text);font-weight:500;font-size:12.5px">0.65%</td>
-    <td>
-      <button class="btn btn-xs" onclick="showROISlab(event,7)" style="font-family:&#39;DM Mono&#39;,monospace;font-size:12px;color:var(--accent);font-weight:600;border-color:var(--green-border);background:var(--green-bg)">
-        9.50% <i class="ti ti-chevron-down" style="font-size:10px"></i>
-      </button>
-    </td>
-    <td><span class="badge badge-green">Active</span></td>
-    <td style="white-space:nowrap">
-      <button class="btn btn-sm">Edit</button>
-      <button class="btn btn-sm btn-danger" style="margin-left:4px" onclick="banks[7].active=!banks[7].active;renderBanks()">Deactivate</button>
-    </td>
-  </tr><tr>
-    <td style="font-weight:500">HDB Financial</td>
-    <td><span class="badge badge-purple">NBFC</span></td>
-    <td style="font-family:&#39;DM Mono&#39;,monospace;font-size:12.5px">620</td>
-    <td style="font-family:&#39;DM Mono&#39;,monospace;font-size:12.5px">65%</td>
-    <td style="font-family:&#39;DM Mono&#39;,monospace;font-size:12.5px">85%</td>
-    <td style="font-family:&#39;DM Mono&#39;,monospace;color:var(--green-text);font-weight:500;font-size:12.5px">0.55%</td>
-    <td>
-      <button class="btn btn-xs" onclick="showROISlab(event,8)" style="font-family:&#39;DM Mono&#39;,monospace;font-size:12px;color:var(--accent);font-weight:600;border-color:var(--green-border);background:var(--green-bg)">
-        10.00% <i class="ti ti-chevron-down" style="font-size:10px"></i>
-      </button>
-    </td>
-    <td><span class="badge badge-green">Active</span></td>
-    <td style="white-space:nowrap">
-      <button class="btn btn-sm">Edit</button>
-      <button class="btn btn-sm btn-danger" style="margin-left:4px" onclick="banks[8].active=!banks[8].active;renderBanks()">Deactivate</button>
-    </td>
-  </tr><tr>
-    <td style="font-weight:500">Cholamandalam</td>
-    <td><span class="badge badge-purple">NBFC</span></td>
-    <td style="font-family:&#39;DM Mono&#39;,monospace;font-size:12.5px">600</td>
-    <td style="font-family:&#39;DM Mono&#39;,monospace;font-size:12.5px">70%</td>
-    <td style="font-family:&#39;DM Mono&#39;,monospace;font-size:12.5px">90%</td>
-    <td style="font-family:&#39;DM Mono&#39;,monospace;color:var(--green-text);font-weight:500;font-size:12.5px">0.65%</td>
-    <td>
-      <button class="btn btn-xs" onclick="showROISlab(event,9)" style="font-family:&#39;DM Mono&#39;,monospace;font-size:12px;color:var(--accent);font-weight:600;border-color:var(--green-border);background:var(--green-bg)">
-        9.75% <i class="ti ti-chevron-down" style="font-size:10px"></i>
-      </button>
-    </td>
-    <td><span class="badge badge-green">Active</span></td>
-    <td style="white-space:nowrap">
-      <button class="btn btn-sm">Edit</button>
-      <button class="btn btn-sm btn-danger" style="margin-left:4px" onclick="banks[9].active=!banks[9].active;renderBanks()">Deactivate</button>
-    </td>
-  </tr><tr>
-    <td style="font-weight:500">IOB</td>
-    <td><span class="badge badge-gold">PSU Bank</span></td>
-    <td style="font-family:&#39;DM Mono&#39;,monospace;font-size:12.5px">650</td>
-    <td style="font-family:&#39;DM Mono&#39;,monospace;font-size:12.5px">60%</td>
-    <td style="font-family:&#39;DM Mono&#39;,monospace;font-size:12.5px">80%</td>
-    <td style="font-family:&#39;DM Mono&#39;,monospace;color:var(--green-text);font-weight:500;font-size:12.5px">0.4%</td>
-    <td>
-      <button class="btn btn-xs" onclick="showROISlab(event,10)" style="font-family:&#39;DM Mono&#39;,monospace;font-size:12px;color:var(--accent);font-weight:600;border-color:var(--green-border);background:var(--green-bg)">
-        8.40% <i class="ti ti-chevron-down" style="font-size:10px"></i>
-      </button>
-    </td>
-    <td><span class="badge badge-gray">Inactive</span></td>
-    <td style="white-space:nowrap">
-      <button class="btn btn-sm">Edit</button>
-      <button class="btn btn-sm " style="margin-left:4px" onclick="banks[10].active=!banks[10].active;renderBanks()">Activate</button>
-    </td>
-  </tr><tr>
-    <td style="font-weight:500">Canara Bank</td>
-    <td><span class="badge badge-gold">PSU Bank</span></td>
-    <td style="font-family:&#39;DM Mono&#39;,monospace;font-size:12.5px">650</td>
-    <td style="font-family:&#39;DM Mono&#39;,monospace;font-size:12.5px">60%</td>
-    <td style="font-family:&#39;DM Mono&#39;,monospace;font-size:12.5px">80%</td>
-    <td style="font-family:&#39;DM Mono&#39;,monospace;color:var(--green-text);font-weight:500;font-size:12.5px">0.4%</td>
-    <td>
-      <button class="btn btn-xs" onclick="showROISlab(event,11)" style="font-family:&#39;DM Mono&#39;,monospace;font-size:12px;color:var(--accent);font-weight:600;border-color:var(--green-border);background:var(--green-bg)">
-        8.35% <i class="ti ti-chevron-down" style="font-size:10px"></i>
-      </button>
-    </td>
-    <td><span class="badge badge-gray">Inactive</span></td>
-    <td style="white-space:nowrap">
-      <button class="btn btn-sm">Edit</button>
-      <button class="btn btn-sm " style="margin-left:4px" onclick="banks[11].active=!banks[11].active;renderBanks()">Activate</button>
-    </td>
-  </tr></tbody>
+          <tbody id="banks-tbody"></tbody>
         </table>
       </div>
     </div>
@@ -1577,7 +1381,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);fon
           </div>
           <div class="alert-banner info" style="margin-top:14px;margin-bottom:0">
             <i class="ti ti-info-circle" style="font-size:15px;color:var(--blue-text);flex-shrink:0;margin-top:1px"></i>
-            <div style="font-size:12px">RBI IFSC database last updated <strong>28 May 2026</strong>. Next sync scheduled for 4 Jun 2026.</div>
+            <div style="font-size:12px" id="rbi-sync-note">RBI IFSC database sync status unavailable.</div>
           </div>
         </div>
       </div>
@@ -1966,6 +1770,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);fon
 <script>
 // ── DATA ──────────────────────────────────────────────────────────────────────
 const cases=[];
+window.cases = cases; // expose globally — top-level const does NOT auto-attach to window
 
 let teamMembers=[
   {id:1,name:'Anand R',  role:'BM',reportsTo:'',   phone:'9876541001',email:'anand.r@capriglobal.in',   files:8,sanctioned:5,target:10,color:'#1A4F3A',aiAccess:true},
@@ -1999,20 +1804,7 @@ const orgHierarchy=[
 // Anand R is BM; Priya S & Karthik M are his RMs; Divya L is BM with her own RMs
 const caseOrgMap={};
 
-const banks=[
-  {name:'HDFC Bank',  type:'PVT Bank',minCibil:720,foir:50,ltv:85,payout:0.50,minRoi:8.50,slabs:[{label:'750+',roi:'8.50–9.25%'},{label:'720–749',roi:'9.25–10.00%'},{label:'700–719',roi:'10.00–10.50%'}],active:true},
-  {name:'ICICI Bank', type:'PVT Bank',minCibil:700,foir:55,ltv:85,payout:0.475,minRoi:8.60,slabs:[{label:'750+',roi:'8.60–9.50%'},{label:'720–749',roi:'9.50–10.50%'},{label:'700–719',roi:'10.50–11.00%'}],active:true},
-  {name:'Axis Bank',  type:'PVT Bank',minCibil:700,foir:55,ltv:80,payout:0.45,minRoi:8.70,slabs:[{label:'750+',roi:'8.70–9.75%'},{label:'720–749',roi:'9.75–10.75%'},{label:'700–719',roi:'10.75–11.50%'}],active:true},
-  {name:'Kotak Bank', type:'PVT Bank',minCibil:750,foir:50,ltv:85,payout:0.50,minRoi:8.40,slabs:[{label:'775+',roi:'8.40–8.90%'},{label:'750–774',roi:'8.90–9.75%'},{label:'725–749',roi:'9.75–10.50%'}],active:true},
-  {name:'SBI',        type:'PSU Bank',minCibil:650,foir:60,ltv:80,payout:'₹2,000/file',minRoi:8.35,slabs:[{label:'700+',roi:'8.35–9.00%'},{label:'650–699',roi:'9.00–10.00%'},{label:'600–649',roi:'10.00–10.50%'}],active:true},
-  {name:'IndusInd',   type:'PVT Bank',minCibil:680,foir:60,ltv:85,payout:0.55,minRoi:8.75,slabs:[{label:'750+',roi:'8.75–10.00%'},{label:'700–749',roi:'10.00–11.50%'},{label:'680–699',roi:'11.50–12.50%'}],active:true},
-  {name:'Tata Capital',type:'NBFC',   minCibil:650,foir:65,ltv:85,payout:0.60,minRoi:9.25,slabs:[{label:'700+',roi:'9.25–11.00%'},{label:'650–699',roi:'11.00–13.00%'},{label:'600–649',roi:'13.00–14.00%'}],active:true},
-  {name:'Mahindra Finance',type:'NBFC',minCibil:600,foir:65,ltv:90,payout:0.65,minRoi:9.50,slabs:[{label:'700+',roi:'9.50–11.50%'},{label:'600–699',roi:'11.50–13.50%'},{label:'<600',roi:'13.50–15.00%'}],active:true},
-  {name:'HDB Financial',type:'NBFC',  minCibil:620,foir:65,ltv:85,payout:0.55,minRoi:10.00,slabs:[{label:'700+',roi:'10.00–12.00%'},{label:'620–699',roi:'12.00–14.00%'},{label:'<620',roi:'14.00–15.50%'}],active:true},
-  {name:'Cholamandalam',type:'NBFC',  minCibil:600,foir:70,ltv:90,payout:0.65,minRoi:9.75,slabs:[{label:'700+',roi:'9.75–11.50%'},{label:'600–699',roi:'11.50–14.00%'},{label:'<600',roi:'14.00–16.00%'}],active:true},
-  {name:'IOB',        type:'PSU Bank',minCibil:650,foir:60,ltv:80,payout:0.40,minRoi:8.40,slabs:[{label:'700+',roi:'8.40–9.00%'},{label:'650–699',roi:'9.00–10.00%'}],active:false},
-  {name:'Canara Bank',type:'PSU Bank',minCibil:650,foir:60,ltv:80,payout:0.40,minRoi:8.35,slabs:[{label:'700+',roi:'8.35–9.00%'},{label:'650–699',roi:'9.00–9.75%'}],active:false},
-];
+let banks=[]; // populated live from Supabase — see loadBanks()
 
 const rtoLeads=[
   {owner:'Rajesh Menon',car:'Maruti Swift VXI',reg:'TN 07 AB 1234',phone:'9876543210',assigned:'Anand R',status:'Contacted'},
@@ -2584,35 +2376,134 @@ function renderRTO(){
 
 // ── RENDER: BANKS ─────────────────────────────────────────────────────────────
 const typeBadge={
-  'PVT Bank':'badge-blue',
-  'PSU Bank':'badge-gold',
+  'Bank':    'badge-blue',
+  'PSU':     'badge-gold',
   'NBFC':    'badge-purple',
 };
+
+// ── LOAD BANKS LIVE FROM SUPABASE (banks + bank_rate_slabs + bank_payout_slabs) ─
+async function loadBanks() {
+  const loading = document.getElementById('banks-loading');
+  const empty   = document.getElementById('banks-empty');
+  const table   = document.getElementById('banks-table');
+  if (loading) loading.style.display = 'block';
+  if (empty)   empty.style.display   = 'none';
+  if (table)   table.style.display   = 'none';
+
+  try {
+    const { data: bankRows, error: bErr } = await db.from('banks').select('*').order('name');
+    if (bErr) { console.error('Banks fetch error:', bErr.message); if(loading) loading.style.display='none'; return; }
+
+    const { data: rateSlabs, error: rErr } = await db.from('bank_rate_slabs').select('*').eq('active', true).order('score_min', { ascending: false });
+    if (rErr) console.error('Rate slabs fetch error:', rErr.message);
+
+    const { data: payoutSlabs, error: pErr } = await db.from('bank_payout_slabs').select('*').eq('active', true).order('loan_from');
+    if (pErr) console.error('Payout slabs fetch error:', pErr.message);
+
+    // Group slabs by bank_id
+    const slabsByBank = {};
+    (rateSlabs||[]).forEach(s => { (slabsByBank[s.bank_id] = slabsByBank[s.bank_id]||[]).push(s); });
+    const payoutSlabsByBank = {};
+    (payoutSlabs||[]).forEach(s => { (payoutSlabsByBank[s.bank_id] = payoutSlabsByBank[s.bank_id]||[]).push(s); });
+
+    banks = (bankRows||[]).map(b => ({
+      id: b.id,
+      name: b.name,
+      type: b.type || 'Bank',
+      minCibil: b.min_cibil ?? '—',
+      foir: b.max_foir_pct ?? '—',
+      ltv: b.max_ltv_pct ?? '—',
+      payoutType: b.payout_type,
+      payoutPct: b.payout_pct,
+      dsaPayoutPct: b.dsa_payout_pct,
+      fixedPayout: b.fixed_payout,
+      active: b.active !== false,
+      slabs: (slabsByBank[b.id]||[]).map(s => ({
+        label: s.slab_label || (s.score_min + '–' + s.score_max),
+        roi: s.fixed_rate ? s.fixed_rate+'%' : (s.floating_rate ? s.floating_rate+'%' : '—')
+      })),
+      payoutSlabs: payoutSlabsByBank[b.id] || []
+    }));
+
+    if (loading) loading.style.display = 'none';
+    if (!banks.length) { if (empty) empty.style.display = 'block'; return; }
+    if (table) table.style.display = '';
+    renderBanks();
+    console.log('Banks loaded:', banks.length);
+  } catch(e) {
+    if (loading) loading.style.display = 'none';
+    console.error('loadBanks failed:', e.message);
+  }
+}
+
 function renderBanks(){
-  document.getElementById('banks-tbody').innerHTML=banks.map((b,i)=>`<tr>
+  const searchEl = document.getElementById('banks-search');
+  const typeEl   = document.getElementById('banks-type-filter');
+  const q        = (searchEl?.value || '').toLowerCase();
+  const typeF    = typeEl?.value || '';
+
+  const filtered = banks.filter(b => {
+    if (q && !b.name.toLowerCase().includes(q)) return false;
+    if (typeF && b.type !== typeF) return false;
+    return true;
+  });
+
+  const tbody = document.getElementById('banks-tbody');
+  if (!tbody) return;
+
+  if (!filtered.length) {
+    tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:28px;color:var(--muted)">No banks match your search</td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = filtered.map((b)=>{
+    const idx = banks.indexOf(b);
+    let payoutDisplay = '—';
+    if (b.fixedPayout) payoutDisplay = '₹'+Number(b.fixedPayout).toLocaleString('en-IN')+'/file';
+    else if (b.dsaPayoutPct) payoutDisplay = b.dsaPayoutPct+'%';
+    else if (b.payoutPct) payoutDisplay = b.payoutPct+'%';
+
+    const hasSlabs = b.slabs && b.slabs.length > 0;
+    const topRoi = hasSlabs ? b.slabs[0].roi : '—';
+
+    return `<tr>
     <td style="font-weight:500">${b.name}</td>
     <td><span class="badge ${typeBadge[b.type]||'badge-gray'}">${b.type}</span></td>
     <td style="font-family:'DM Mono',monospace;font-size:12.5px">${b.minCibil}</td>
-    <td style="font-family:'DM Mono',monospace;font-size:12.5px">${b.foir}%</td>
-    <td style="font-family:'DM Mono',monospace;font-size:12.5px">${b.ltv}%</td>
-    <td style="font-family:'DM Mono',monospace;color:var(--green-text);font-weight:500;font-size:12.5px">${typeof b.payout==='number'?b.payout+'%':b.payout}</td>
+    <td style="font-family:'DM Mono',monospace;font-size:12.5px">${b.foir}${b.foir!=='—'?'%':''}</td>
+    <td style="font-family:'DM Mono',monospace;font-size:12.5px">${b.ltv}${b.ltv!=='—'?'%':''}</td>
+    <td style="font-family:'DM Mono',monospace;color:var(--green-text);font-weight:500;font-size:12.5px">${payoutDisplay}</td>
     <td>
-      <button class="btn btn-xs" onclick="showROISlab(event,${i})" style="font-family:'DM Mono',monospace;font-size:12px;color:var(--accent);font-weight:600;border-color:var(--green-border);background:var(--green-bg)">
-        ${b.minRoi.toFixed(2)}% <i class="ti ti-chevron-down" style="font-size:10px"></i>
-      </button>
+      ${hasSlabs
+        ? `<button class="btn btn-xs" onclick="showROISlab(event,${idx})" style="font-family:'DM Mono',monospace;font-size:12px;color:var(--accent);font-weight:600;border-color:var(--green-border);background:var(--green-bg)">
+            ${topRoi} <i class="ti ti-chevron-down" style="font-size:10px"></i>
+          </button>`
+        : '<span style="color:var(--muted2);font-size:12px">No slabs set</span>'}
     </td>
     <td><span class="badge ${b.active?'badge-green':'badge-gray'}">${b.active?'Active':'Inactive'}</span></td>
     <td style="white-space:nowrap">
       <button class="btn btn-sm">Edit</button>
-      <button class="btn btn-sm ${b.active?'btn-danger':''}" style="margin-left:4px" onclick="banks[${i}].active=!banks[${i}].active;renderBanks()">${b.active?'Deactivate':'Activate'}</button>
+      <button class="btn btn-sm ${b.active?'btn-danger':''}" style="margin-left:4px" onclick="toggleBankActive('${b.id}',${idx})">${b.active?'Deactivate':'Activate'}</button>
     </td>
-  </tr>`).join('');
+  </tr>`;
+  }).join('');
+}
+
+async function toggleBankActive(bankId, idx) {
+  const newActive = !banks[idx].active;
+  try {
+    const { error } = await db.from('banks').update({ active: newActive }).eq('id', bankId);
+    if (error) { console.error('Toggle bank active error:', error.message); return; }
+    banks[idx].active = newActive;
+    renderBanks();
+  } catch(e) { console.error('toggleBankActive failed:', e.message); }
 }
 
 function showROISlab(e,idx){
   e.stopPropagation();
   const popup=document.getElementById('roi-popup');
   const b=banks[idx];
+  if (!b || !b.slabs || !b.slabs.length) return;
   popup.innerHTML=`
     <div style="font-weight:600;font-size:12px;margin-bottom:8px;color:var(--text)">${b.name} — ROI Slabs</div>
     <div style="font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);display:grid;grid-template-columns:1fr 1fr;gap:4px;margin-bottom:6px">
@@ -2724,11 +2615,11 @@ function calcPayout(){
 // ── REPORT GENERATOR ──────────────────────────────────────────────────────────
 function generateReport(){
   document.getElementById('report-preview').innerHTML=`
-    <div class="card-title">Preview <span class="stat-pill" style="font-size:10px">Daily summary · 31 May 2026</span></div>
+    <div class="card-title">Preview <span class="stat-pill" style="font-size:10px" id="preview-summary-date">Daily summary</span></div>
     <div style="border:1px solid var(--border);border-radius:var(--radius-sm);overflow:hidden;font-size:12px">
       <div style="background:var(--accent);padding:14px 16px;color:white">
         <div style="font-weight:700;font-size:13px">Capri Global — Chennai</div>
-        <div style="font-size:11px;opacity:.65;margin-top:2px">Daily sales summary · 31 May 2026</div>
+        <div style="font-size:11px;opacity:.65;margin-top:2px" id="preview-summary-date2">Daily sales summary</div>
       </div>
       <div style="padding:14px 16px">
         <div class="g2" style="gap:8px;margin-bottom:12px">
@@ -3093,7 +2984,8 @@ function renderCDMDocContent(key,el){
   }).join('');
 }
 function closeCaseDetailModal(){document.getElementById('case-detail-modal').classList.remove('open');}
-const tabTitles={
+window.tabTitles = {};
+const tabTitles=window.tabTitles={
   overview:  ['Dashboard','May 2026 · Chennai Operations'],
   cases:     ['New Car — All Files','Complete pipeline view · city head'],
   drafts:    ['New Car — Drafts','Saved cases · resume anytime'],
@@ -3165,16 +3057,7 @@ function navSubClick(tabId, groupKey, el) {
   showTab(tabId, el);
 }
 
-// ── INIT: open New Car group by default ───────────────────────────────────────
-(function(){
-  const sub = document.getElementById('sub-newcar');
-  const hdr = document.querySelector('#grp-newcar .nav-group-header');
-  if(sub) sub.classList.add('open');
-  if(hdr) hdr.classList.add('open');
-  // Mark All Files as active
-  const first = document.getElementById('nsub-cases');
-  if(first) first.classList.add('active');
-})();
+// New Car group is collapsed by default — user opens it manually
 
 // ── INIT ──────────────────────────────────────────────────────────────────────
 initOrgFilters();
@@ -3213,8 +3096,43 @@ window.addEventListener('DOMContentLoaded', async () => {
     const { data:{ session } } = await db.auth.getSession();
     if (!session) { window.location.href='capri_login.html'; return; }
 
-    const { data:user } = await db.from('users').select('id,name,role,color,reports_to').eq('id', session.user.id).single();
+    const { data:user } = await db.from('users').select('id,name,role,color,reports_to,city,monthly_target').eq('id', session.user.id).single();
     if (!user) { window.location.href='capri_login.html'; return; }
+    window.currentLoggedInUser = user;
+
+    // ── DYNAMIC CITY + MONTH (no more hardcoded "Chennai"/"May 2026") ──────────
+    const userCity = user.city || 'Chennai';
+    const monthLabel = new Date().toLocaleDateString('en-IN', { month: 'long', year: 'numeric' }); // e.g. "June 2026"
+    window.userCity = userCity;
+    window.monthLabel = monthLabel;
+
+    // Populate month dropdowns dynamically (last 6 months, current first)
+    function populateMonthOptions(selectId, includeToday) {
+      const sel = document.getElementById(selectId);
+      if (!sel) return;
+      const opts = [];
+      const now = new Date();
+      if (includeToday) {
+        opts.push(`<option>Today — ${now.toLocaleDateString('en-IN',{day:'2-digit',month:'long',year:'numeric'})}</option>`);
+      }
+      for (let i = 0; i < 6; i++) {
+        const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+        opts.push(`<option>${d.toLocaleDateString('en-IN',{month:'long',year:'numeric'})}</option>`);
+      }
+      sel.innerHTML = opts.join('');
+    }
+    populateMonthOptions('report-month-select', false);
+    populateMonthOptions('report-period-select', true);
+
+    // Populate preview summary date labels with today's date
+    const todayLong = new Date().toLocaleDateString('en-IN',{day:'2-digit',month:'long',year:'numeric'});
+    const ps1 = document.getElementById('preview-summary-date');
+    const ps2 = document.getElementById('preview-summary-date2');
+    if (ps1) ps1.textContent = 'Daily summary · ' + todayLong;
+    if (ps2) ps2.textContent = 'Daily sales summary · ' + todayLong;
+
+    const roleLabelMap = { city_head: userCity+' · Full access', bm: 'Branch Manager', rm: 'Relationship Manager' };
+    const roleBadgeMap = { city_head: 'City Head', bm: 'Branch Mgr', rm: 'Rel. Mgr' };
 
     // Update sidebar avatar
     const ini = user.name.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
@@ -3225,11 +3143,15 @@ window.addEventListener('DOMContentLoaded', async () => {
     const nameEl = document.querySelector('.user-name');
     const roleEl = document.querySelector('.user-role');
     if (nameEl) nameEl.textContent = user.name;
-    if (roleEl) roleEl.textContent = {city_head:'Chennai · Full access', bm:'Branch Manager', rm:'Relationship Manager'}[user.role] || user.role;
+    if (roleEl) roleEl.textContent = roleLabelMap[user.role] || user.role;
+
+    // Update sidebar brand subtitle (city)
+    const brandSubEl = document.querySelector('.brand-sub');
+    if (brandSubEl) brandSubEl.textContent = userCity + ' Operations';
 
     // Update role badge
     const badgeEl = document.querySelector('.brand-badge');
-    if (badgeEl) badgeEl.innerHTML = '<i class="ti ti-shield-check" style="font-size:10px"></i> ' + {city_head:'City Head', bm:'Branch Mgr', rm:'Rel. Mgr'}[user.role];
+    if (badgeEl) badgeEl.innerHTML = '<i class="ti ti-shield-check" style="font-size:10px"></i> ' + (roleBadgeMap[user.role] || user.role);
 
     // Update topbar avatar button
     const topBtn = document.getElementById('topbar-avatar-btn');
@@ -3238,33 +3160,159 @@ window.addEventListener('DOMContentLoaded', async () => {
     const dropRole = document.getElementById('dropdown-role');
     const dropAvatar = document.getElementById('dropdown-avatar');
     if (dropName) dropName.textContent = user.name;
-    if (dropRole) dropRole.textContent = {city_head:'Chennai · Full access', bm:'Branch Manager', rm:'Relationship Manager'}[user.role];
+    if (dropRole) dropRole.textContent = roleLabelMap[user.role] || user.role;
     if (dropAvatar) dropAvatar.textContent = ini;
 
+    // Update default topbar-sub (Dashboard tab) with live month + city
+    const overviewSub = document.getElementById('topbar-sub');
+    if (overviewSub && overviewSub.textContent.includes('May 2026')) {
+      overviewSub.textContent = monthLabel + ' · ' + userCity + ' Operations';
+    }
+    // Keep tabTitles in sync so switching tabs back to overview shows correct text
+    if (window.tabTitles && window.tabTitles.overview) {
+      window.tabTitles.overview[1] = monthLabel + ' · ' + userCity + ' Operations';
+    }
+
     // Role-based filter restrictions
+    // NOTE: matched against the CURRENT capitalized nav text (was silently broken before due to case mismatch)
     if (user.role === 'bm') {
       const bmWrap = document.getElementById('bm-filter-wrap');
       if (bmWrap) bmWrap.style.display = 'none';
       const sub = document.getElementById('topbar-sub');
-      if (sub) sub.textContent = 'May 2026 · '+user.name+"'s Team";
-      document.querySelectorAll('.nav-item').forEach(el => {
-        if (['Bank management','AI settings','System settings'].some(t=>el.textContent.includes(t))) el.style.display='none';
+      if (sub) sub.textContent = monthLabel + ' · ' + user.name + "'s Team";
+      document.querySelectorAll('.nav-item, .nav-group-header').forEach(el => {
+        if (['Bank Management','AI Settings','System Settings'].some(t=>el.textContent.includes(t))) el.style.display='none';
       });
     }
     if (user.role === 'rm') {
       ['bm-filter-wrap','rm-filter-wrap'].forEach(id => { const el=document.getElementById(id); if(el) el.style.display='none'; });
       const sub = document.getElementById('topbar-sub');
-      if (sub) sub.textContent = 'May 2026 · '+user.name;
-      document.querySelectorAll('.nav-item').forEach(el => {
-        if (['Bank management','AI settings','System settings','Team members','Team performance','Payout calculator','Reports'].some(t=>el.textContent.includes(t))) el.style.display='none';
+      if (sub) sub.textContent = monthLabel + ' · ' + user.name;
+      document.querySelectorAll('.nav-item, .nav-group-header').forEach(el => {
+        if (['Bank Management','AI Settings','System Settings','Users','Team Performance','Payout Report','Reports'].some(t=>el.textContent.includes(t))) el.style.display='none';
       });
     }
 
     // Load live cases
     await loadLiveCases(user);
 
+    // Load live team performance (replaces hardcoded Anand R / Priya S etc.)
+    await loadTeamPerformance(user);
+
+    // Load live banks (replaces hardcoded HDFC / ICICI etc.)
+    await loadBanks();
+
   } catch(e) { console.error('Auth error:', e.message); }
 });
+
+// ── LOAD LIVE TEAM PERFORMANCE ────────────────────────────────────────────────
+async function loadTeamPerformance(currentUserObj) {
+  const kpiWrap    = document.getElementById('team-kpis');
+  const detailWrap = document.getElementById('team-detail');
+  if (!kpiWrap && !detailWrap) return; // tab markup not present
+
+  try {
+    // 1. Get all active team members (BMs + RMs) who report into this org,
+    //    or everyone if current user is city_head
+    const { data: members, error: uErr } = await db.from('users')
+      .select('id,name,role,color,reports_to,monthly_target,active')
+      .eq('active', true)
+      .in('role', ['bm','rm']);
+    if (uErr) { console.error('Team members fetch error:', uErr.message); return; }
+    if (!members || !members.length) {
+      if (kpiWrap) kpiWrap.innerHTML = '<div style="padding:20px;color:var(--muted);font-size:13px">No team members found.</div>';
+      if (detailWrap) detailWrap.innerHTML = '';
+      return;
+    }
+
+    // 2. Get this month's targets for all of them
+    const monthStart = new Date(); monthStart.setDate(1);
+    const monthStartStr = monthStart.toISOString().slice(0,10);
+    const { data: targets, error: tErr } = await db.from('team_targets')
+      .select('user_id,month,file_target,sanction_target,disbursal_target,loan_amt_target')
+      .eq('month', monthStartStr);
+    if (tErr) console.error('Targets fetch error:', tErr.message);
+
+    const targetMap = {};
+    (targets||[]).forEach(t => { targetMap[t.user_id] = t; });
+
+    // 3. Use already-loaded `cases` array (from loadLiveCases) to count per-member stats
+    //    cases[].member holds created_by_name (display name) — match by name since that's
+    //    what's available; for exact correctness this assumes unique names across the team.
+    const statsByName = {};
+    (window.cases||[]).forEach(cs => {
+      const name = cs.member;
+      if (!name || name === '—') return;
+      if (!statsByName[name]) statsByName[name] = { files:0, sanctioned:0, payout:0 };
+      statsByName[name].files += 1;
+      if (['Sanctioned','Disbursed'].includes(cs.status)) statsByName[name].sanctioned += 1;
+      statsByName[name].payout += (cs.payout||0);
+    });
+
+    // 4. Build combined member stat objects
+    const memberStats = members.map(m => {
+      const s = statsByName[m.name] || { files:0, sanctioned:0, payout:0 };
+      const tgt = targetMap[m.id] || {};
+      const fileTarget = tgt.file_target || m.monthly_target || 8;
+      const hitRate = fileTarget > 0 ? Math.round((s.sanctioned / fileTarget) * 100) : 0;
+      return {
+        id: m.id, name: m.name, role: (m.role||'').toUpperCase(),
+        color: m.color || '#1A4F3A',
+        files: s.files, sanctioned: s.sanctioned, payout: s.payout,
+        fileTarget, hitRate: Math.min(hitRate,100)
+      };
+    }).sort((a,b) => b.sanctioned - a.sanctioned);
+
+    // 5. Render top KPI strip (top 6 by sanctioned)
+    if (kpiWrap) {
+      const top6 = memberStats.slice(0,6);
+      if (!top6.length) {
+        kpiWrap.innerHTML = '<div style="padding:20px;color:var(--muted);font-size:13px">No team activity yet this month.</div>';
+      } else {
+        kpiWrap.innerHTML = top6.map(m => {
+          const ini = m.name.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
+          return `<div class="kpi">
+            <div class="kpi-icon" style="background:${m.color}18;color:${m.color}">
+              <div style="width:26px;height:26px;border-radius:50%;background:${m.color};display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:white">${ini}</div>
+            </div>
+            <div class="kpi-label">${m.name}</div>
+            <div class="kpi-value" style="color:${m.color};font-size:26px">${m.sanctioned}</div>
+            <div class="kpi-sub" style="margin-bottom:4px">sanctioned of ${m.files} files</div>
+          </div>`;
+        }).join('');
+      }
+    }
+
+    // 6. Render full team detail list
+    if (detailWrap) {
+      if (!memberStats.length) {
+        detailWrap.innerHTML = '<div style="padding:20px;color:var(--muted);font-size:13px">No team members found.</div>';
+      } else {
+        detailWrap.innerHTML = memberStats.map(m => {
+          const ini = m.name.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
+          const rateColor = m.hitRate >= 50 ? 'var(--green-text)' : m.hitRate >= 30 ? 'var(--amber-text)' : 'var(--red-text)';
+          const payoutFmt = m.payout >= 100000 ? '₹'+(m.payout/100000).toFixed(2)+'L' : '₹'+m.payout.toLocaleString('en-IN');
+          return `<div class="member-row">
+            <div class="avatar" style="background:${m.color};width:38px;height:38px;font-size:13px">${ini}</div>
+            <div class="member-info" style="flex:1">
+              <div class="member-name">${m.name} <span style="font-size:11px;color:var(--muted);font-weight:400">${m.role}</span></div>
+              <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-top:9px">
+                <div class="stat-item"><div class="stat-val">${m.files}</div><div class="stat-lbl">Files</div></div>
+                <div class="stat-item"><div class="stat-val" style="color:var(--green-text)">${m.sanctioned}</div><div class="stat-lbl">Sanct.</div></div>
+                <div class="stat-item"><div class="stat-val">${m.fileTarget}</div><div class="stat-lbl">Target</div></div>
+                <div class="stat-item"><div class="stat-val" style="color:${rateColor}">${m.hitRate}%</div><div class="stat-lbl">Hit rate</div></div>
+                <div class="stat-item"><div class="stat-val" style="font-size:11.5px;color:var(--purple-text)">${payoutFmt}</div><div class="stat-lbl">Payout</div></div>
+              </div>
+              <div class="prog-wrap" style="margin-top:8px"><div class="prog-fill" style="width:${m.hitRate}%;background:${m.color}"></div></div>
+            </div>
+          </div>`;
+        }).join('');
+      }
+    }
+
+    console.log('Team performance loaded:', memberStats.length, 'members');
+  } catch(e) { console.error('loadTeamPerformance error:', e.message); }
+}
 
 // ── LOAD LIVE CASES ───────────────────────────────────────────────────────────
 async function loadLiveCases(user) {
@@ -3315,7 +3363,7 @@ async function loadLiveCases(user) {
 
     // Update nav badge
     const badge = document.getElementById('nav-cases-badge');
-    if (badge) badge.textContent = cases.length;
+    if (badge) { badge.textContent = cases.length; badge.style.display = cases.length > 0 ? '' : 'none'; }
 
     // Re-render
     if (typeof applyDashFilters === 'function') applyDashFilters();

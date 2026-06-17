@@ -1744,7 +1744,50 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);fon
 </div>
 
 <!-- ROI SLAB POPUP (absolutely positioned, JS-driven) -->
+<!-- CASE ACTION MENU (Edit dropdown: Change Status / Edit File) -->
+<div id="case-action-menu" style="display:none;position:fixed;z-index:500;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);box-shadow:var(--shadow-md);min-width:180px;padding:6px">
+  <div class="qaction-btn" style="border:none;background:transparent;box-shadow:none;padding:9px 12px" onclick="openStatusChangeModal()">
+    <i class="ti ti-flag" style="font-size:14px;color:var(--accent)"></i>
+    <span style="font-size:12.5px;font-weight:500">Change Status</span>
+  </div>
+  <div class="qaction-btn" style="border:none;background:transparent;box-shadow:none;padding:9px 12px" onclick="openEditFileForm()">
+    <i class="ti ti-edit" style="font-size:14px;color:var(--accent)"></i>
+    <span style="font-size:12.5px;font-weight:500">Edit File</span>
+  </div>
+</div>
+
+<!-- STATUS CHANGE MODAL -->
+<div class="modal-overlay" id="status-change-modal">
+  <div class="modal" style="width:340px">
+    <div style="display:flex;align-items:center;justify-content:between;margin-bottom:4px">
+      <div style="font-size:15px;font-weight:600;color:var(--text)">Change Status</div>
+    </div>
+    <div style="font-size:12px;color:var(--muted);margin-bottom:16px" id="status-change-caseid">Case —</div>
+    <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:18px">
+      <button class="btn" style="justify-content:flex-start;padding:10px 14px" onclick="submitStatusChange('Logged In')">
+        <span class="badge badge-blue" style="margin-right:6px">●</span> Logged In
+      </button>
+      <button class="btn" style="justify-content:flex-start;padding:10px 14px" onclick="submitStatusChange('In process')">
+        <span class="badge badge-amber" style="margin-right:6px">●</span> In Process
+      </button>
+      <button class="btn" style="justify-content:flex-start;padding:10px 14px" onclick="submitStatusChange('Sanctioned')">
+        <span class="badge badge-green" style="margin-right:6px">●</span> Sanctioned
+      </button>
+      <button class="btn" style="justify-content:flex-start;padding:10px 14px" onclick="submitStatusChange('Disbursed')">
+        <span class="badge badge-green" style="margin-right:6px">●</span> Disbursed
+      </button>
+      <button class="btn" style="justify-content:flex-start;padding:10px 14px" onclick="submitStatusChange('Rejected')">
+        <span class="badge badge-red" style="margin-right:6px">●</span> Rejected
+      </button>
+    </div>
+    <div style="display:flex;justify-content:flex-end">
+      <button class="btn" onclick="closeStatusChangeModal()">Cancel</button>
+    </div>
+  </div>
+</div>
+
 <div id="roi-popup" class="roi-popup" style="display:none;position:fixed;z-index:500"></div>
+
 
 <div class="modal-overlay" id="unlock-modal">
   <div class="modal">
@@ -1834,7 +1877,7 @@ const weights=[
 ];
 
 // ── HELPERS ──────────────────────────────────────────────────────────────────
-const fmt=n=>n>=10000000?'₹'+Math.round(n/100000)+'L':n>=100000?'₹'+Math.round(n/100000/10).toFixed(1)+'L'
+const fmt=n=>n>=10000000?'₹'+(n/10000000).toFixed(2)+' Cr':n>=100000?'₹'+(n/100000).toFixed(1)+'L'
   :'₹'+(n).toLocaleString('en-IN');
 const initials=name=>name.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
 const statusColor=s=>({
@@ -2208,8 +2251,8 @@ function renderAllCases(data){
       <td><span class="badge ${statusColor(c.status)}">${c.status}</span></td>
       <td style="font-family:'DM Mono',monospace;font-size:12px;color:var(--green-text);font-weight:600">${c.payout>0?fmt(c.payout):'—'}</td>
       <td style="white-space:nowrap">
-        <button class="btn btn-sm" onclick="openCaseDetailModal('${c.id}')">View</button>
-        
+        <button class="btn btn-sm" onclick="openCaseDetailModal('${c.id}')"><i class="ti ti-eye" style="font-size:11px"></i> View</button>
+        <button class="btn btn-sm" style="margin-left:4px" onclick="openCaseActionMenu(event,'${c.id}')"><i class="ti ti-edit" style="font-size:11px"></i> Edit</button>
       </td>
     </tr>`;
     }).join('');
@@ -2889,8 +2932,84 @@ function openCaseDetailModal(id){ window._currentCaseId = id; caseEditMode = fal
   document.getElementById('cdm-case-id').textContent='Case '+c.id;
   document.getElementById('cdm-case-sub').textContent=c.status+' · '+c.date;
   document.querySelectorAll('.wide-modal .itab').forEach((t,i)=>t.classList.toggle('active',i===0));
-  renderCDMTab('basic',c);
   document.getElementById('case-detail-modal').classList.add('open');
+
+  // Fetch the FULL case row (the list view only has a subset of columns) so the
+  // Basic Info / Loan tabs can show real data instead of placeholders.
+  db.from('cases').select('*').eq('id', id).single().then(({data, error}) => {
+    if (error) { console.error('Full case fetch error:', error.message); c._full = null; }
+    else { c._full = data; }
+    renderCDMTab('basic', c);
+  });
+
+  // Render immediately with what we have while the full fetch is in flight
+  renderCDMTab('basic',c);
+}
+
+// ── CASE ACTION MENU (Edit dropdown) ──────────────────────────────────────────
+let _actionMenuCaseId = null;
+
+function openCaseActionMenu(e, caseId) {
+  e.stopPropagation();
+  _actionMenuCaseId = caseId;
+  const menu = document.getElementById('case-action-menu');
+  if (!menu) return;
+  const rect = e.target.closest('button').getBoundingClientRect();
+  menu.style.left = Math.max(8, rect.right - 180) + 'px';
+  menu.style.top = (rect.bottom + 6) + 'px';
+  menu.style.display = 'block';
+  setTimeout(() => document.addEventListener('click', closeCaseActionMenu, { once: true }), 10);
+}
+function closeCaseActionMenu() {
+  const menu = document.getElementById('case-action-menu');
+  if (menu) menu.style.display = 'none';
+}
+
+// ── CHANGE STATUS ──────────────────────────────────────────────────────────────
+function openStatusChangeModal() {
+  closeCaseActionMenu();
+  if (!_actionMenuCaseId) return;
+  const idEl = document.getElementById('status-change-caseid');
+  if (idEl) idEl.textContent = 'Case ' + _actionMenuCaseId;
+  document.getElementById('status-change-modal').classList.add('open');
+}
+function closeStatusChangeModal() {
+  document.getElementById('status-change-modal').classList.remove('open');
+}
+async function submitStatusChange(newStatus) {
+  const caseId = _actionMenuCaseId;
+  if (!caseId) return;
+  closeStatusChangeModal();
+  try {
+    const { error } = await db.from('cases').update({ status: newStatus, updated_at: new Date().toISOString() }).eq('id', caseId);
+    if (error) { console.error('Status update error:', error.message); showFlash('Could not update status'); return; }
+
+    // Update in-memory cases array so the table reflects it immediately
+    const c = cases.find(x => x.id === caseId);
+    if (c) c.status = newStatus;
+
+    if (typeof applyDashFilters === 'function') applyDashFilters();
+    if (typeof renderAllCases === 'function') renderAllCases();
+    showFlash('Status updated — ' + caseId + ' → ' + newStatus);
+  } catch(e) {
+    console.error('submitStatusChange failed:', e.message);
+    showFlash('Status update failed');
+  }
+}
+
+// ── EDIT FILE (opens form prefilled with existing case data) ────────────────────
+function openEditFileForm() {
+  closeCaseActionMenu();
+  const caseId = _actionMenuCaseId;
+  if (!caseId) return;
+  const iframe = document.getElementById('form-iframe');
+  const fullpage = document.getElementById('form-fullpage');
+  if (!iframe || !fullpage) return;
+  iframe.src = 'capri_customer_form.html?embedded=1&edit=' + encodeURIComponent(caseId);
+  fullpage.classList.add('open');
+  document.body.style.overflow = 'hidden';
+  const title = document.querySelector('.form-topbar-title');
+  if (title) title.textContent = 'Edit Case — ' + caseId;
 }
 
 function switchCDMTab(tab,el){
@@ -2903,17 +3022,39 @@ function switchCDMTab(tab,el){
 
 function renderCDMTab(tab,c){
   const body=document.getElementById('cdm-body');
+  const f = c._full || {}; // full row from `cases` table, may not be loaded yet
+  const dash = v => (v===null||v===undefined||v==='') ? '—' : v;
+  const fmtDOB = d => { if(!d) return '—'; try { return new Date(d).toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'}); } catch(e){ return d; } };
+  const titleCase = s => !s ? '—' : s.replace(/_/g,' ').replace(/\b\w/g, ch => ch.toUpperCase());
+
   if(tab==='basic'){
+    const fullAddr = [f.curr_addr1, f.curr_addr2, f.curr_city, f.curr_state, f.curr_pincode].filter(Boolean).join(', ') || '—';
+    const officeAddr = [f.dealer_area].filter(Boolean).join(', ') || '—';
     body.innerHTML=`
       <div class="g2" style="gap:14px">
         <div>
           <div class="detail-section-title" style="margin-bottom:10px">Personal Details</div>
-          ${[['Full Name',c.cust],['Date of Birth','15 Mar 1988'],['Gender','Male'],['Father\'s Name','Rajan Kumar'],['Mobile','9876543210'],['Email','customer@email.com'],['PAN','ABCDE1234F'],['Aadhaar','XXXX XXXX 1234'],['Address','14/5 Anna Nagar, Chennai – 600040']].map(([k,v])=>`
+          ${[
+            ['Full Name', dash(f.cust_name || c.cust)],
+            ['Date of Birth', fmtDOB(f.cust_dob)],
+            ['Gender', dash(f.cust_gender)],
+            ['Mobile', dash(f.cust_mobile)],
+            ['Email', dash(f.cust_email)],
+            ['PAN', dash(f.cust_pan)],
+            ['Aadhaar', f.cust_aadhaar ? ('XXXX XXXX ' + String(f.cust_aadhaar).slice(-4)) : '—'],
+            ['Address', fullAddr],
+          ].map(([k,v])=>`
           <div class="detail-row"><span class="detail-key">${k}</span><span class="detail-val">${v}</span></div>`).join('')}
         </div>
         <div>
           <div class="detail-section-title" style="margin-bottom:10px">Employment</div>
-          ${[['Employment Type','Salaried'],['Employer','Infosys Limited'],['Designation','Senior Engineer'],['Monthly Income','₹85,000'],['Experience','6 years 4 months'],['Office Address','Tidel Park, Chennai']].map(([k,v])=>`
+          ${[
+            ['Employment Type', titleCase(f.emp_type)],
+            ['Employer', dash(f.emp_company)],
+            ['Monthly Income', f.inc_net_monthly ? fmt(f.inc_net_monthly) : '—'],
+            ['Experience', f.emp_years ? (f.emp_years + ' years') : '—'],
+            ['Office Address', officeAddr],
+          ].map(([k,v])=>`
           <div class="detail-row"><span class="detail-key">${k}</span><span class="detail-val">${v}</span></div>`).join('')}
         </div>
       </div>`;
@@ -2922,37 +3063,40 @@ function renderCDMTab(tab,c){
       <div class="g2" style="gap:14px">
         <div>
           <div class="detail-section-title" style="margin-bottom:10px">Loan Requirement</div>
-          ${[['Car Model',c.car],['Loan Amount',fmt(c.loan)],['Tenure','60 months'],['Bank',c.bank],['Purpose','New Car Purchase'],['Down Payment',fmt(Math.round(c.loan*0.15))]].map(([k,v])=>`
+          ${[
+            ['Car Model', dash(f.car_model || c.car)],
+            ['Loan Amount', fmt(c.loan)],
+            ['Tenure', f.loan_tenure_months ? (f.loan_tenure_months + ' months') : '—'],
+            ['Bank', dash(f.preferred_bank_name || c.bank)],
+            ['Down Payment', f.loan_down_payment ? fmt(f.loan_down_payment) : '—'],
+          ].map(([k,v])=>`
           <div class="detail-row"><span class="detail-key">${k}</span><span class="detail-val">${v}</span></div>`).join('')}
         </div>
         <div>
           <div class="detail-section-title" style="margin-bottom:10px">Eligibility</div>
-          ${[['CIBIL Score',`<span style="color:${cibilColor(c.cibil)};font-weight:600;font-family:'DM Mono',monospace">${c.cibil}</span>`],['FOIR','42%'],['LTV','80%'],['Eligible Banks','7 of 14'],['Recommended','HDFC Bank (#1)'],['Submitted to',c.bank+(c.bank!=='HDFC Bank'?' <span class="badge badge-amber" style="font-size:10px">⚠ Not #1</span>':'')]].map(([k,v])=>`
+          ${[
+            ['CIBIL Score',`<span style="color:${cibilColor(c.cibil)};font-weight:600;font-family:'DM Mono',monospace">${c.cibil||'—'}</span>`],
+            ['LTV', f.loan_ltv_pct ? (f.loan_ltv_pct + '%') : '—'],
+            ['Submitted to', dash(f.preferred_bank_name || c.bank)],
+          ].map(([k,v])=>`
           <div class="detail-row"><span class="detail-key">${k}</span><span class="detail-val">${v}</span></div>`).join('')}
         </div>
       </div>`;
   } else if(tab==='docs'){
-    body.innerHTML=`<div class="itabs" id="cdm-doc-tabs"></div><div id="cdm-doc-content"></div>`;
-    document.getElementById('cdm-doc-tabs').innerHTML=docTypes.map((t,i)=>`
-      <div class="itab ${i===0?'active':''}" onclick="switchCDMDocTab('${t.key}',this)">${t.label}
-        ${t.docs.length?`<span style="font-size:9px;background:var(--accent);color:white;border-radius:8px;padding:1px 5px;margin-left:3px">${t.docs.length}</span>`:''}
-      </div>`).join('');
-    renderCDMDocContent('pan',document.querySelector('#cdm-doc-tabs .itab'));
+    // TODO: wire to real `documents` table once schema is confirmed.
+    // Showing an honest "not connected yet" state instead of fake file names.
+    body.innerHTML=`<div class="empty-state" style="padding:40px 20px">
+      <i class="ti ti-file-off"></i>
+      <span style="font-size:13px;font-weight:500">Document records not connected yet</span>
+      <span style="font-size:12px;color:var(--muted2)">This tab will show real uploaded documents once wired to the documents table</span>
+    </div>`;
   } else if(tab==='audit'){
-    const entries=[
-      {date:'2026-05-28 14:32',user:'Karthik M',action:'Case created'},
-      {date:'2026-05-28 14:45',user:'Karthik M',action:'Documents uploaded (PAN, Aadhaar, Salary slips)'},
-      {date:'2026-05-29 09:10',user:'Anand R (BM)',action:'Case reviewed and approved for submission'},
-      {date:'2026-05-29 09:15',user:'System (AI)',action:'AI extraction completed — all docs verified'},
-      {date:'2026-05-30 11:00',user:'Karthik M',action:`Submitted to ${c.bank}`},
-      {date:'2026-05-31 10:22',user:c.bank,action:`Status updated → ${c.status}`},
-    ];
-    body.innerHTML=`<div style="position:relative;padding-left:16px;border-left:2px solid var(--border)">
-      ${entries.map(e=>`<div style="position:relative;padding:0 0 16px 16px">
-        <div style="position:absolute;left:-21px;top:3px;width:8px;height:8px;border-radius:50%;background:var(--accent);border:2px solid white"></div>
-        <div style="font-size:10.5px;color:var(--muted);margin-bottom:2px">${e.date} · ${e.user}</div>
-        <div style="font-size:13px;font-weight:500">${e.action}</div>
-      </div>`).join('')}
+    // TODO: wire to real `audit_log` table once schema is confirmed.
+    // Showing an honest "not connected yet" state instead of fake names/timeline.
+    body.innerHTML=`<div class="empty-state" style="padding:40px 20px">
+      <i class="ti ti-history-toggle"></i>
+      <span style="font-size:13px;font-weight:500">Audit trail not connected yet</span>
+      <span style="font-size:12px;color:var(--muted2)">This tab will show the real change history once wired to the audit log table</span>
     </div>`;
   }
 }

@@ -1225,6 +1225,7 @@ const _isEmbedded  = _params.get('embedded') === '1';
 const _freshLoad   = !!_params.get('t');   // timestamp = always fresh, skip draft restore
 const _resumeId    = _params.get('resume') || null;  // draft case ID to resume
 const _resumeSec   = parseInt(_params.get('section')) || 1;
+const _editId      = _params.get('edit') || null;     // submitted case ID to edit (loads from `cases` table)
 
 (function() {
   if (_isEmbedded) {
@@ -1270,7 +1271,13 @@ const _resumeSec   = parseInt(_params.get('section')) || 1;
   if (caseIdEl) caseIdEl.textContent = currentCaseId;
 
   // 4. Check for existing draft — skip if fresh load (new case from dashboard)
-  if (_resumeId) {
+  if (_editId) {
+    // Editing an already-submitted case — load straight from `cases` table
+    console.log('Editing submitted case:', _editId);
+    currentCaseId = _editId;
+    _draftSavedToDb = true; // case already exists; future saves should UPDATE not INSERT
+    await loadCaseForEdit(_editId);
+  } else if (_resumeId) {
     // Resume a specific draft by case ID
     console.log('Resuming draft:', _resumeId);
     currentCaseId = _resumeId;
@@ -1501,6 +1508,32 @@ async function loadExistingDraft() {
       const _dt=document.getElementById('draft-time'); if(_dt) _dt.textContent = 'Local draft restored';
     }
   } catch(e) {}
+}
+
+// ── LOAD SUBMITTED CASE FOR EDIT (from dashboard Edit button) ───────────────
+async function loadCaseForEdit(caseId) {
+  try {
+    const { data, error } = await db.from('cases')
+      .select('*')
+      .eq('id', caseId)
+      .single();
+
+    if (error || !data) {
+      console.error('Could not load case for edit:', caseId, error?.message);
+      showFlash('Could not load case — ' + caseId);
+      return;
+    }
+
+    restoreFormData(data);
+
+    const _dt = document.getElementById('draft-time');
+    if(_dt) _dt.textContent = caseId + ' · Editing';
+
+    showFlash('Editing case — ' + caseId);
+    console.log('Case loaded for edit:', caseId);
+  } catch(e) {
+    console.error('loadCaseForEdit failed:', e.message);
+  }
 }
 
 // ── LOAD DRAFT BY CASE ID (resume from dashboard) ────────────────────────────
@@ -2116,11 +2149,19 @@ async function submitForm() {
       currentCaseId = await generateCaseId();
     }
 
-    // Upsert the case with final status
+    // When editing an already-submitted case, preserve its current status —
+    // do NOT silently reset a Sanctioned/Disbursed case back to "In process".
+    let statusToSave = 'In process';
+    if (_editId) {
+      const { data: existing } = await db.from('cases').select('status').eq('id', currentCaseId).single();
+      if (existing && existing.status) statusToSave = existing.status;
+    }
+
+    // Upsert the case — preserve status if editing, lock only on first submit
     const { error } = await db.from('cases').upsert({
       id: currentCaseId,
       created_by: currentUser.id,
-      status: 'In process',
+      status: statusToSave,
       submitted_at: new Date().toISOString(),
       locked: true,
       ...formData
@@ -2135,14 +2176,18 @@ async function submitForm() {
     if (autoSaveTimer) clearInterval(autoSaveTimer);
 
     // Show success screen
+    const successTitle = _editId ? 'Case updated' : 'Case submitted';
+    const successBody = _editId
+      ? `Changes to case <strong>${currentCaseId}</strong> for <strong>${name}</strong> have been saved.`
+      : `Case for <strong>${name}</strong> has been submitted successfully. City head has been notified.`;
     document.querySelector('.main').innerHTML = `
       <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:80vh;text-align:center;padding:40px">
         <div style="width:64px;height:64px;border-radius:50%;background:var(--green-bg);display:flex;align-items:center;justify-content:center;margin-bottom:20px">
           <i class="ti ti-check" style="font-size:32px;color:var(--green-txt)"></i>
         </div>
-        <div style="font-family:'Fraunces',serif;font-size:26px;font-weight:500;margin-bottom:8px">Case submitted</div>
+        <div style="font-family:'Fraunces',serif;font-size:26px;font-weight:500;margin-bottom:8px">${successTitle}</div>
         <div style="font-size:14px;color:var(--muted);max-width:360px;line-height:1.7;margin-bottom:24px">
-          Case for <strong>${name}</strong> has been submitted successfully. City head has been notified. Case is now locked.
+          ${successBody}
         </div>
         <div style="font-family:'DM Mono',monospace;font-size:13px;background:var(--surface2);padding:10px 20px;border-radius:var(--r-sm);border:1px solid var(--border);margin-bottom:24px">
           Case ID: ${currentCaseId}

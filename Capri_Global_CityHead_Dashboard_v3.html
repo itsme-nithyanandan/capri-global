@@ -1762,26 +1762,53 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);fon
     <div style="display:flex;align-items:center;justify-content:between;margin-bottom:4px">
       <div style="font-size:15px;font-weight:600;color:var(--text)">Change Status</div>
     </div>
-    <div style="font-size:12px;color:var(--muted);margin-bottom:16px" id="status-change-caseid">Case —</div>
-    <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:18px">
-      <button class="btn" style="justify-content:flex-start;padding:10px 14px" onclick="submitStatusChange('Logged In')">
+    <div style="font-size:12px;color:var(--muted);margin-bottom:12px" id="status-change-caseid">Case —</div>
+    <div id="status-locked-banner" style="display:none;background:var(--green-bg);border:1px solid var(--green-border);border-radius:var(--radius-sm);padding:10px 12px;margin-bottom:14px;font-size:12px;color:var(--green-text);display:flex;align-items:center;gap:8px">
+      <i class="ti ti-lock" style="font-size:14px"></i> This case is Disbursed and cannot be changed further.
+    </div>
+    <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:18px" id="status-options-wrap">
+      <button class="btn" id="status-btn-Logged In" style="justify-content:flex-start;padding:10px 14px" onclick="submitStatusChange('Logged In')">
         <span class="badge badge-blue" style="margin-right:6px">●</span> Logged In
       </button>
-      <button class="btn" style="justify-content:flex-start;padding:10px 14px" onclick="submitStatusChange('In process')">
+      <button class="btn" id="status-btn-In process" style="justify-content:flex-start;padding:10px 14px" onclick="submitStatusChange('In process')">
         <span class="badge badge-amber" style="margin-right:6px">●</span> In Process
       </button>
-      <button class="btn" style="justify-content:flex-start;padding:10px 14px" onclick="submitStatusChange('Sanctioned')">
+      <button class="btn" id="status-btn-Sanctioned" style="justify-content:flex-start;padding:10px 14px" onclick="submitStatusChange('Sanctioned')">
         <span class="badge badge-green" style="margin-right:6px">●</span> Sanctioned
       </button>
-      <button class="btn" style="justify-content:flex-start;padding:10px 14px" onclick="submitStatusChange('Disbursed')">
+      <button class="btn" id="status-btn-Disbursed" style="justify-content:flex-start;padding:10px 14px" onclick="confirmDisbursement()">
         <span class="badge badge-green" style="margin-right:6px">●</span> Disbursed
       </button>
-      <button class="btn" style="justify-content:flex-start;padding:10px 14px" onclick="submitStatusChange('Rejected')">
+      <button class="btn" id="status-btn-Rejected" style="justify-content:flex-start;padding:10px 14px" onclick="submitStatusChange('Rejected')">
         <span class="badge badge-red" style="margin-right:6px">●</span> Rejected
       </button>
     </div>
     <div style="display:flex;justify-content:flex-end">
       <button class="btn" onclick="closeStatusChangeModal()">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- DISBURSEMENT CONFIRM MODAL (irreversible action warning) -->
+<div class="modal-overlay" id="disbursement-confirm-modal">
+  <div class="modal" style="width:360px">
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px">
+      <div style="width:40px;height:40px;border-radius:10px;background:var(--amber-bg);display:flex;align-items:center;justify-content:center;flex-shrink:0">
+        <i class="ti ti-alert-triangle" style="color:var(--amber-text);font-size:18px"></i>
+      </div>
+      <div>
+        <div style="font-size:15px;font-weight:600;color:var(--text)">Confirm Disbursement</div>
+        <div style="font-size:12px;color:var(--muted)">This action cannot be undone</div>
+      </div>
+    </div>
+    <div style="font-size:13px;color:var(--text2);margin-bottom:20px;line-height:1.6;background:var(--surface2);border-radius:var(--radius-sm);padding:12px 14px">
+      Once marked <strong>Disbursed</strong>, this case's status can no longer be changed. Are you sure you want to proceed?
+    </div>
+    <div style="display:flex;gap:8px;justify-content:flex-end">
+      <button class="btn" onclick="closeDisbursementConfirm()">Cancel</button>
+      <button class="btn btn-primary" onclick="finalizeDisbursement()">
+        <i class="ti ti-check" style="font-size:12px"></i> Yes, mark Disbursed
+      </button>
     </div>
   </div>
 </div>
@@ -2958,7 +2985,9 @@ function openCaseActionMenu(e, caseId) {
   menu.style.left = Math.max(8, rect.right - 180) + 'px';
   menu.style.top = (rect.bottom + 6) + 'px';
   menu.style.display = 'block';
-  setTimeout(() => document.addEventListener('click', closeCaseActionMenu, { once: true }), 10);
+  // Use a slight delay before attaching the outside-click closer so the
+  // current click event (which is still bubbling) doesn't immediately close it.
+  setTimeout(() => document.addEventListener('click', closeCaseActionMenu, { once: true }), 50);
 }
 function closeCaseActionMenu() {
   const menu = document.getElementById('case-action-menu');
@@ -2969,23 +2998,75 @@ function closeCaseActionMenu() {
 function openStatusChangeModal() {
   closeCaseActionMenu();
   if (!_actionMenuCaseId) return;
+  const c = cases.find(x => x.id === _actionMenuCaseId);
+  const currentStatus = c ? c.status : null;
+
   const idEl = document.getElementById('status-change-caseid');
-  if (idEl) idEl.textContent = 'Case ' + _actionMenuCaseId;
+  if (idEl) idEl.textContent = 'Case ' + _actionMenuCaseId + (currentStatus ? ' · Currently ' + currentStatus : '');
+
+  const banner = document.getElementById('status-locked-banner');
+  const optsWrap = document.getElementById('status-options-wrap');
+  const isDisbursed = currentStatus === 'Disbursed';
+
+  if (banner) banner.style.display = isDisbursed ? 'flex' : 'none';
+  if (optsWrap) optsWrap.style.display = isDisbursed ? 'none' : 'flex';
+
+  // Highlight the current status button, and disable it (no point re-selecting same status)
+  ['Logged In','In process','Sanctioned','Disbursed','Rejected'].forEach(s => {
+    const btn = document.getElementById('status-btn-' + s);
+    if (!btn) return;
+    if (s === currentStatus) {
+      btn.disabled = true;
+      btn.style.opacity = '0.5';
+      btn.style.cursor = 'not-allowed';
+    } else {
+      btn.disabled = false;
+      btn.style.opacity = '1';
+      btn.style.cursor = 'pointer';
+    }
+  });
+
   document.getElementById('status-change-modal').classList.add('open');
 }
 function closeStatusChangeModal() {
   document.getElementById('status-change-modal').classList.remove('open');
 }
+
+// Disbursement requires explicit confirmation since it's a one-way (terminal) status
+function confirmDisbursement() {
+  document.getElementById('disbursement-confirm-modal').classList.add('open');
+}
+function closeDisbursementConfirm() {
+  document.getElementById('disbursement-confirm-modal').classList.remove('open');
+}
+function finalizeDisbursement() {
+  closeDisbursementConfirm();
+  submitStatusChange('Disbursed');
+}
+
 async function submitStatusChange(newStatus) {
   const caseId = _actionMenuCaseId;
   if (!caseId) return;
+
+  // Safety check: never allow changing a status away from Disbursed, regardless
+  // of how this function is invoked (defense in depth beyond the UI lock above).
+  const c = cases.find(x => x.id === caseId);
+  if (c && c.status === 'Disbursed') {
+    showFlash('This case is Disbursed and cannot be changed further.');
+    closeStatusChangeModal();
+    return;
+  }
+
   closeStatusChangeModal();
   try {
-    const c = cases.find(x => x.id === caseId);
     const oldStatus = c ? c.status : null;
 
     const { error } = await db.from('cases').update({ status: newStatus, updated_at: new Date().toISOString() }).eq('id', caseId);
-    if (error) { console.error('Status update error:', error.message); showFlash('Could not update status'); return; }
+    if (error) {
+      console.error('Status update error:', error.message, error);
+      showFlash('Status update failed: ' + (error.message || 'unknown error'));
+      return;
+    }
 
     // Update in-memory cases array so the table reflects it immediately
     if (c) c.status = newStatus;
@@ -3007,8 +3088,8 @@ async function submitStatusChange(newStatus) {
     if (typeof renderAllCases === 'function') renderAllCases();
     showFlash('Status updated — ' + caseId + ' → ' + newStatus);
   } catch(e) {
-    console.error('submitStatusChange failed:', e.message);
-    showFlash('Status update failed');
+    console.error('submitStatusChange failed:', e.message, e);
+    showFlash('Status update failed: ' + (e.message || 'unknown error'));
   }
 }
 
@@ -3039,7 +3120,22 @@ function renderCDMTab(tab,c){
   const body=document.getElementById('cdm-body');
   const f = c._full || {}; // full row from `cases` table, may not be loaded yet
   const dash = v => (v===null||v===undefined||v==='') ? '—' : v;
-  const fmtDOB = d => { if(!d) return '—'; try { return new Date(d).toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'}); } catch(e){ return d; } };
+  const fmtDOB = d => {
+    if (!d) return '—';
+    try {
+      let dt;
+      if (typeof d === 'string' && d.includes('/')) {
+        // Form stores DOB as literal "DD/MM/YYYY" text, not an ISO date.
+        const [day, month, year] = d.split('/').map(Number);
+        if (!day || !month || !year) return d; // incomplete entry, show as-is
+        dt = new Date(year, month - 1, day);
+      } else {
+        dt = new Date(d); // ISO string or Date object
+      }
+      if (isNaN(dt.getTime())) return d; // could not parse, show raw value rather than "Invalid Date"
+      return dt.toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'});
+    } catch(e) { return d; }
+  };
   const titleCase = s => !s ? '—' : s.replace(/_/g,' ').replace(/\b\w/g, ch => ch.toUpperCase());
 
   if(tab==='basic'){
@@ -3053,6 +3149,8 @@ function renderCDMTab(tab,c){
             ['Full Name', dash(f.cust_name || c.cust)],
             ['Date of Birth', fmtDOB(f.cust_dob)],
             ['Gender', dash(f.cust_gender)],
+            ['Marital Status', dash(f.cust_marital)],
+            ['Dependants', dash(f.cust_dependants)],
             ['Mobile', dash(f.cust_mobile)],
             ['Email', dash(f.cust_email)],
             ['PAN', dash(f.cust_pan)],

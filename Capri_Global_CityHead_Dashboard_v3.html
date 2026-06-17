@@ -879,11 +879,17 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);fon
           <div style="font-size:12px;color:var(--muted2);margin-top:4px">Start a new case and click "Save Draft" to save your progress</div>
         </div>
         <div style="overflow:auto" id="drafts-table-wrap">
-          <table class="data-table" id="drafts-table" style="width:100%">
+          <table class="data-table" id="drafts-table" style="width:100%;table-layout:fixed">
             <thead>
               <tr>
-                <th>Case ID</th><th>Customer Name</th><th>Mobile</th><th>Car Model</th>
-                <th>Loan (₹)</th><th>Progress</th><th>Last Saved</th><th style="text-align:center">Actions</th>
+                <th style="width:10%">Case ID</th>
+                <th style="width:17%">Customer Name</th>
+                <th style="width:11%">Mobile</th>
+                <th style="width:13%">Car Model</th>
+                <th style="width:9%">Loan (₹)</th>
+                <th style="width:16%">Progress</th>
+                <th style="width:10%">Last Saved</th>
+                <th style="width:14%;text-align:center">Actions</th>
               </tr>
             </thead>
             <tbody id="drafts-tbody"></tbody>
@@ -1767,11 +1773,11 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);fon
       <i class="ti ti-lock" style="font-size:14px"></i> This case is Disbursed and cannot be changed further.
     </div>
     <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:18px" id="status-options-wrap">
-      <button class="btn" id="status-btn-Logged In" style="justify-content:flex-start;padding:10px 14px" onclick="submitStatusChange('Logged In')">
-        <span class="badge badge-blue" style="margin-right:6px">●</span> Logged In
-      </button>
       <button class="btn" id="status-btn-In process" style="justify-content:flex-start;padding:10px 14px" onclick="submitStatusChange('In process')">
         <span class="badge badge-amber" style="margin-right:6px">●</span> In Process
+      </button>
+      <button class="btn" id="status-btn-Logged In" style="justify-content:flex-start;padding:10px 14px" onclick="submitStatusChange('Logged In')">
+        <span class="badge badge-blue" style="margin-right:6px">●</span> Logged In
       </button>
       <button class="btn" id="status-btn-Sanctioned" style="justify-content:flex-start;padding:10px 14px" onclick="submitStatusChange('Sanctioned')">
         <span class="badge badge-green" style="margin-right:6px">●</span> Sanctioned
@@ -2170,7 +2176,8 @@ function renderRecentTableData(data){
     <td><span class="badge ${statusColor(c.status)}">${c.status}</span></td>
     <td style="font-family:'DM Mono',monospace;font-size:12px;color:var(--green-text);font-weight:600">${c.payout>0?fmt(c.payout):'—'}</td>
   </tr>`).join('');
-  document.getElementById('recent-tbody').innerHTML = rows;
+  const recentTbodyEl = document.getElementById('recent-tbody');
+  if (recentTbodyEl) recentTbodyEl.innerHTML = rows;
 }
 
 function filterTable(val){
@@ -2208,12 +2215,15 @@ function renderTrendChart(){
       ${i===5?`<text x="${x}" y="${ys[i]-9}" text-anchor="middle" fill="#1A4F3A" font-size="9" font-weight="600" font-family="DM Sans">₹${values[i]/100}Cr</text>`:''}
     `).join('')}
   </svg>`;
-  document.getElementById('trend-chart-wrap').innerHTML=html;
+  const trendWrapEl = document.getElementById('trend-chart-wrap');
+  if (trendWrapEl) trendWrapEl.innerHTML=html;
 }
 
 // ── RENDER: TEAM SNAPSHOT ─────────────────────────────────────────────────────
 function renderTeamSnapshot(){
-  document.getElementById('team-snapshot').innerHTML=teamMembers.map(m=>{
+  const teamSnapEl = document.getElementById('team-snapshot');
+  if (!teamSnapEl) return;
+  teamSnapEl.innerHTML=teamMembers.map(m=>{
     const pct=Math.round((m.sanctioned/m.target)*100);
     return `<div class="member-row">
       <div class="avatar" style="background:${m.color}">${initials(m.name)}</div>
@@ -2235,7 +2245,8 @@ function renderBankPayoutList(){
   const byBank={};
   cases.forEach(c=>{if(c.payout>0){byBank[c.bank]=(byBank[c.bank]||0)+c.payout;}});
   const sorted=Object.entries(byBank).sort((a,b)=>b[1]-a[1]).slice(0,5);
-  document.getElementById('bank-payout-list').innerHTML=sorted.map(([bank,amt],i)=>`
+  const bankPayoutEl = document.getElementById('bank-payout-list');
+  if (bankPayoutEl) bankPayoutEl.innerHTML=sorted.map(([bank,amt],i)=>`
     <div class="payout-row">
       <div style="width:20px;height:20px;border-radius:50%;background:${i===0?'var(--accent)':'var(--border2)'};color:${i===0?'white':'var(--muted)'};font-size:9px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0">${i+1}</div>
       <div class="payout-bank">${bank}</div>
@@ -2780,7 +2791,8 @@ function renderMembers(){
       ${rms.map(m=>memberCard(m)).join('')}
     </div>
   `;
-  document.getElementById('members-list').innerHTML=html;
+  const membersListEl = document.getElementById('members-list');
+  if (membersListEl) membersListEl.innerHTML=html;
 }
 
 function memberCard(m){
@@ -3012,7 +3024,7 @@ function openStatusChangeModal() {
   if (optsWrap) optsWrap.style.display = isDisbursed ? 'none' : 'flex';
 
   // Highlight the current status button, and disable it (no point re-selecting same status)
-  ['Logged In','In process','Sanctioned','Disbursed','Rejected'].forEach(s => {
+  ['In process','Logged In','Sanctioned','Disbursed','Rejected'].forEach(s => {
     const btn = document.getElementById('status-btn-' + s);
     if (!btn) return;
     if (s === currentStatus) {

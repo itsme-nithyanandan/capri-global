@@ -73,13 +73,22 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);fon
 .nav-badge{margin-left:auto;background:rgba(255,255,255,.15);color:rgba(255,255,255,.8);font-size:10px;padding:1px 7px;border-radius:10px;font-family:'DM Mono',monospace;font-weight:500}
 .nav-badge.alert{background:var(--gold);color:#1A1814}
 
-/* ── NAV SUB-ITEMS ── */
-.nav-sub-item{display:flex;align-items:center;gap:8px;padding:7px 20px 7px 36px;cursor:pointer;transition:all .15s;color:rgba(255,255,255,.5);font-size:12px;font-weight:400;border-radius:7px;margin:1px 6px;position:relative}
+/* ── NAV GROUPS (collapsible product modules) ── */
+.nav-group-header{display:flex;align-items:center;gap:9px;padding:7.5px 20px;cursor:pointer;transition:all .15s;color:rgba(255,255,255,.75);font-size:12px;font-weight:600;position:relative;margin:1px 6px;border-radius:7px;letter-spacing:.01em}
+.nav-group-header:hover{background:rgba(255,255,255,.07);color:rgba(255,255,255,.95)}
+.nav-group-header.open{color:white}
+.nav-group-header i.nav-icon{font-size:15px;flex-shrink:0;opacity:.85}
+.nav-group-header.open i.nav-icon{opacity:1}
+.nav-chevron{margin-left:auto;font-size:11px;color:rgba(255,255,255,.35);transition:transform .22s ease;flex-shrink:0}
+.nav-group-header.open .nav-chevron{transform:rotate(180deg)}
+.nav-sub{overflow:hidden;max-height:0;transition:max-height .28s ease}
+.nav-sub.open{max-height:300px}
+.nav-sub-item{display:flex;align-items:center;gap:8px;padding:6.5px 14px 6.5px 38px;cursor:pointer;transition:all .15s;color:rgba(255,255,255,.48);font-size:12px;font-weight:400;border-radius:7px;margin:1px 6px;position:relative}
 .nav-sub-item:hover{background:rgba(255,255,255,.06);color:rgba(255,255,255,.85)}
 .nav-sub-item.active{background:rgba(255,255,255,.1);color:white;font-weight:500}
-.nav-sub-item i{font-size:13.5px;flex-shrink:0;opacity:.8}
+.nav-sub-item.active::before{content:'';position:absolute;left:0px;top:50%;transform:translateY(-50%);width:2px;height:14px;background:var(--gold);border-radius:0 2px 2px 0}
+.nav-sub-item i{font-size:13px;flex-shrink:0;opacity:.75}
 .nav-sub-item.active i{opacity:1}
-.nav-item-arrow{font-size:11px;margin-left:auto;transition:transform .2s;color:rgba(255,255,255,.35)}
 .sidebar-footer{padding:14px 20px;border-top:1px solid rgba(255,255,255,.08)}
 .user-row{display:flex;align-items:center;gap:10px}
 .user-avatar{width:33px;height:33px;border-radius:50%;background:linear-gradient(135deg,var(--gold),var(--gold-light));display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#1A1814;flex-shrink:0;border:2px solid rgba(200,168,82,.4)}
@@ -448,58 +457,122 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);fon
     <div class="brand-badge"><i class="ti ti-shield-check" style="font-size:10px"></i> City Head</div>
   </div>
   <nav class="sidebar-nav">
+
+    <!-- ── OVERVIEW ── -->
     <div class="nav-section">Overview</div>
-    <div class="nav-item active" onclick="showTab(&#39;overview&#39;,this)">
+    <div class="nav-item active" onclick="showTab('overview',this)">
       <i class="ti ti-layout-dashboard"></i> Dashboard
     </div>
-    <!-- NEW CAR NAV GROUP with dropdown -->
-    <div class="nav-group" id="nav-group-cases">
-      <div class="nav-item" id="nav-cases-parent" onclick="toggleCasesGroup(event,this)">
-        <i class="ti ti-files"></i> New Car
-        <span class="nav-badge" id="nav-cases-badge">24</span>
-        <i class="ti ti-chevron-down" id="nav-cases-chevron" style="font-size:11px;margin-left:auto;margin-right:0;transition:transform .2s;color:rgba(255,255,255,.4)"></i>
+    <div class="nav-item" onclick="showTab('payout',this)">
+      <i class="ti ti-report-money"></i> Payout Report
+    </div>
+    <div class="nav-item" onclick="showTab('team',this)">
+      <i class="ti ti-users"></i> Team Performance
+    </div>
+    <div class="nav-item" onclick="showTab('rto',this)">
+      <i class="ti ti-bell"></i> Push Notification
+      <span class="nav-badge">18</span>
+    </div>
+
+    <!-- ── PRODUCTS ── -->
+    <div class="nav-section">Products</div>
+
+    <!-- New Car -->
+    <div class="nav-group" id="grp-newcar">
+      <div class="nav-group-header open" onclick="toggleNavGroup('newcar')">
+        <i class="ti ti-car nav-icon"></i>
+        <span>New Car</span>
+        <i class="ti ti-chevron-down nav-chevron"></i>
       </div>
-      <div class="nav-sub" id="nav-cases-sub" style="overflow:hidden;max-height:0;transition:max-height .25s ease">
-        <div class="nav-sub-item active" id="nav-sub-cases" onclick="showTab(&#39;cases&#39;,this);setActiveNavSub(this)">
-          <i class="ti ti-table"></i> All Cases
+      <div class="nav-sub open" id="sub-newcar">
+        <div class="nav-sub-item active" id="nsub-cases" onclick="navSubClick('cases','newcar',this)">
+          <i class="ti ti-files"></i> All Files
+          <span class="nav-badge" id="nav-badge-cases">24</span>
         </div>
-        <div class="nav-sub-item" id="nav-sub-drafts" onclick="showTab(&#39;drafts&#39;,this);setActiveNavSub(this);loadDrafts()">
+        <div class="nav-sub-item" id="nsub-drafts" onclick="navSubClick('drafts','newcar',this);loadDrafts()">
           <i class="ti ti-pencil"></i> Drafts
           <span class="nav-badge" id="drafts-nav-badge" style="display:none">0</span>
         </div>
+        <div class="nav-sub-item" id="nsub-assigned" onclick="navSubClick('assigned','newcar',this)">
+          <i class="ti ti-clipboard-list"></i> Assigned
+        </div>
+        <div class="nav-sub-item" id="nsub-pdd" onclick="navSubClick('pdd','newcar',this)">
+          <i class="ti ti-file-certificate"></i> PDD
+        </div>
       </div>
     </div>
-    <div class="nav-item" onclick="showTab(&#39;team&#39;,this)">
-      <i class="ti ti-users"></i> Team performance
+
+    <!-- General Insurance -->
+    <div class="nav-group" id="grp-gi">
+      <div class="nav-group-header" onclick="toggleNavGroup('gi')">
+        <i class="ti ti-shield nav-icon"></i>
+        <span>General Insurance</span>
+        <i class="ti ti-chevron-down nav-chevron"></i>
+      </div>
+      <div class="nav-sub" id="sub-gi">
+        <div class="nav-sub-item" onclick="navSubClick('gi-allfiles','gi',this)">
+          <i class="ti ti-files"></i> All Files
+        </div>
+        <div class="nav-sub-item" onclick="navSubClick('gi-drafts','gi',this)">
+          <i class="ti ti-pencil"></i> Drafts
+        </div>
+        <div class="nav-sub-item" onclick="navSubClick('gi-assigned','gi',this)">
+          <i class="ti ti-clipboard-list"></i> Assigned
+        </div>
+        <div class="nav-sub-item" onclick="navSubClick('gi-pdd','gi',this)">
+          <i class="ti ti-file-certificate"></i> PDD
+        </div>
+      </div>
     </div>
-    <div class="nav-item" onclick="showTab(&#39;members&#39;,this)">
-      <i class="ti ti-users-cog"></i> Users
+
+    <!-- Credit Card -->
+    <div class="nav-group" id="grp-cc">
+      <div class="nav-group-header" onclick="toggleNavGroup('cc')">
+        <i class="ti ti-credit-card nav-icon"></i>
+        <span>Credit Card</span>
+        <i class="ti ti-chevron-down nav-chevron"></i>
+      </div>
+      <div class="nav-sub" id="sub-cc">
+        <div class="nav-sub-item" onclick="navSubClick('cc-allfiles','cc',this)">
+          <i class="ti ti-files"></i> All Files
+        </div>
+        <div class="nav-sub-item" onclick="navSubClick('cc-drafts','cc',this)">
+          <i class="ti ti-pencil"></i> Drafts
+        </div>
+        <div class="nav-sub-item" onclick="navSubClick('cc-assigned','cc',this)">
+          <i class="ti ti-clipboard-list"></i> Assigned
+        </div>
+        <div class="nav-sub-item" onclick="navSubClick('cc-pdd','cc',this)">
+          <i class="ti ti-file-certificate"></i> PDD
+        </div>
+      </div>
     </div>
-    <div class="nav-section">Operations</div>
-    <div class="nav-item" onclick="showTab(&#39;rto&#39;,this)">
-      <i class="ti ti-antenna"></i> Online leads
-      <span class="nav-badge">18</span>
+
+    <!-- ── INFO ── -->
+    <div class="nav-section">Info</div>
+    <div class="nav-item" onclick="showTab('banks',this)">
+      <i class="ti ti-building-bank"></i> Bank Management
     </div>
-    <div class="nav-item" onclick="showTab(&#39;payout&#39;,this)">
-      <i class="ti ti-cash"></i> Payout calculator
+    <div class="nav-item" onclick="showTab('branches',this)">
+      <i class="ti ti-map-pin"></i> Branch Directory
     </div>
-    <div class="nav-item" onclick="showTab(&#39;reports&#39;,this)">
+    <div class="nav-item" onclick="showTab('reports',this)">
       <i class="ti ti-chart-bar"></i> Reports
     </div>
+
+    <!-- ── CONFIGURATION ── -->
     <div class="nav-section">Configuration</div>
-    <div class="nav-item" onclick="showTab(&#39;banks&#39;,this)">
-      <i class="ti ti-building-bank"></i> Bank management
+    <div class="nav-item" onclick="showTab('members',this)">
+      <i class="ti ti-users-cog"></i> Users
     </div>
-    <div class="nav-item" onclick="showTab(&#39;branches&#39;,this)">
-      <i class="ti ti-map-pin"></i> Branch directory
-    </div>
-    <div class="nav-item" onclick="showTab(&#39;ai&#39;,this)">
-      <i class="ti ti-brain"></i> AI settings
+    <div class="nav-item" onclick="showTab('ai',this)">
+      <i class="ti ti-brain"></i> AI Settings
       <span class="nav-badge alert">!</span>
     </div>
-    <div class="nav-item" onclick="showTab(&#39;settings&#39;,this)">
-      <i class="ti ti-settings"></i> System settings
+    <div class="nav-item" onclick="showTab('settings',this)">
+      <i class="ti ti-settings"></i> System Settings
     </div>
+
   </nav>
   
 </aside>
@@ -751,7 +824,23 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);fon
 
 
     <!-- ══ TAB: TEAM PERFORMANCE ══ -->
-    <!-- ══ TAB: DRAFTS ══ -->
+
+    <!-- ── PLACEHOLDER TABS: New Car sub-modules ── -->
+    <div class="tab-pane" id="tab-assigned">
+      <div style="padding:32px 0;text-align:center;color:var(--muted)">
+        <i class="ti ti-clipboard-list" style="font-size:40px;display:block;margin-bottom:12px;opacity:.3"></i>
+        <div style="font-size:15px;font-weight:600;margin-bottom:6px">Assigned Cases</div>
+        <div style="font-size:13px;color:var(--muted2)">Coming soon — cases assigned to your team members</div>
+      </div>
+    </div>
+    <div class="tab-pane" id="tab-pdd">
+      <div style="padding:32px 0;text-align:center;color:var(--muted)">
+        <i class="ti ti-file-certificate" style="font-size:40px;display:block;margin-bottom:12px;opacity:.3"></i>
+        <div style="font-size:15px;font-weight:600;margin-bottom:6px">PDD Tracker</div>
+        <div style="font-size:13px;color:var(--muted2)">Coming soon — post-disbursement document tracking</div>
+      </div>
+    </div>
+    <!-- ── PLACEHOLDER TABS: Drafts ── -->
     <div class="tab-pane" id="tab-drafts" style="overflow-y:auto">
       <div style="padding:4px 0 16px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px">
         <div>
@@ -763,8 +852,6 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);fon
           <button class="btn btn-sm" onclick="loadDrafts()"><i class="ti ti-refresh" style="font-size:12px"></i> Refresh</button>
         </div>
       </div>
-
-      <!-- Draft stats row -->
       <div style="display:flex;gap:12px;margin-bottom:18px;flex-wrap:wrap">
         <div class="kpi" style="flex:1;min-width:140px;padding:14px 16px">
           <div class="kpi-icon" style="background:var(--amber-bg);color:var(--amber-text)"><i class="ti ti-pencil"></i></div>
@@ -774,7 +861,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);fon
         <div class="kpi" style="flex:1;min-width:140px;padding:14px 16px">
           <div class="kpi-icon" style="background:var(--blue-bg);color:var(--blue-text)"><i class="ti ti-clock"></i></div>
           <div class="kpi-label">Last Saved</div>
-          <div class="kpi-value" style="font-size:16px;color:var(--blue-text);font-family:'DM Sans',sans-serif;font-weight:600" id="draft-stat-last">—</div>
+          <div class="kpi-value" style="font-size:16px;color:var(--blue-text);font-family:inherit;font-weight:600" id="draft-stat-last">—</div>
         </div>
         <div class="kpi" style="flex:1;min-width:140px;padding:14px 16px">
           <div class="kpi-icon" style="background:var(--green-bg);color:var(--green-text)"><i class="ti ti-file-check"></i></div>
@@ -782,31 +869,21 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);fon
           <div class="kpi-value" style="font-size:22px;color:var(--green-text)" id="draft-stat-avg">—</div>
         </div>
       </div>
-
-      <!-- Drafts table -->
       <div class="card" style="border-radius:var(--radius)">
         <div id="drafts-loading" style="padding:32px;text-align:center;color:var(--muted);font-size:13px;display:none">
           <i class="ti ti-loader" style="font-size:24px;display:block;margin-bottom:8px;opacity:.4"></i> Loading drafts…
         </div>
-        <div id="drafts-empty" style="display:none">
-          <div class="empty-state" style="padding:48px 20px">
-            <i class="ti ti-pencil-off"></i>
-            <span style="font-size:13px;font-weight:500">No drafts saved yet</span>
-            <span style="font-size:12px;color:var(--muted2)">Start a new case and click "Save Draft" to save your progress</span>
-          </div>
+        <div id="drafts-empty" style="display:none;padding:48px 20px;text-align:center">
+          <i class="ti ti-pencil-off" style="font-size:36px;display:block;margin-bottom:10px;color:var(--muted2)"></i>
+          <div style="font-size:13px;font-weight:500;color:var(--muted)">No drafts saved yet</div>
+          <div style="font-size:12px;color:var(--muted2);margin-top:4px">Start a new case and click "Save Draft" to save your progress</div>
         </div>
         <div style="overflow:auto" id="drafts-table-wrap">
           <table class="data-table" id="drafts-table" style="width:100%">
             <thead>
               <tr>
-                <th>Case ID</th>
-                <th>Customer Name</th>
-                <th>Mobile</th>
-                <th>Car Model</th>
-                <th>Loan (₹)</th>
-                <th>Progress</th>
-                <th>Last Saved</th>
-                <th style="text-align:center">Actions</th>
+                <th>Case ID</th><th>Customer Name</th><th>Mobile</th><th>Car Model</th>
+                <th>Loan (₹)</th><th>Progress</th><th>Last Saved</th><th style="text-align:center">Actions</th>
               </tr>
             </thead>
             <tbody id="drafts-tbody"></tbody>
@@ -814,8 +891,17 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);fon
         </div>
       </div>
     </div>
-
-        <div class="tab-pane" id="tab-team">
+    <!-- GI placeholders -->
+    <div class="tab-pane" id="tab-gi-allfiles"><div style="padding:48px;text-align:center;color:var(--muted)"><i class="ti ti-shield" style="font-size:40px;display:block;margin-bottom:12px;opacity:.3"></i><div style="font-size:15px;font-weight:600">General Insurance — All Files</div><div style="font-size:13px;margin-top:6px;color:var(--muted2)">Coming soon</div></div></div>
+    <div class="tab-pane" id="tab-gi-drafts"><div style="padding:48px;text-align:center;color:var(--muted)"><i class="ti ti-shield" style="font-size:40px;display:block;margin-bottom:12px;opacity:.3"></i><div style="font-size:15px;font-weight:600">General Insurance — Drafts</div><div style="font-size:13px;margin-top:6px;color:var(--muted2)">Coming soon</div></div></div>
+    <div class="tab-pane" id="tab-gi-assigned"><div style="padding:48px;text-align:center;color:var(--muted)"><i class="ti ti-shield" style="font-size:40px;display:block;margin-bottom:12px;opacity:.3"></i><div style="font-size:15px;font-weight:600">General Insurance — Assigned</div><div style="font-size:13px;margin-top:6px;color:var(--muted2)">Coming soon</div></div></div>
+    <div class="tab-pane" id="tab-gi-pdd"><div style="padding:48px;text-align:center;color:var(--muted)"><i class="ti ti-shield" style="font-size:40px;display:block;margin-bottom:12px;opacity:.3"></i><div style="font-size:15px;font-weight:600">General Insurance — PDD</div><div style="font-size:13px;margin-top:6px;color:var(--muted2)">Coming soon</div></div></div>
+    <!-- CC placeholders -->
+    <div class="tab-pane" id="tab-cc-allfiles"><div style="padding:48px;text-align:center;color:var(--muted)"><i class="ti ti-credit-card" style="font-size:40px;display:block;margin-bottom:12px;opacity:.3"></i><div style="font-size:15px;font-weight:600">Credit Card — All Files</div><div style="font-size:13px;margin-top:6px;color:var(--muted2)">Coming soon</div></div></div>
+    <div class="tab-pane" id="tab-cc-drafts"><div style="padding:48px;text-align:center;color:var(--muted)"><i class="ti ti-credit-card" style="font-size:40px;display:block;margin-bottom:12px;opacity:.3"></i><div style="font-size:15px;font-weight:600">Credit Card — Drafts</div><div style="font-size:13px;margin-top:6px;color:var(--muted2)">Coming soon</div></div></div>
+    <div class="tab-pane" id="tab-cc-assigned"><div style="padding:48px;text-align:center;color:var(--muted)"><i class="ti ti-credit-card" style="font-size:40px;display:block;margin-bottom:12px;opacity:.3"></i><div style="font-size:15px;font-weight:600">Credit Card — Assigned</div><div style="font-size:13px;margin-top:6px;color:var(--muted2)">Coming soon</div></div></div>
+    <div class="tab-pane" id="tab-cc-pdd"><div style="padding:48px;text-align:center;color:var(--muted)"><i class="ti ti-credit-card" style="font-size:40px;display:block;margin-bottom:12px;opacity:.3"></i><div style="font-size:15px;font-weight:600">Credit Card — PDD</div><div style="font-size:13px;margin-top:6px;color:var(--muted2)">Coming soon</div></div></div>
+    <div class="tab-pane" id="tab-team">
       <div class="g4" style="margin-bottom:18px" id="team-kpis">
     <div class="kpi">
       <div class="kpi-icon" style="background:#1A4F3A18;color:#1A4F3A">
@@ -3008,25 +3094,35 @@ function renderCDMDocContent(key,el){
 }
 function closeCaseDetailModal(){document.getElementById('case-detail-modal').classList.remove('open');}
 const tabTitles={
-  overview:['Dashboard','May 2026 · Chennai Operations'],
-  cases:['All Cases','Complete pipeline view · city head'],
-  team:['Team Performance','Individual targets and actuals'],
-  members:['Team Members','Manage BMs, RMs and access controls'],
-  rto:['Online Leads','Digital lead pipeline'],
-  payout:['Payout Calculator','Commission calculation per member'],
-  reports:['Reports','Generate and send reports'],
-  banks:['Bank Management','Add · edit · configure lenders'],
-  branches:['Branch Directory','Empaneled branches + radius settings'],
-  ai:['AI Settings','Provider · model · budget · toggles'],
-  settings:['System Settings','Weights · team · configuration'],
-  drafts:['Drafts','Saved cases — resume or delete'],
+  overview:  ['Dashboard','May 2026 · Chennai Operations'],
+  cases:     ['New Car — All Files','Complete pipeline view · city head'],
+  drafts:    ['New Car — Drafts','Saved cases · resume anytime'],
+  assigned:  ['New Car — Assigned','Cases assigned to team members'],
+  pdd:       ['New Car — PDD','Post-disbursement document tracker'],
+  team:      ['Team Performance','Individual targets and actuals'],
+  members:   ['Users','Manage BMs, RMs and access controls'],
+  rto:       ['Push Notification','Digital lead pipeline'],
+  payout:    ['Payout Report','Commission calculation per member'],
+  reports:   ['Reports','Generate and send reports'],
+  banks:     ['Bank Management','Add · edit · configure lenders'],
+  branches:  ['Branch Directory','Empaneled branches + radius settings'],
+  ai:        ['AI Settings','Provider · model · budget · toggles'],
+  settings:  ['System Settings','Weights · team · configuration'],
+  'gi-allfiles':['General Insurance — All Files','Coming soon'],
+  'gi-drafts':  ['General Insurance — Drafts','Coming soon'],
+  'gi-assigned':['General Insurance — Assigned','Coming soon'],
+  'gi-pdd':     ['General Insurance — PDD','Coming soon'],
+  'cc-allfiles':['Credit Card — All Files','Coming soon'],
+  'cc-drafts':  ['Credit Card — Drafts','Coming soon'],
+  'cc-assigned':['Credit Card — Assigned','Coming soon'],
+  'cc-pdd':     ['Credit Card — PDD','Coming soon'],
 };
 
 function showTab(id,el){
   document.querySelectorAll('.tab-pane').forEach(p=>p.classList.remove('on'));
   document.querySelectorAll('.nav-item').forEach(b=>b.classList.remove('active'));
   document.querySelectorAll('.nav-sub-item').forEach(b=>b.classList.remove('active'));
-  const pane = document.getElementById('tab-'+id);
+  const pane=document.getElementById('tab-'+id);
   if(pane) pane.classList.add('on');
   if(el){
     if(el.classList.contains('nav-sub-item')) el.classList.add('active');
@@ -3037,43 +3133,47 @@ function showTab(id,el){
   document.getElementById('topbar-sub').textContent=t[1];
 }
 
-// ── NAV GROUP TOGGLE (New Car dropdown) ──────────────────────────────────────
-function toggleCasesGroup(e, el) {
-  const sub = document.getElementById('nav-cases-sub');
-  const chevron = document.getElementById('nav-cases-chevron');
-  const isOpen = sub.style.maxHeight && sub.style.maxHeight !== '0px';
-  if (isOpen) {
-    sub.style.maxHeight = '0px';
-    if(chevron) chevron.style.transform = '';
-  } else {
-    sub.style.maxHeight = '200px';
-    if(chevron) chevron.style.transform = 'rotate(180deg)';
-    // Auto-open to All Cases if nothing active inside
-    const anyActive = sub.querySelector('.nav-sub-item.active');
-    if (!anyActive) {
-      const firstSub = document.getElementById('nav-sub-cases');
-      if (firstSub) { firstSub.classList.add('active'); showTab('cases', null); }
-    }
+// ── NAV GROUP COLLAPSE/EXPAND ──────────────────────────────────────────────────
+function toggleNavGroup(key) {
+  const header = document.querySelector('#grp-'+key+' .nav-group-header');
+  const sub    = document.getElementById('sub-'+key);
+  if(!sub) return;
+  const isOpen = sub.classList.contains('open');
+  // Close all groups first
+  document.querySelectorAll('.nav-sub').forEach(s => s.classList.remove('open'));
+  document.querySelectorAll('.nav-group-header').forEach(h => h.classList.remove('open'));
+  // Toggle clicked group
+  if(!isOpen){
+    sub.classList.add('open');
+    if(header) header.classList.add('open');
   }
 }
 
-function setActiveNavSub(el) {
-  document.querySelectorAll('.nav-sub-item').forEach(b => b.classList.remove('active'));
-  if(el) el.classList.add('active');
-  // Make parent nav-item appear active too
+// ── NAV SUB-ITEM CLICK (product sub-modules) ──────────────────────────────────
+function navSubClick(tabId, groupKey, el) {
+  // Open the parent group if closed
+  const sub    = document.getElementById('sub-'+groupKey);
+  const header = document.querySelector('#grp-'+groupKey+' .nav-group-header');
+  if(sub && !sub.classList.contains('open')){
+    document.querySelectorAll('.nav-sub').forEach(s => s.classList.remove('open'));
+    document.querySelectorAll('.nav-group-header').forEach(h => h.classList.remove('open'));
+    sub.classList.add('open');
+    if(header) header.classList.add('open');
+  }
+  // Deactivate all top-level nav items
   document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
-  const parent = document.getElementById('nav-cases-parent');
-  if(parent) parent.classList.add('active');
+  showTab(tabId, el);
 }
 
-// Auto-open the nav group on load
+// ── INIT: open New Car group by default ───────────────────────────────────────
 (function(){
-  const sub = document.getElementById('nav-cases-sub');
-  const chevron = document.getElementById('nav-cases-chevron');
-  if(sub){ sub.style.maxHeight = '200px'; }
-  if(chevron){ chevron.style.transform = 'rotate(180deg)'; }
-  const firstSub = document.getElementById('nav-sub-cases');
-  if(firstSub) firstSub.classList.add('active');
+  const sub = document.getElementById('sub-newcar');
+  const hdr = document.querySelector('#grp-newcar .nav-group-header');
+  if(sub) sub.classList.add('open');
+  if(hdr) hdr.classList.add('open');
+  // Mark All Files as active
+  const first = document.getElementById('nsub-cases');
+  if(first) first.classList.add('active');
 })();
 
 // ── INIT ──────────────────────────────────────────────────────────────────────
@@ -3935,115 +4035,84 @@ function showFlash(msg) {
 }
 </script>
 
+<!-- ══ DRAFTS MODULE ══════════════════════════════════════════════════════════ -->
 <script>
-// ══ DRAFTS MODULE ══════════════════════════════════════════════════════════════
-
 let _allDrafts = [];
 
 async function loadDrafts() {
   const loading = document.getElementById('drafts-loading');
   const empty   = document.getElementById('drafts-empty');
   const wrap    = document.getElementById('drafts-table-wrap');
-  const tbody   = document.getElementById('drafts-tbody');
-
   if(loading) loading.style.display = 'block';
   if(empty)   empty.style.display   = 'none';
   if(wrap)    wrap.style.display    = 'none';
-
   try {
-    const { data, error } = await db
-      .from('case_drafts')
-      .select('*')
-      .order('last_saved_at', { ascending: false });
-
+    const { data, error } = await db.from('case_drafts').select('*').order('last_saved_at',{ascending:false});
     if(loading) loading.style.display = 'none';
-
-    if (error) { console.error('Draft load error:', error.message); return; }
-
+    if(error){ console.error('Draft load error:',error.message); return; }
     _allDrafts = data || [];
 
     // Update nav badge
-    const navBadge = document.getElementById('drafts-nav-badge');
-    if(navBadge){
-      navBadge.textContent = _allDrafts.length;
-      navBadge.style.display = _allDrafts.length > 0 ? '' : 'none';
-    }
+    const nb = document.getElementById('drafts-nav-badge');
+    if(nb){ nb.textContent=_allDrafts.length; nb.style.display=_allDrafts.length>0?'':'none'; }
 
     // Stats
     const statTotal = document.getElementById('draft-stat-total');
     const statLast  = document.getElementById('draft-stat-last');
     const statAvg   = document.getElementById('draft-stat-avg');
     if(statTotal) statTotal.textContent = _allDrafts.length;
-    if(statLast && _allDrafts.length > 0) {
-      const d = new Date(_allDrafts[0].last_saved_at);
-      statLast.textContent = d.toLocaleDateString('en-IN',{day:'2-digit',month:'short'}) + ' ' + d.toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'});
+    if(statLast && _allDrafts.length>0){
+      const d=new Date(_allDrafts[0].last_saved_at);
+      statLast.textContent = d.toLocaleDateString('en-IN',{day:'2-digit',month:'short'})+' '+d.toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'});
     }
-    if(statAvg && _allDrafts.length > 0) {
-      const avg = Math.round(_allDrafts.reduce((s,d) => s + (d.completion_pct||0), 0) / _allDrafts.length);
-      statAvg.textContent = avg + '%';
+    if(statAvg && _allDrafts.length>0){
+      const avg=Math.round(_allDrafts.reduce((s,d)=>s+(d.completion_pct||0),0)/_allDrafts.length);
+      statAvg.textContent=avg+'%';
     }
-
-    if (_allDrafts.length === 0) {
-      if(empty) empty.style.display = 'block';
-      return;
-    }
-
-    if(wrap) wrap.style.display = '';
+    if(_allDrafts.length===0){ if(empty) empty.style.display='block'; return; }
+    if(wrap) wrap.style.display='';
     renderDraftsTable(_allDrafts);
-  } catch(e) {
-    if(loading) loading.style.display = 'none';
-    console.error('loadDrafts failed:', e);
-  }
+  } catch(e){ if(loading) loading.style.display='none'; console.error('loadDrafts:',e); }
 }
 
-function filterDrafts() {
-  const q = (document.getElementById('draft-search')?.value || '').toLowerCase();
-  if (!q) { renderDraftsTable(_allDrafts); return; }
-  const filtered = _allDrafts.filter(d => {
-    const fd = d.form_data || {};
-    return (
-      (d.case_id||'').toLowerCase().includes(q) ||
-      (fd.cust_name||'').toLowerCase().includes(q) ||
-      (fd.cust_mobile||'').toLowerCase().includes(q) ||
-      (fd.car_model||'').toLowerCase().includes(q)
-    );
-  });
-  renderDraftsTable(filtered);
+function filterDrafts(){
+  const q=(document.getElementById('draft-search')?.value||'').toLowerCase();
+  if(!q){ renderDraftsTable(_allDrafts); return; }
+  renderDraftsTable(_allDrafts.filter(d=>{
+    const fd=d.form_data||{};
+    return (d.case_id||'').toLowerCase().includes(q)||
+           (fd.cust_name||'').toLowerCase().includes(q)||
+           (fd.cust_mobile||'').toLowerCase().includes(q)||
+           (fd.car_model||'').toLowerCase().includes(q);
+  }));
 }
 
-function renderDraftsTable(drafts) {
-  const tbody = document.getElementById('drafts-tbody');
-  if (!tbody) return;
-
-  if (drafts.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="8"><div class="empty-state" style="padding:32px"><i class="ti ti-search-off"></i><span>No drafts match your search</span></div></td></tr>`;
+function renderDraftsTable(drafts){
+  const tbody=document.getElementById('drafts-tbody');
+  if(!tbody) return;
+  if(!drafts.length){
+    tbody.innerHTML='<tr><td colspan="8" style="text-align:center;padding:28px;color:var(--muted)">No drafts match your search</td></tr>';
     return;
   }
-
-  tbody.innerHTML = drafts.map(d => {
-    const fd = d.form_data || {};
-    const pct = d.completion_pct || 0;
-    const savedAt = d.last_saved_at
-      ? new Date(d.last_saved_at).toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'2-digit'}) + ' ' +
+  tbody.innerHTML=drafts.map(d=>{
+    const fd=d.form_data||{};
+    const pct=d.completion_pct||0;
+    const barColor=pct>=66?'var(--green-text)':pct>=33?'var(--gold)':'var(--amber-text)';
+    const savedAt=d.last_saved_at
+      ? new Date(d.last_saved_at).toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'2-digit'})+' '+
         new Date(d.last_saved_at).toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'})
       : '—';
-    const loan = fd.loan_amount
-      ? '₹' + (fd.loan_amount >= 100000 ? (fd.loan_amount/100000).toFixed(2)+'L' : fd.loan_amount.toLocaleString('en-IN'))
-      : '—';
-
-    // Progress bar color
-    const barColor = pct >= 66 ? 'var(--green-text)' : pct >= 33 ? 'var(--gold)' : 'var(--amber-text)';
-
+    const loan=fd.loan_amount?'₹'+(fd.loan_amount>=100000?(fd.loan_amount/100000).toFixed(2)+'L':Number(fd.loan_amount).toLocaleString('en-IN')):'—';
     return `<tr>
       <td><span style="font-family:'DM Mono',monospace;font-size:12px;font-weight:600;color:var(--accent)">${d.case_id||'—'}</span></td>
-      <td style="font-weight:500">${fd.cust_name || '<span style="color:var(--muted2);font-style:italic">Not filled</span>'}</td>
+      <td style="font-weight:500">${fd.cust_name||'<span style="color:var(--muted2);font-style:italic">Not filled</span>'}</td>
       <td style="font-family:'DM Mono',monospace;font-size:12px">${fd.cust_mobile||'—'}</td>
-      <td>${fd.car_model ? fd.car_model + (fd.car_variant ? ' · '+fd.car_variant : '') : '—'}</td>
+      <td>${fd.car_model?(fd.car_model+(fd.car_variant?' · '+fd.car_variant:'')):'—'}</td>
       <td style="font-family:'DM Mono',monospace;font-size:12px;font-weight:600">${loan}</td>
-      <td style="min-width:110px">
+      <td style="min-width:120px">
         <div style="display:flex;align-items:center;gap:8px">
           <div style="flex:1;height:5px;border-radius:3px;background:var(--border);overflow:hidden">
-            <div style="height:100%;width:${pct}%;background:${barColor};border-radius:3px;transition:width .5s ease"></div>
+            <div style="height:100%;width:${pct}%;background:${barColor};border-radius:3px;transition:width .5s"></div>
           </div>
           <span style="font-size:11px;font-weight:600;color:${barColor};min-width:28px">${pct}%</span>
         </div>
@@ -4052,10 +4121,10 @@ function renderDraftsTable(drafts) {
       <td style="font-size:12px;color:var(--muted)">${savedAt}</td>
       <td style="text-align:center">
         <div style="display:flex;align-items:center;justify-content:center;gap:6px">
-          <button class="btn btn-primary btn-xs" onclick="resumeDraft('${d.case_id}',${d.section||1})" title="Resume this draft">
+          <button class="btn btn-primary btn-xs" onclick="resumeDraft('${d.case_id}',${d.section||1})">
             <i class="ti ti-player-play" style="font-size:11px"></i> Resume
           </button>
-          <button class="btn btn-danger btn-xs" onclick="confirmDeleteDraft('${d.case_id}')" title="Delete draft">
+          <button class="btn btn-danger btn-xs" onclick="confirmDeleteDraft('${d.case_id}')">
             <i class="ti ti-trash" style="font-size:11px"></i>
           </button>
         </div>
@@ -4064,76 +4133,54 @@ function renderDraftsTable(drafts) {
   }).join('');
 }
 
-// ── RESUME DRAFT ──────────────────────────────────────────────────────────────
-function resumeDraft(caseId, section) {
-  // Open the form iframe with the draft case ID so it can restore
-  const iframe = document.getElementById('form-iframe');
-  const fullpage = document.getElementById('form-fullpage');
-  if (!iframe || !fullpage) return;
-
-  // Pass caseId (no timestamp = not a fresh load, so draft restore will trigger)
-  iframe.src = 'capri_customer_form.html?embedded=1&resume=' + encodeURIComponent(caseId) + '&section=' + (section||1);
+function resumeDraft(caseId, section){
+  const iframe=document.getElementById('form-iframe');
+  const fullpage=document.getElementById('form-fullpage');
+  if(!iframe||!fullpage) return;
+  iframe.src='capri_customer_form.html?embedded=1&resume='+encodeURIComponent(caseId)+'&section='+(section||1);
   fullpage.classList.add('open');
-  document.body.style.overflow = 'hidden';
-
-  // Update topbar title
-  const title = document.querySelector('.form-topbar-title');
-  if(title) title.textContent = 'Resume Draft — ' + caseId;
+  document.body.style.overflow='hidden';
+  const title=document.querySelector('.form-topbar-title');
+  if(title) title.textContent='Resume Draft — '+caseId;
 }
 
-// ── DELETE DRAFT ──────────────────────────────────────────────────────────────
-let _pendingDeleteId = null;
-
-function confirmDeleteDraft(caseId) {
-  _pendingDeleteId = caseId;
-  const overlay = document.getElementById('draft-delete-modal');
-  const caseEl  = document.getElementById('draft-delete-caseid');
-  if(overlay) overlay.style.display = 'flex';
-  if(caseEl)  caseEl.textContent = caseId;
+let _pendingDeleteId=null;
+function confirmDeleteDraft(caseId){
+  _pendingDeleteId=caseId;
+  const overlay=document.getElementById('draft-delete-modal');
+  const el=document.getElementById('draft-delete-caseid');
+  if(overlay) overlay.style.display='flex';
+  if(el) el.textContent=caseId;
 }
-
-function closeDraftDeleteModal() {
-  _pendingDeleteId = null;
-  const overlay = document.getElementById('draft-delete-modal');
-  if(overlay) overlay.style.display = 'none';
+function closeDraftDeleteModal(){
+  _pendingDeleteId=null;
+  const overlay=document.getElementById('draft-delete-modal');
+  if(overlay) overlay.style.display='none';
 }
-
-async function confirmDeleteDraftAction() {
-  if (!_pendingDeleteId) return;
-  const caseId = _pendingDeleteId;
+async function confirmDeleteDraftAction(){
+  if(!_pendingDeleteId) return;
+  const caseId=_pendingDeleteId;
   closeDraftDeleteModal();
-
-  try {
-    // Delete from case_drafts
-    const { error: dErr } = await db.from('case_drafts').delete().eq('case_id', caseId);
-    if(dErr) console.error('Delete draft error:', dErr.message);
-
-    // Also update cases table status so it's not left as Draft
-    await db.from('cases').delete().eq('id', caseId).eq('status','Draft');
-
-    showFlash('Draft deleted — ' + caseId);
-    loadDrafts(); // refresh
-  } catch(e) {
-    console.error('Delete failed:', e);
-    showFlash('Delete failed — try again');
-  }
+  try{
+    await db.from('case_drafts').delete().eq('case_id',caseId);
+    await db.from('cases').delete().eq('id',caseId).eq('status','Draft');
+    showFlash('Draft deleted — '+caseId);
+    loadDrafts();
+  } catch(e){ console.error('Delete failed:',e); showFlash('Delete failed — try again'); }
 }
 
-// Load drafts count on dashboard init
-(async function initDraftsBadge() {
-  try {
-    const { count } = await db.from('case_drafts').select('*', { count: 'exact', head: true });
-    const navBadge = document.getElementById('drafts-nav-badge');
-    if(navBadge && count > 0){
-      navBadge.textContent = count;
-      navBadge.style.display = '';
-    }
-  } catch(e) {}
+// Init badge count on load
+(async function(){
+  try{
+    const {count}=await db.from('case_drafts').select('*',{count:'exact',head:true});
+    const nb=document.getElementById('drafts-nav-badge');
+    if(nb&&count>0){ nb.textContent=count; nb.style.display=''; }
+  }catch(e){}
 })();
 </script>
 
 <!-- DRAFT DELETE CONFIRM MODAL -->
-<div id="draft-delete-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);backdrop-filter:blur(3px);z-index:400;align-items:center;justify-content:center">
+<div id="draft-delete-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);backdrop-filter:blur(3px);z-index:500;align-items:center;justify-content:center">
   <div style="background:var(--surface);border-radius:var(--radius);padding:28px;width:380px;box-shadow:var(--shadow-lg);border:1px solid var(--border)">
     <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px">
       <div style="width:40px;height:40px;border-radius:10px;background:var(--red-bg);display:flex;align-items:center;justify-content:center;flex-shrink:0">

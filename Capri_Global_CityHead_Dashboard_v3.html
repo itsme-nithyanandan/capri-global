@@ -496,7 +496,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);fon
         <div class="nav-sub-item" id="nsub-assigned" onclick="navSubClick('assigned','newcar',this)">
           <i class="ti ti-clipboard-list"></i> Assigned
         </div>
-        <div class="nav-sub-item" id="nsub-pdd" onclick="navSubClick('pdd','newcar',this)">
+        <div class="nav-sub-item" id="nsub-pdd" onclick="navSubClick('pdd','newcar',this);loadPDDQueue()">
           <i class="ti ti-file-certificate"></i> PDD
         </div>
       </div>
@@ -843,11 +843,63 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);fon
         <div style="font-size:13px;color:var(--muted2)">Coming soon — cases assigned to your team members</div>
       </div>
     </div>
-    <div class="tab-pane" id="tab-pdd">
-      <div style="padding:32px 0;text-align:center;color:var(--muted)">
-        <i class="ti ti-file-certificate" style="font-size:40px;display:block;margin-bottom:12px;opacity:.3"></i>
-        <div style="font-size:15px;font-weight:600;margin-bottom:6px">PDD Tracker</div>
-        <div style="font-size:13px;color:var(--muted2)">Coming soon — post-disbursement document tracking</div>
+    <div class="tab-pane" id="tab-pdd" style="overflow-y:auto">
+      <div style="padding:4px 0 16px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px">
+        <div>
+          <div style="font-size:15px;font-weight:600;color:var(--text)">Post-Disbursement Documents</div>
+          <div style="font-size:12px;color:var(--muted);margin-top:2px">Sanction proof, disbursal proof, mail confirmation, tagging proof — required before payout can be released</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px">
+          <input class="filter-input" id="pdd-search" placeholder="Search name, case ID..." oninput="filterPDDQueue()" style="padding:7px 12px;font-size:12.5px;width:220px">
+          <select class="filter-select" id="pdd-status-filter" onchange="filterPDDQueue()" style="padding:7px 10px;font-size:12.5px">
+            <option value="">All cases</option>
+            <option value="incomplete">Incomplete only</option>
+            <option value="complete">Fully verified</option>
+          </select>
+          <button class="btn btn-sm" onclick="loadPDDQueue()"><i class="ti ti-refresh" style="font-size:12px"></i> Refresh</button>
+        </div>
+      </div>
+
+      <div style="display:flex;gap:12px;margin-bottom:18px;flex-wrap:wrap">
+        <div class="kpi" style="flex:1;min-width:140px;padding:14px 16px">
+          <div class="kpi-icon" style="background:var(--blue-bg);color:var(--blue-text)"><i class="ti ti-file-certificate"></i></div>
+          <div class="kpi-label">Disbursed Cases</div>
+          <div class="kpi-value" style="font-size:22px;color:var(--blue-text)" id="pdd-stat-total">—</div>
+        </div>
+        <div class="kpi" style="flex:1;min-width:140px;padding:14px 16px">
+          <div class="kpi-icon" style="background:var(--amber-bg);color:var(--amber-text)"><i class="ti ti-clock-pause"></i></div>
+          <div class="kpi-label">PDD Incomplete</div>
+          <div class="kpi-value" style="font-size:22px;color:var(--amber-text)" id="pdd-stat-incomplete">—</div>
+        </div>
+        <div class="kpi" style="flex:1;min-width:140px;padding:14px 16px">
+          <div class="kpi-icon" style="background:var(--green-bg);color:var(--green-text)"><i class="ti ti-circle-check"></i></div>
+          <div class="kpi-label">Fully Verified</div>
+          <div class="kpi-value" style="font-size:22px;color:var(--green-text)" id="pdd-stat-complete">—</div>
+        </div>
+      </div>
+
+      <div class="card" style="border-radius:var(--radius)">
+        <div id="pdd-loading" style="padding:32px;text-align:center;color:var(--muted);font-size:13px">
+          <i class="ti ti-loader" style="font-size:24px;display:block;margin-bottom:8px;opacity:.4"></i> Loading PDD queue…
+        </div>
+        <div id="pdd-empty" style="display:none;padding:48px 20px;text-align:center">
+          <i class="ti ti-file-certificate" style="font-size:36px;display:block;margin-bottom:10px;color:var(--muted2)"></i>
+          <div style="font-size:13px;font-weight:500;color:var(--muted)">No disbursed cases yet</div>
+          <div style="font-size:12px;color:var(--muted2);margin-top:4px">Cases will appear here automatically once disbursed</div>
+        </div>
+        <div id="pdd-queue-wrap" style="display:none"></div>
+      </div>
+    </div>
+
+    <!-- PDD CASE CHECKLIST MODAL -->
+    <div class="modal-overlay" id="pdd-checklist-modal">
+      <div class="modal" style="width:480px;max-height:85vh;overflow-y:auto">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
+          <div style="font-size:15px;font-weight:600;color:var(--text)" id="pdd-modal-caseid">PDD Checklist</div>
+          <button class="close-btn" onclick="closePDDChecklistModal()"><i class="ti ti-x"></i></button>
+        </div>
+        <div style="font-size:12px;color:var(--muted);margin-bottom:16px" id="pdd-modal-customer">—</div>
+        <div id="pdd-modal-checklist"></div>
       </div>
     </div>
     <!-- ── PLACEHOLDER TABS: Drafts ── -->
@@ -1281,8 +1333,8 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);fon
           <div class="card-title">Per-Case Payout Breakdown</div>
         </div>
         <table class="data-table">
-          <thead><tr><th>Case ID</th><th>Customer</th><th>Bank</th><th>Loan (₹)</th><th>Member</th><th>Team Payout</th><th>DSA Payout</th><th>Status</th></tr></thead>
-          <tbody id="payout-tbody"><tr><td colspan="8"><div class="empty-state" style="padding:24px"><i class="ti ti-table-off"></i><span>Calculate payout to see case breakdown</span></div></td></tr></tbody>
+          <thead><tr><th>Case ID</th><th>Customer</th><th>Bank</th><th>Loan (₹)</th><th>Member</th><th>Team Payout</th><th>DSA Payout</th><th>PDD Status</th><th>Status</th></tr></thead>
+          <tbody id="payout-tbody"><tr><td colspan="9"><div class="empty-state" style="padding:24px"><i class="ti ti-table-off"></i><span>Calculate payout to see case breakdown</span></div></td></tr></tbody>
         </table>
       </div>
     </div>
@@ -2670,12 +2722,34 @@ function renderTeamManagement(){
 }
 
 // ── PAYOUT CALCULATOR ─────────────────────────────────────────────────────────
-function calcPayout(){
+async function calcPayout(){
   const member=document.getElementById('payout-member').value;
   const filtered=member==='all'?cases:cases.filter(c=>c.member===member);
   const disbursed=filtered.filter(c=>c.status==='Disbursed'||c.status==='Sanctioned');
   const total=disbursed.reduce((s,c)=>s+c.payout,0);
   const totalLoan=disbursed.reduce((s,c)=>s+c.loan,0);
+
+  // Fetch PDD completion for any Disbursed cases in this breakdown, so payout
+  // rows can show a "PDD incomplete — on hold" flag where applicable.
+  const disbursedOnly = disbursed.filter(c => c.status === 'Disbursed');
+  let pddByCase = {};
+  if (disbursedOnly.length) {
+    try {
+      const { data: docs, error } = await db.from('pdd_documents').select('case_id,status').in('case_id', disbursedOnly.map(c=>c.id));
+      if (!error && docs) {
+        docs.forEach(d => {
+          if (!pddByCase[d.case_id]) pddByCase[d.case_id] = { total:0, verified:0 };
+          pddByCase[d.case_id].total++;
+          if (d.status === 'Verified') pddByCase[d.case_id].verified++;
+        });
+      }
+    } catch(e) { console.error('Payout PDD check failed:', e.message); }
+  }
+  const isPDDComplete = (caseId) => {
+    const p = pddByCase[caseId];
+    if (!p || p.total === 0) return null; // no checklist seeded yet — unknown, don't claim hold or clear
+    return p.verified === p.total;
+  };
 
   document.getElementById('payout-result').innerHTML=`
     <div class="card-title">Payout Summary</div>
@@ -2701,7 +2775,15 @@ function calcPayout(){
     </div>
   `;
 
-  document.getElementById('payout-tbody').innerHTML=disbursed.map(c=>`<tr>
+  document.getElementById('payout-tbody').innerHTML=disbursed.map(c=>{
+    let pddCell = '<span style="font-size:11px;color:var(--muted2)">—</span>';
+    if (c.status === 'Disbursed') {
+      const complete = isPDDComplete(c.id);
+      if (complete === true) pddCell = '<span class="badge badge-green" style="font-size:10px"><i class="ti ti-check" style="font-size:9px"></i> Cleared</span>';
+      else if (complete === false) pddCell = '<span class="badge badge-amber" style="font-size:10px"><i class="ti ti-lock" style="font-size:9px"></i> PDD Hold</span>';
+      else pddCell = '<span class="badge badge-gray" style="font-size:10px">Not seeded</span>';
+    }
+    return `<tr>
     <td style="font-family:'DM Mono',monospace;font-size:11px">${c.id}</td>
     <td style="font-weight:500">${c.cust}</td>
     <td>${c.bank}</td>
@@ -2709,8 +2791,10 @@ function calcPayout(){
     <td>${c.member}</td>
     <td style="font-family:'DM Mono',monospace;color:var(--green-text);font-weight:600">${fmt(c.payout)}</td>
     <td style="font-family:'DM Mono',monospace;color:var(--muted)">${fmt(Math.round(c.payout*0.6))}</td>
+    <td>${pddCell}</td>
     <td><span class="badge ${statusColor(c.status)}">${c.status}</span></td>
-  </tr>`).join('');
+  </tr>`;
+  }).join('');
 }
 
 // ── REPORT GENERATOR ──────────────────────────────────────────────────────────
@@ -3116,12 +3200,53 @@ async function submitStatusChange(newStatus) {
       });
     } catch(auditErr) { console.error('Audit log write failed:', auditErr.message); }
 
+    // Seed the PDD checklist the moment a case becomes Disbursed
+    if (newStatus === 'Disbursed') {
+      await seedPDDChecklist(caseId, c ? c.bankId : null);
+    }
+
     if (typeof applyDashFilters === 'function') applyDashFilters();
     if (typeof renderAllCases === 'function') renderAllCases();
     showFlash('Status updated — ' + caseId + ' → ' + newStatus);
   } catch(e) {
     console.error('submitStatusChange failed:', e.message, e);
     showFlash('Status update failed: ' + (e.message || 'unknown error'));
+  }
+}
+
+// ── PDD CHECKLIST SEEDING ──────────────────────────────────────────────────────
+// Called once a case becomes Disbursed. Creates one pdd_documents row per
+// applicable requirement (universal + bank-specific), skipping any that already exist.
+async function seedPDDChecklist(caseId, bankId) {
+  try {
+    // Fetch universal requirements (bank_id IS NULL) + bank-specific ones for this case's bank
+    let reqQuery = db.from('pdd_requirements').select('*').eq('active', true);
+    const { data: allReqs, error: reqErr } = await reqQuery;
+    if (reqErr) { console.error('PDD requirements fetch error:', reqErr.message); return; }
+
+    const applicable = (allReqs || []).filter(r => r.bank_id === null || r.bank_id === bankId);
+    if (!applicable.length) { console.warn('No PDD requirements found to seed for case', caseId); return; }
+
+    // Check which doc_types already exist for this case (avoid duplicate seeding on re-disbursement edge cases)
+    const { data: existing } = await db.from('pdd_documents').select('doc_type').eq('case_id', caseId);
+    const existingTypes = new Set((existing||[]).map(d => d.doc_type));
+
+    const toInsert = applicable
+      .filter(r => !existingTypes.has(r.doc_type))
+      .map(r => ({
+        case_id: caseId,
+        doc_type: r.doc_type,
+        doc_label: r.doc_label,
+        status: 'Pending'
+      }));
+
+    if (!toInsert.length) return; // already fully seeded
+
+    const { error: insErr } = await db.from('pdd_documents').insert(toInsert);
+    if (insErr) console.error('PDD seeding insert error:', insErr.message);
+    else console.log('PDD checklist seeded for', caseId, '—', toInsert.length, 'documents');
+  } catch(e) {
+    console.error('seedPDDChecklist failed:', e.message);
   }
 }
 
@@ -3730,14 +3855,31 @@ async function loadLiveCases(user) {
   try {
     // Query the view which already has created_by_name and reporting_to_name
     let q = db.from('cases_with_names')
-      .select('id,cust_name,car_model,preferred_bank_name,loan_amount,status,cibil_score,submitted_at,created_at,payout_amount,created_by,bm_id,cust_mobile,curr_pincode,perm_pincode,inc_net_monthly,emp_type,created_by_name,creator_role,reporting_to_name')
+      .select('id,cust_name,car_model,preferred_bank_name,preferred_bank_id,loan_amount,status,cibil_score,submitted_at,created_at,payout_amount,created_by,bm_id,cust_mobile,curr_pincode,perm_pincode,inc_net_monthly,emp_type,created_by_name,creator_role,reporting_to_name')
       .neq('status','Draft')
       .order('created_at',{ascending:false});
 
     if (user.role==='bm') q = q.or('created_by.eq.'+user.id+',bm_id.eq.'+user.id);
     else if (user.role==='rm') q = q.eq('created_by',user.id);
 
-    const { data:liveCases, error } = await q;
+    let { data:liveCases, error } = await q;
+
+    // If preferred_bank_id isn't exposed on this view, retry without it rather than
+    // failing the entire cases load (PDD seeding will just fall back to universal
+    // requirements only in that case).
+    if (error && /preferred_bank_id/i.test(error.message||'')) {
+      console.warn('preferred_bank_id not available on cases_with_names view, retrying without it:', error.message);
+      let q2 = db.from('cases_with_names')
+        .select('id,cust_name,car_model,preferred_bank_name,loan_amount,status,cibil_score,submitted_at,created_at,payout_amount,created_by,bm_id,cust_mobile,curr_pincode,perm_pincode,inc_net_monthly,emp_type,created_by_name,creator_role,reporting_to_name')
+        .neq('status','Draft')
+        .order('created_at',{ascending:false});
+      if (user.role==='bm') q2 = q2.or('created_by.eq.'+user.id+',bm_id.eq.'+user.id);
+      else if (user.role==='rm') q2 = q2.eq('created_by',user.id);
+      const retry = await q2;
+      liveCases = retry.data;
+      error = retry.error;
+    }
+
     if (error) { console.error('Cases fetch error:', error.message); return; }
     if (!liveCases||!liveCases.length) return;
 
@@ -3748,6 +3890,8 @@ async function loadLiveCases(user) {
         cust: c.cust_name||'—',
         car: c.car_model||'—',
         bank: c.preferred_bank_name||'—',
+        bankId: c.preferred_bank_id||null,
+        bmId: c.bm_id||null,
         loan: c.loan_amount||0,
         member: c.created_by_name||'—',
         bm: c.reporting_to_name||'—',
@@ -4661,4 +4805,233 @@ async function confirmDeleteDraftAction(){
     </div>
   </div>
 </div>
+
+<!-- ══ PDD MODULE ══════════════════════════════════════════════════════════════ -->
+<script>
+let _allPDDCases = [];   // disbursed cases with their PDD completion summary
+let _pddDocsByCase = {}; // case_id -> array of pdd_documents rows
+let _pddModalCaseId = null;
+
+async function loadPDDQueue() {
+  const loading = document.getElementById('pdd-loading');
+  const empty   = document.getElementById('pdd-empty');
+  const wrap    = document.getElementById('pdd-queue-wrap');
+  if (loading) loading.style.display = 'block';
+  if (empty)   empty.style.display   = 'none';
+  if (wrap)    wrap.style.display    = 'none';
+
+  try {
+    // Disbursed cases come straight from the already-loaded in-memory `cases` array
+    const disbursedCases = cases.filter(c => c.status === 'Disbursed');
+
+    if (loading) loading.style.display = 'none';
+
+    if (!disbursedCases.length) {
+      if (empty) empty.style.display = 'block';
+      updatePDDStats([], {});
+      return;
+    }
+
+    // Fetch all pdd_documents for these cases in one query
+    const caseIds = disbursedCases.map(c => c.id);
+    const { data: docs, error } = await db.from('pdd_documents').select('*').in('case_id', caseIds);
+    if (error) { console.error('PDD documents fetch error:', error.message); return; }
+
+    _pddDocsByCase = {};
+    (docs||[]).forEach(d => { (_pddDocsByCase[d.case_id] = _pddDocsByCase[d.case_id] || []).push(d); });
+
+    _allPDDCases = disbursedCases;
+    updatePDDStats(disbursedCases, _pddDocsByCase);
+
+    if (wrap) wrap.style.display = '';
+    renderPDDQueue(disbursedCases);
+  } catch(e) {
+    if (loading) loading.style.display = 'none';
+    console.error('loadPDDQueue failed:', e.message);
+  }
+}
+
+function pddCompletionFor(caseId) {
+  const docs = _pddDocsByCase[caseId] || [];
+  if (!docs.length) return { total: 0, verified: 0, pct: 0, isComplete: false };
+  const verified = docs.filter(d => d.status === 'Verified').length;
+  const pct = Math.round((verified / docs.length) * 100);
+  return { total: docs.length, verified, pct, isComplete: verified === docs.length };
+}
+
+function updatePDDStats(disbursedCases, docsByCase) {
+  const totalEl = document.getElementById('pdd-stat-total');
+  const incEl   = document.getElementById('pdd-stat-incomplete');
+  const compEl  = document.getElementById('pdd-stat-complete');
+  if (!totalEl) return;
+
+  let complete = 0, incomplete = 0;
+  disbursedCases.forEach(c => {
+    const comp = pddCompletionFor(c.id);
+    if (comp.isComplete && comp.total > 0) complete++; else incomplete++;
+  });
+
+  totalEl.textContent = disbursedCases.length;
+  if (incEl) incEl.textContent = incomplete;
+  if (compEl) compEl.textContent = complete;
+}
+
+function filterPDDQueue() {
+  const q = (document.getElementById('pdd-search')?.value || '').toLowerCase();
+  const statusF = document.getElementById('pdd-status-filter')?.value || '';
+
+  const filtered = _allPDDCases.filter(c => {
+    if (q && !(c.cust.toLowerCase().includes(q) || c.id.toLowerCase().includes(q))) return false;
+    const comp = pddCompletionFor(c.id);
+    if (statusF === 'incomplete' && comp.isComplete) return false;
+    if (statusF === 'complete' && !comp.isComplete) return false;
+    return true;
+  });
+  renderPDDQueue(filtered);
+}
+
+function renderPDDQueue(list) {
+  const wrap = document.getElementById('pdd-queue-wrap');
+  if (!wrap) return;
+
+  if (!list.length) {
+    wrap.innerHTML = '<div class="empty-state" style="padding:32px"><i class="ti ti-search-off"></i><span>No cases match your search</span></div>';
+    return;
+  }
+
+  wrap.innerHTML = `<table class="data-table" style="width:100%;table-layout:fixed">
+    <thead><tr>
+      <th style="width:12%">Case ID</th>
+      <th style="width:20%">Customer</th>
+      <th style="width:14%">Bank</th>
+      <th style="width:12%">Loan (₹)</th>
+      <th style="width:22%">PDD Progress</th>
+      <th style="width:12%">Payout Status</th>
+      <th style="width:8%;text-align:center">Action</th>
+    </tr></thead>
+    <tbody>
+    ${list.map(c => {
+      const comp = pddCompletionFor(c.id);
+      const barColor = comp.isComplete ? 'var(--green-text)' : comp.pct >= 50 ? 'var(--gold)' : 'var(--amber-text)';
+      const payoutBadge = comp.isComplete
+        ? '<span class="badge badge-green"><i class="ti ti-check" style="font-size:10px"></i> Cleared</span>'
+        : '<span class="badge badge-amber"><i class="ti ti-lock" style="font-size:10px"></i> On Hold</span>';
+      return `<tr>
+        <td><span style="font-family:'DM Mono',monospace;font-size:12px;font-weight:600;color:var(--accent)">${c.id}</span></td>
+        <td style="font-weight:500">${c.cust}</td>
+        <td>${c.bank}</td>
+        <td style="font-family:'DM Mono',monospace;font-size:12px">${fmt(c.loan)}</td>
+        <td>
+          <div style="display:flex;align-items:center;gap:8px">
+            <div style="flex:1;height:5px;border-radius:3px;background:var(--border);overflow:hidden">
+              <div style="height:100%;width:${comp.pct}%;background:${barColor};border-radius:3px;transition:width .4s"></div>
+            </div>
+            <span style="font-size:11px;font-weight:600;color:${barColor};min-width:40px">${comp.verified}/${comp.total}</span>
+          </div>
+        </td>
+        <td>${payoutBadge}</td>
+        <td style="text-align:center">
+          <button class="btn btn-xs" onclick="openPDDChecklistModal('${c.id}')"><i class="ti ti-checklist" style="font-size:11px"></i> View</button>
+        </td>
+      </tr>`;
+    }).join('')}
+    </tbody>
+  </table>`;
+}
+
+// ── PDD CASE CHECKLIST MODAL ──────────────────────────────────────────────────
+function openPDDChecklistModal(caseId) {
+  _pddModalCaseId = caseId;
+  const c = _allPDDCases.find(x => x.id === caseId);
+  if (!c) return;
+
+  document.getElementById('pdd-modal-caseid').textContent = 'PDD Checklist — ' + caseId;
+  document.getElementById('pdd-modal-customer').textContent = c.cust + ' · ' + c.bank + ' · ' + fmt(c.loan);
+
+  renderPDDChecklistBody(caseId);
+  document.getElementById('pdd-checklist-modal').classList.add('open');
+}
+
+function closePDDChecklistModal() {
+  document.getElementById('pdd-checklist-modal').classList.remove('open');
+  _pddModalCaseId = null;
+}
+
+function renderPDDChecklistBody(caseId) {
+  const body = document.getElementById('pdd-modal-checklist');
+  if (!body) return;
+  const docs = (_pddDocsByCase[caseId] || []).slice().sort((a,b) => (a.doc_label||'').localeCompare(b.doc_label||''));
+
+  if (!docs.length) {
+    body.innerHTML = '<div class="empty-state" style="padding:24px"><i class="ti ti-file-off"></i><span>No PDD checklist found for this case</span></div>';
+    return;
+  }
+
+  const role = (window.currentLoggedInUser && window.currentLoggedInUser.role) || '';
+  const canVerify = role === 'bm' || role === 'city_head';
+
+  body.innerHTML = docs.map(d => {
+    const statusBadge = {
+      'Pending':  '<span class="badge badge-gray">Pending</span>',
+      'Received': '<span class="badge badge-amber">Received</span>',
+      'Verified': '<span class="badge badge-green"><i class="ti ti-check" style="font-size:10px"></i> Verified</span>',
+    }[d.status] || '<span class="badge badge-gray">'+d.status+'</span>';
+
+    let actionBtn = '';
+    if (d.status === 'Pending') {
+      actionBtn = `<button class="btn btn-xs" onclick="markPDDDocStatus('${d.id}','Received')">Mark Received</button>`;
+    } else if (d.status === 'Received' && canVerify) {
+      actionBtn = `<button class="btn btn-xs btn-primary" onclick="markPDDDocStatus('${d.id}','Verified')">Verify</button>`;
+    } else if (d.status === 'Received' && !canVerify) {
+      actionBtn = `<span style="font-size:11px;color:var(--muted2)">Awaiting BM verification</span>`;
+    } else if (d.status === 'Verified') {
+      const vDate = d.verified_at ? new Date(d.verified_at).toLocaleDateString('en-IN',{day:'2-digit',month:'short'}) : '';
+      actionBtn = `<span style="font-size:11px;color:var(--green-text)"><i class="ti ti-check" style="font-size:10px"></i> ${vDate}</span>`;
+    }
+
+    return `<div style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border:1px solid var(--border);border-radius:var(--radius-sm);margin-bottom:8px">
+      <div>
+        <div style="font-size:13px;font-weight:500">${d.doc_label}</div>
+        <div style="margin-top:4px">${statusBadge}</div>
+      </div>
+      <div>${actionBtn}</div>
+    </div>`;
+  }).join('');
+}
+
+async function markPDDDocStatus(docId, newStatus) {
+  try {
+    const uid = (window.currentLoggedInUser && window.currentLoggedInUser.id) || null;
+    const role = (window.currentLoggedInUser && window.currentLoggedInUser.role) || '';
+
+    // Defense in depth: only BM/city_head can verify, even if this is somehow called directly
+    if (newStatus === 'Verified' && role !== 'bm' && role !== 'city_head') {
+      showFlash('Only a Branch Manager can verify this document.');
+      return;
+    }
+
+    const updatePayload = { status: newStatus, updated_at: new Date().toISOString() };
+    if (newStatus === 'Received') { updatePayload.received_by = uid; updatePayload.received_at = new Date().toISOString(); }
+    if (newStatus === 'Verified') { updatePayload.verified_by = uid; updatePayload.verified_at = new Date().toISOString(); }
+
+    const { error } = await db.from('pdd_documents').update(updatePayload).eq('id', docId);
+    if (error) { console.error('PDD doc update error:', error.message); showFlash('Update failed: ' + error.message); return; }
+
+    // Update in-memory copy
+    for (const caseId in _pddDocsByCase) {
+      const doc = _pddDocsByCase[caseId].find(d => d.id === docId);
+      if (doc) { Object.assign(doc, updatePayload); break; }
+    }
+
+    if (_pddModalCaseId) renderPDDChecklistBody(_pddModalCaseId);
+    updatePDDStats(_allPDDCases, _pddDocsByCase);
+    renderPDDQueue(_allPDDCases);
+    showFlash('Document marked ' + newStatus);
+  } catch(e) {
+    console.error('markPDDDocStatus failed:', e.message);
+    showFlash('Update failed');
+  }
+}
+</script>
+
 </body></html>

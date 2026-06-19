@@ -2169,6 +2169,10 @@ async function submitForm() {
 
     if (error) throw error;
 
+    // Upload all selected documents to Storage + insert rows into `documents` table
+    if (submitBtn) submitBtn.textContent = 'Uploading documents...';
+    await uploadAllDocuments(currentCaseId);
+
     // Write an audit log entry for this submission/edit
     try {
       await db.from('audit_log').insert({
@@ -2213,6 +2217,89 @@ async function submitForm() {
     console.error('Submit failed:', e);
     alert('Submission failed: ' + e.message + '\nPlease try again or save as draft.');
     if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = 'Submit final case'; }
+  }
+}
+
+// ── REAL DOCUMENT UPLOAD (Storage + documents table) ─────────────────────────
+// Maps each upload card/zone ID to a doc_type (matches dashboard's docTypeMeta)
+// and a human label stored alongside the file.
+const DOC_TYPE_MAP = {
+  'dc-pan':   { type: 'pan',     label: 'PAN Card' },
+  'dc-af':    { type: 'aadhaar', label: 'Aadhaar Front' },
+  'dc-ab':    { type: 'aadhaar', label: 'Aadhaar Back' },
+  'dc-dl':    { type: 'dl',      label: 'DL Front' },
+  'dc-dlb':   { type: 'dl',      label: 'DL Back' },
+  'dc-perf':  { type: 'invoice', label: 'Performa Invoice' },
+  'uz-cid-f': { type: 'other',   label: 'Company ID Front' },
+  'uz-cid-b': { type: 'other',   label: 'Company ID Back' },
+  'uz-gst':   { type: 'other',   label: 'GST Returns' },
+  'uz-stmt':  { type: 'bank',    label: 'Bank Statement' },
+  'uz-cic':   { type: 'cic',     label: 'CIBIL Report' },
+  'uz-co':    { type: 'other',   label: 'Co-applicant Statement' },
+};
+
+async function uploadAllDocuments(caseId) {
+  const cardIds = Object.keys(uploadedFiles);
+  if (!cardIds.length) return; // nothing selected — fine, documents are optional at save time
+
+  const uid = (currentUser && currentUser.id) || null;
+  let successCount = 0, failCount = 0;
+
+  for (const cardId of cardIds) {
+    const file = uploadedFiles[cardId];
+    if (!file) continue;
+    const meta = DOC_TYPE_MAP[cardId] || { type: 'other', label: cardId };
+
+    try {
+      const ext = (file.name.split('.').pop() || 'bin').toLowerCase();
+      const storagePath = `${caseId}/${meta.type}_${cardId}_${Date.now()}.${ext}`;
+
+      const { error: uploadErr } = await db.storage.from('Customer_Documets').upload(storagePath, file, { upsert: true });
+      if (uploadErr) {
+        console.error('Document upload failed for', cardId, ':', uploadErr.message);
+        failCount++;
+        continue;
+      }
+
+      const { error: insertErr } = await db.from('documents').insert({
+        case_id: caseId,
+        doc_type: meta.type,
+        doc_label: meta.label,
+        storage_path: storagePath,
+        file_name: file.name,
+        file_size_kb: Math.round(file.size / 1024),
+        mime_type: file.type,
+        uploaded_by: uid,
+        uploaded_at: new Date().toISOString()
+      });
+      if (insertErr) {
+        console.error('Document row insert failed for', cardId, ':', insertErr.message);
+        failCount++;
+        continue;
+      }
+
+      // Audit trail entry per document upload — so any later replacement/swap
+      // after approval is traceable, not just the case-level submission event.
+      try {
+        await db.from('audit_log').insert({
+          user_id: uid,
+          action: 'Document uploaded: ' + meta.label,
+          table_name: 'documents',
+          record_id: caseId,
+          new_value: { doc_type: meta.type, file_name: file.name }
+        });
+      } catch(auditErr) { console.error('Audit log write failed for document upload:', auditErr.message); }
+
+      successCount++;
+    } catch(e) {
+      console.error('uploadAllDocuments failed for', cardId, ':', e.message);
+      failCount++;
+    }
+  }
+
+  console.log('Document upload complete:', successCount, 'succeeded,', failCount, 'failed');
+  if (failCount > 0) {
+    showFlash(failCount + ' document(s) failed to upload — case was still submitted');
   }
 }
 

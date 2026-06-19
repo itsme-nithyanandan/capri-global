@@ -3435,7 +3435,7 @@ function renderCDMDocGroup(key, el) {
 function viewDocument(storagePath) {
   if (!storagePath) { showFlash('File location not available'); return; }
   try {
-    const { data } = db.storage.from('documents').getPublicUrl(storagePath);
+    const { data } = db.storage.from('Customer_Documets').getPublicUrl(storagePath);
     if (data && data.publicUrl) window.open(data.publicUrl, '_blank');
     else showFlash('Could not open document');
   } catch(e) { console.error('viewDocument failed:', e.message); showFlash('Could not open document'); }

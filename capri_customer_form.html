@@ -136,6 +136,12 @@ input[data-aadhaar]{font-family:'DM Mono',monospace;letter-spacing:.1em}
 .upload-zone.uploaded .uz-icon{color:var(--green-txt)}
 .upload-zone.uploaded .uz-title{color:var(--green-txt)}
 .upload-zone.uploaded .uz-sub{color:var(--green-txt);opacity:.7}
+.uz-actions{display:flex;border-top:1px solid var(--green-txt);margin-top:10px;padding-top:10px;gap:0}
+.uz-action-btn{flex:1;padding:6px 4px;border:none;background:transparent;font-family:inherit;font-size:11px;font-weight:500;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:4px;transition:background .15s;border-radius:6px}
+.uz-action-btn:hover{background:rgba(0,0,0,.06)}
+.uz-action-btn.view{color:var(--blue-txt)}
+.uz-action-btn.replace{color:var(--amber-txt)}
+.uz-action-btn.remove{color:var(--red-txt)}
 .doc-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .doc-grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
 .doc-grid-2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
@@ -155,6 +161,9 @@ input[data-aadhaar]{font-family:'DM Mono',monospace;letter-spacing:.1em}
 .slot-btn:hover{border-color:var(--accent);color:var(--accent)}
 .slot-btn.done{border-color:var(--green-txt);color:var(--green-txt);background:var(--green-bg)}
 .slot-placeholder{text-align:center;padding:16px;background:var(--surface2);border-radius:var(--r-sm);font-size:12px;color:var(--muted);border:1px dashed var(--border)}
+.slot-icon-btn{width:26px;height:26px;border-radius:6px;border:1px solid var(--border);background:var(--surface2);display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;transition:all .15s;color:var(--muted)}
+.slot-icon-btn:hover{border-color:var(--accent);color:var(--accent)}
+.slot-icon-btn.remove:hover{border-color:var(--red-txt);color:var(--red-txt)}
 
 /* ── LTV BAR ── */
 .ltv-wrap{margin-top:12px;display:none}
@@ -231,8 +240,6 @@ input[data-aadhaar]{font-family:'DM Mono',monospace;letter-spacing:.1em}
 .doc-card.uploaded .doc-card-title{color:var(--green-txt)}
 .doc-card-sub{font-size:10px;color:var(--muted)}
 .doc-card.uploaded .doc-card-sub{color:var(--green-txt);opacity:.75}
-.doc-card-preview{width:100%;height:70px;object-fit:cover;display:none;border-top:1px solid rgba(0,0,0,.06)}
-.doc-card.uploaded .doc-card-preview{display:block}
 .doc-card-actions{display:none;border-top:1px solid var(--green-txt);background:rgba(255,255,255,.6)}
 .doc-card.uploaded .doc-card-actions{display:flex}
 .doc-action-btn{flex:1;padding:7px 4px;border:none;background:transparent;font-family:inherit;font-size:11px;font-weight:500;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:4px;transition:background .15s}
@@ -463,9 +470,8 @@ input[data-aadhaar]{font-family:'DM Mono',monospace;letter-spacing:.1em}
               <div class="doc-card-title">Tap to upload PAN card</div>
               <div class="doc-card-sub">JPG · PNG · PDF · Max 2MB</div>
             </div>
-            <img class="doc-card-preview" id="pr-dc-pan" src="https://placehold.co/400x120/E8F5EE/155E35?text=PAN+Card" alt="PAN preview">
             <div class="doc-card-actions">
-              <button class="doc-action-btn view" onclick="openLightbox('pr-dc-pan')"><i class="ti ti-eye" style="font-size:13px"></i> Preview</button>
+              <button class="doc-action-btn view" onclick="openLightbox('dc-pan')"><i class="ti ti-eye" style="font-size:13px"></i> Preview</button>
               <div class="doc-action-sep"></div>
               <button class="doc-action-btn replace" onclick="triggerUpload('dc-pan','pan-sample.jpg','PAN uploaded ✓')"><i class="ti ti-refresh" style="font-size:13px"></i> Replace</button>
               <div class="doc-action-sep"></div>
@@ -483,9 +489,8 @@ input[data-aadhaar]{font-family:'DM Mono',monospace;letter-spacing:.1em}
               <div class="doc-card-title">Tap to upload Aadhaar front</div>
               <div class="doc-card-sub">JPG · PNG · PDF · Max 2MB</div>
             </div>
-            <img class="doc-card-preview" id="pr-dc-af" src="https://placehold.co/400x120/E8F5EE/155E35?text=Aadhaar+Front" alt="Aadhaar front">
             <div class="doc-card-actions">
-              <button class="doc-action-btn view" onclick="openLightbox('pr-dc-af')"><i class="ti ti-eye" style="font-size:13px"></i> Preview</button>
+              <button class="doc-action-btn view" onclick="openLightbox('dc-af')"><i class="ti ti-eye" style="font-size:13px"></i> Preview</button>
               <div class="doc-action-sep"></div>
               <button class="doc-action-btn replace" onclick="triggerUpload('dc-af','aadhar-front.jpg','Aadhaar front ✓')"><i class="ti ti-refresh" style="font-size:13px"></i> Replace</button>
               <div class="doc-action-sep"></div>
@@ -504,9 +509,8 @@ input[data-aadhaar]{font-family:'DM Mono',monospace;letter-spacing:.1em}
                 <div class="doc-card-title">Tap to upload Aadhaar back</div>
                 <div class="doc-card-sub">JPG · PNG · PDF · Max 2MB</div>
               </div>
-              <img class="doc-card-preview" id="pr-dc-ab" src="https://placehold.co/400x120/E8F5EE/155E35?text=Aadhaar+Back" alt="Aadhaar back">
               <div class="doc-card-actions">
-                <button class="doc-action-btn view" onclick="openLightbox('pr-dc-ab')"><i class="ti ti-eye" style="font-size:13px"></i> Preview</button>
+                <button class="doc-action-btn view" onclick="openLightbox('dc-ab')"><i class="ti ti-eye" style="font-size:13px"></i> Preview</button>
                 <div class="doc-action-sep"></div>
                 <button class="doc-action-btn replace" onclick="triggerUpload('dc-ab','aadhar-back.jpg','Aadhaar back ✓')"><i class="ti ti-refresh" style="font-size:13px"></i> Replace</button>
                 <div class="doc-action-sep"></div>
@@ -525,9 +529,8 @@ input[data-aadhaar]{font-family:'DM Mono',monospace;letter-spacing:.1em}
               <div class="doc-card-title">Tap to upload DL front</div>
               <div class="doc-card-sub">JPG · PNG · PDF · Max 2MB</div>
             </div>
-            <img class="doc-card-preview" id="pr-dc-dl" src="https://placehold.co/400x120/E8F5EE/155E35?text=Driving+License+Front" alt="DL front">
             <div class="doc-card-actions">
-              <button class="doc-action-btn view" onclick="openLightbox('pr-dc-dl')"><i class="ti ti-eye" style="font-size:13px"></i> Preview</button>
+              <button class="doc-action-btn view" onclick="openLightbox('dc-dl')"><i class="ti ti-eye" style="font-size:13px"></i> Preview</button>
               <div class="doc-action-sep"></div>
               <button class="doc-action-btn replace" onclick="triggerUpload('dc-dl','dl-front.jpg','DL front ✓')"><i class="ti ti-refresh" style="font-size:13px"></i> Replace</button>
               <div class="doc-action-sep"></div>
@@ -546,9 +549,8 @@ input[data-aadhaar]{font-family:'DM Mono',monospace;letter-spacing:.1em}
                 <div class="doc-card-title">Tap to upload DL back</div>
                 <div class="doc-card-sub">JPG · PNG · PDF · Max 2MB</div>
               </div>
-              <img class="doc-card-preview" id="pr-dc-dlb" src="https://placehold.co/400x120/E8F5EE/155E35?text=Driving+License+Back" alt="DL back">
               <div class="doc-card-actions">
-                <button class="doc-action-btn view" onclick="openLightbox('pr-dc-dlb')"><i class="ti ti-eye" style="font-size:13px"></i> Preview</button>
+                <button class="doc-action-btn view" onclick="openLightbox('dc-dlb')"><i class="ti ti-eye" style="font-size:13px"></i> Preview</button>
                 <div class="doc-action-sep"></div>
                 <button class="doc-action-btn replace" onclick="triggerUpload('dc-dlb','dl-back.jpg','DL back ✓')"><i class="ti ti-refresh" style="font-size:13px"></i> Replace</button>
                 <div class="doc-action-sep"></div>
@@ -668,9 +670,8 @@ input[data-aadhaar]{font-family:'DM Mono',monospace;letter-spacing:.1em}
             <div class="doc-card-title">Tap to upload performa invoice</div>
             <div class="doc-card-sub">PDF · JPG · PNG · Max 5MB — engine auto-reads on-road price &amp; car model</div>
           </div>
-          <img class="doc-card-preview" id="pr-dc-perf" src="https://placehold.co/400x120/E8F5EE/155E35?text=Performa+Invoice" alt="Performa preview">
           <div class="doc-card-actions">
-            <button class="doc-action-btn view" onclick="openLightbox('pr-dc-perf')"><i class="ti ti-eye" style="font-size:13px"></i> Preview</button>
+            <button class="doc-action-btn view" onclick="openLightbox('dc-perf')"><i class="ti ti-eye" style="font-size:13px"></i> Preview</button>
             <div class="doc-action-sep"></div>
             <button class="doc-action-btn replace" onclick="triggerUpload('dc-perf','perf-sample.jpg','Performa uploaded ✓')"><i class="ti ti-refresh" style="font-size:13px"></i> Replace</button>
             <div class="doc-action-sep"></div>
@@ -1586,6 +1587,16 @@ function restoreFormData(data) {
 let currentSection = 1;
 const totalSections = 3;
 const slotDone = {};
+const slotBtnLabels = {}; // key -> original button label, used to restore after Remove
+
+// Resolves a slot key (e.g. 'sl-3', 'f16-1') back to its human label using the
+// same MONTHS/FY arrays buildSlots() uses, for clean document labels at upload time.
+function slotLabelFor(key) {
+  if (key.startsWith('sl-'))  return MONTHS[parseInt(key.slice(3))] || null;
+  if (key.startsWith('f16-')) return FY[parseInt(key.slice(4))] || null;
+  if (key.startsWith('itr-')) return FY[parseInt(key.slice(4))] || null;
+  return null;
+}
 let selectedBranch = null;
 let selectedBankName = null;
 
@@ -1718,15 +1729,70 @@ function markUpload(id, title, sub) {
     const icon    = el.querySelector('.uz-icon');
     const titleEl = el.querySelector('.uz-title');
     const subEl   = el.querySelector('.uz-sub');
-    if (icon)    icon.className = 'ti ti-check uz-icon';
+    if (icon)    icon.className = 'ti ti-circle-check uz-icon';
     if (titleEl) titleEl.textContent = file.name;
-    if (subEl)   subEl.textContent = (file.size/1024).toFixed(0) + ' KB · tap to replace';
+    if (subEl)   subEl.textContent = (file.size/1024).toFixed(0) + ' KB';
+
+    injectUZActions(el, id, title);
     showFlash('Document uploaded');
   };
 
   document.body.appendChild(input);
   input.click();
   setTimeout(() => document.body.removeChild(input), 1000);
+}
+
+// Adds a Preview / Replace / Remove button row to a uz-* zone after upload,
+// matching the same pattern already used on the dc-* (doc-card) uploads.
+function injectUZActions(el, id, title) {
+  let actions = el.querySelector('.uz-actions');
+  if (!actions) {
+    actions = document.createElement('div');
+    actions.className = 'uz-actions';
+    actions.innerHTML = `
+      <button type="button" class="uz-action-btn view"><i class="ti ti-eye" style="font-size:13px"></i> Preview</button>
+      <button type="button" class="uz-action-btn replace"><i class="ti ti-refresh" style="font-size:13px"></i> Replace</button>
+      <button type="button" class="uz-action-btn remove"><i class="ti ti-trash" style="font-size:13px"></i> Remove</button>
+    `;
+    el.appendChild(actions);
+
+    const [viewBtn, replaceBtn, removeBtn] = actions.querySelectorAll('.uz-action-btn');
+    viewBtn.onclick = (e) => { e.stopPropagation(); openUZLightbox(id); };
+    replaceBtn.onclick = (e) => { e.stopPropagation(); id === 'uz-cic' ? simulateCIC() : markUpload(id, title, ''); };
+    removeBtn.onclick = (e) => { e.stopPropagation(); removeUZDoc(id); };
+  }
+}
+
+function openUZLightbox(id) {
+  const file = uploadedFiles[id];
+  if (!file) return;
+  if (file.type === 'application/pdf') {
+    const url = URL.createObjectURL(file);
+    window.open(url, '_blank');
+    setTimeout(() => URL.revokeObjectURL(url), 30000);
+    return;
+  }
+  const url = URL.createObjectURL(file);
+  document.getElementById('lightbox-img').src = url;
+  document.getElementById('lightbox').classList.add('open');
+  document.getElementById('lightbox').dataset.objectUrl = url;
+}
+
+function removeUZDoc(id) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  delete uploadedFiles[id];
+  el.classList.remove('uploaded');
+  const actions = el.querySelector('.uz-actions');
+  if (actions) actions.remove();
+  const icon = el.querySelector('.uz-icon');
+  if (icon) icon.className = icon.dataset.origClass || 'ti ti-upload uz-icon';
+  // Restore original title/sub text from data attributes set at page load,
+  // falling back to a generic label if not captured.
+  const titleEl = el.querySelector('.uz-title');
+  const subEl   = el.querySelector('.uz-sub');
+  if (titleEl && titleEl.dataset.origText) titleEl.textContent = titleEl.dataset.origText;
+  if (subEl && subEl.dataset.origText) subEl.textContent = subEl.dataset.origText;
 }
 
 // ── PIN LOOKUP ────────────────────────────────────────────────────────────────
@@ -1860,12 +1926,21 @@ function buildSlots(type) {
   let html = '<div class="slot-list">';
   for (let i = 0; i < n; i++) {
     const key  = cfg.prefix + (from + i);
+    slotBtnLabels[key] = cfg.btnTxt;
     const done = slotDone[key];
+    const file = uploadedFiles[key];
+    const statusText = done && file ? (file.size/1024).toFixed(0) + ' KB' : (done ? 'Uploaded' : 'Pending');
+    const nameText = done && file ? file.name : (cfg.labels[from + i] || 'Item ' + (i + 1));
     html += `<div class="slot-row ${done ? 'done' : ''}" id="slot-${key}">
       <div class="slot-num">${done ? '<i class="ti ti-check" style="font-size:11px"></i>' : i + 1}</div>
-      <div class="slot-name">${cfg.labels[from + i] || 'Item ' + (i + 1)}</div>
-      <div class="slot-status" id="sst-${key}">${done ? 'Uploaded' : 'Pending'}</div>
-      <button class="slot-btn ${done ? 'done' : ''}" onclick="doSlot('${key}')">${done ? 'Uploaded ✓' : cfg.btnTxt}</button>
+      <div class="slot-name" id="sname-${key}" title="${cfg.labels[from + i] || ''}">${nameText}</div>
+      <div class="slot-status" id="sst-${key}">${statusText}</div>
+      ${done
+        ? `<div class="slot-icon-btn view" onclick="event.stopPropagation();openSlotLightbox('${key}')" title="Preview"><i class="ti ti-eye" style="font-size:13px"></i></div>
+           <div class="slot-icon-btn replace" onclick="event.stopPropagation();doSlot('${key}')" title="Replace"><i class="ti ti-refresh" style="font-size:13px"></i></div>
+           <div class="slot-icon-btn remove" onclick="event.stopPropagation();removeSlot('${key}')" title="Remove"><i class="ti ti-trash" style="font-size:13px"></i></div>`
+        : `<button class="slot-btn" onclick="doSlot('${key}')">${cfg.btnTxt}</button>`
+      }
     </div>`;
   }
   html += '</div>';
@@ -1873,17 +1948,86 @@ function buildSlots(type) {
 }
 
 function doSlot(key) {
-  slotDone[key] = true;
+  const input = document.createElement('input');
+  input.type = 'file';
+  input.accept = 'image/jpeg,image/png,image/jpg,application/pdf';
+  input.style.display = 'none';
+
+  input.onchange = function(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    if (file.size > 10 * 1024 * 1024) { showFlash('File too large — max 10MB', true); return; }
+
+    uploadedFiles[key] = file;
+    slotDone[key] = true;
+
+    // Re-render this slot's row in place (cheap since rows are small)
+    refreshSlotRow(key);
+    showFlash('Document uploaded');
+  };
+
+  document.body.appendChild(input);
+  input.click();
+  setTimeout(() => document.body.removeChild(input), 1000);
+}
+
+// Re-renders a single slot row after upload/remove, without rebuilding the whole list
+function refreshSlotRow(key) {
   const row = document.getElementById('slot-' + key);
-  const sst = document.getElementById('sst-' + key);
-  if (row) {
-    row.classList.add('done');
-    const numEl = row.querySelector('.slot-num');
-    if (numEl) numEl.innerHTML = '<i class="ti ti-check" style="font-size:11px"></i>';
-    const btn = row.querySelector('.slot-btn');
-    if (btn) { btn.textContent = 'Uploaded ✓'; btn.classList.add('done'); }
+  if (!row) return;
+  const done = slotDone[key];
+  const file = uploadedFiles[key];
+  const numEl = row.querySelector('.slot-num');
+  const nameEl = row.querySelector('.slot-name');
+  const statusEl = row.querySelector('.slot-status');
+
+  row.classList.toggle('done', !!done);
+  if (numEl) numEl.innerHTML = done ? '<i class="ti ti-check" style="font-size:11px"></i>' : numEl.dataset.origNum || numEl.textContent;
+  if (!numEl.dataset.origNum && !done) numEl.dataset.origNum = numEl.textContent;
+
+  if (nameEl) nameEl.textContent = done && file ? file.name : (nameEl.title || nameEl.textContent);
+  if (statusEl) statusEl.textContent = done && file ? (file.size/1024).toFixed(0) + ' KB' : 'Pending';
+
+  // Replace the trailing action area (button or icon trio) to match new state
+  const actionArea = row.querySelector('.slot-btn, .slot-icon-btn');
+  // Remove all existing trailing action elements (button or icon group)
+  row.querySelectorAll('.slot-btn, .slot-icon-btn').forEach(el => el.remove());
+
+  if (done) {
+    row.insertAdjacentHTML('beforeend', `
+      <div class="slot-icon-btn view" onclick="event.stopPropagation();openSlotLightbox('${key}')" title="Preview"><i class="ti ti-eye" style="font-size:13px"></i></div>
+      <div class="slot-icon-btn replace" onclick="event.stopPropagation();doSlot('${key}')" title="Replace"><i class="ti ti-refresh" style="font-size:13px"></i></div>
+      <div class="slot-icon-btn remove" onclick="event.stopPropagation();removeSlot('${key}')" title="Remove"><i class="ti ti-trash" style="font-size:13px"></i></div>
+    `);
+  } else {
+    // Need the original button label back — find it from the slotBtnLabels map populated at build time
+    const label = slotBtnLabels[key] || 'Upload';
+    row.insertAdjacentHTML('beforeend', `<button class="slot-btn" onclick="doSlot('${key}')">${label}</button>`);
   }
-  if (sst) sst.textContent = 'Uploaded';
+
+  const sst = document.getElementById('sst-' + key);
+  if (sst) sst.textContent = done ? 'Uploaded' : 'Pending';
+}
+
+function openSlotLightbox(key) {
+  const file = uploadedFiles[key];
+  if (!file) return;
+  if (file.type === 'application/pdf') {
+    const url = URL.createObjectURL(file);
+    window.open(url, '_blank');
+    setTimeout(() => URL.revokeObjectURL(url), 30000);
+    return;
+  }
+  const url = URL.createObjectURL(file);
+  document.getElementById('lightbox-img').src = url;
+  document.getElementById('lightbox').classList.add('open');
+  document.getElementById('lightbox').dataset.objectUrl = url;
+}
+
+function removeSlot(key) {
+  delete uploadedFiles[key];
+  slotDone[key] = false;
+  refreshSlotRow(key);
 }
 
 // ── CIC SIMULATION ────────────────────────────────────────────────────────────
@@ -1903,9 +2047,10 @@ function simulateCIC() {
     const icon = el.querySelector('.uz-icon');
     const titleEl = el.querySelector('.uz-title');
     const subEl = el.querySelector('.uz-sub');
-    if (icon) icon.className = 'ti ti-check uz-icon';
+    if (icon) icon.className = 'ti ti-circle-check uz-icon';
     if (titleEl) titleEl.textContent = file.name;
     if (subEl) subEl.textContent = (file.size/1024).toFixed(0) + ' KB · analysing';
+    injectUZActions(el, 'uz-cic', 'CIC report uploaded ✓');
     showFlash('CIC report uploaded — analysing');
     showCICAnalysis();
   };
@@ -2248,7 +2393,16 @@ async function uploadAllDocuments(caseId) {
   for (const cardId of cardIds) {
     const file = uploadedFiles[cardId];
     if (!file) continue;
-    const meta = DOC_TYPE_MAP[cardId] || { type: 'other', label: cardId };
+
+    // Slot-based keys (salary slips, Form 16, ITR) are dynamic — e.g. 'sl-5', 'f16-2024',
+    // 'itr-2023' — detect by prefix rather than an exact map entry.
+    let meta = DOC_TYPE_MAP[cardId];
+    if (!meta) {
+      if (cardId.startsWith('sl-'))  meta = { type: 'salary',  label: 'Salary Slip — ' + (slotLabelFor(cardId) || cardId) };
+      else if (cardId.startsWith('f16-')) meta = { type: 'form16', label: 'Form 16 — ' + (slotLabelFor(cardId) || cardId) };
+      else if (cardId.startsWith('itr-')) meta = { type: 'itr',    label: 'ITR — ' + (slotLabelFor(cardId) || cardId) };
+      else meta = { type: 'other', label: cardId };
+    }
 
     try {
       const ext = (file.name.split('.').pop() || 'bin').toLowerCase();
@@ -2316,6 +2470,17 @@ const DOC_SAMPLES = {
 // Store selected files in memory per card
 const uploadedFiles = {};
 
+// Capture each uz-* zone's original icon/title/sub text once at load, so
+// removeUZDoc() can restore the exact placeholder state later.
+document.querySelectorAll('.upload-zone').forEach(el => {
+  const icon = el.querySelector('.uz-icon');
+  const titleEl = el.querySelector('.uz-title');
+  const subEl = el.querySelector('.uz-sub');
+  if (icon) icon.dataset.origClass = icon.className;
+  if (titleEl) titleEl.dataset.origText = titleEl.textContent;
+  if (subEl) subEl.dataset.origText = subEl.textContent;
+});
+
 function triggerUpload(cardId, sampleFile, successTitle) {
   // Create a hidden file input and click it
   const input = document.createElement('input');
@@ -2345,19 +2510,9 @@ function triggerUpload(cardId, sampleFile, successTitle) {
     if (titleEl) titleEl.textContent = successTitle;
     if (subEl)   subEl.textContent   = file.name + ' · ' + (file.size/1024).toFixed(0) + ' KB';
 
-    // Show real preview
-    const img = document.getElementById('pr-' + cardId);
-    if (img) {
-      if (file.type === 'application/pdf') {
-        // PDF — show generic PDF icon preview
-        img.src = 'data:image/svg+xml,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="400" height="120" viewBox="0 0 400 120"><rect fill="#E8F5EE" width="400" height="120"/><text x="200" y="55" font-family="sans-serif" font-size="16" fill="#155E35" text-anchor="middle" font-weight="bold">PDF Document</text><text x="200" y="78" font-family="sans-serif" font-size="11" fill="#155E35" text-anchor="middle">' + file.name.slice(0,40) + '</text></svg>');
-      } else {
-        // Image — show actual preview
-        const reader = new FileReader();
-        reader.onload = ev => { img.src = ev.target.result; };
-        reader.readAsDataURL(file);
-      }
-    }
+    // Swap icon to a checkmark to clearly signal "uploaded" (no thumbnail shown)
+    const iconEl = card.querySelector('.doc-card-top .uz-icon');
+    if (iconEl) iconEl.className = 'ti ti-circle-check uz-icon';
 
     // Show Aadhaar / DL back triggers
     if (cardId === 'dc-af') document.getElementById('aadhar-back-trigger').classList.add('show');
@@ -2378,10 +2533,12 @@ function removeDoc(cardId) {
   delete uploadedFiles[cardId];
   const titleEl = card.querySelector('.doc-card-title');
   const subEl   = card.querySelector('.doc-card-sub');
-  const icons   = {'dc-pan':'ti-id-badge','dc-af':'ti-id','dc-ab':'ti-id','dc-dl':'ti-license','dc-dlb':'ti-license'};
+  const iconEl  = card.querySelector('.doc-card-top .uz-icon');
+  const icons   = {'dc-pan':'ti-id-badge','dc-af':'ti-id','dc-ab':'ti-id','dc-dl':'ti-license','dc-dlb':'ti-license','dc-perf':'ti-file-text'};
   const titles  = {'dc-pan':'Tap to upload PAN card','dc-af':'Tap to upload Aadhaar front','dc-ab':'Tap to upload Aadhaar back','dc-dl':'Tap to upload DL front','dc-dlb':'Tap to upload DL back','dc-perf':'Tap to upload performa invoice'};
   if (titleEl) titleEl.textContent = titles[cardId] || 'Tap to upload';
   if (subEl)   subEl.textContent   = 'JPG · PNG · PDF · Max 2MB';
+  if (iconEl)  iconEl.className    = 'ti ' + (icons[cardId] || 'ti-upload') + ' uz-icon';
 }
 
 // Aadhaar back show/hide
@@ -2407,15 +2564,33 @@ function hideDLBack() {
 }
 
 // Lightbox
-function openLightbox(imgId) {
-  const src = document.getElementById(imgId)?.src;
-  if (!src) return;
-  document.getElementById('lightbox-img').src = src;
+function openLightbox(cardId) {
+  const file = uploadedFiles[cardId];
+  if (!file) return;
+
+  // PDFs: open in a new tab so the browser's native PDF viewer renders it
+  if (file.type === 'application/pdf') {
+    const url = URL.createObjectURL(file);
+    window.open(url, '_blank');
+    setTimeout(() => URL.revokeObjectURL(url), 30000);
+    return;
+  }
+
+  // Images: show in the in-page lightbox using the real file directly
+  const url = URL.createObjectURL(file);
+  document.getElementById('lightbox-img').src = url;
   document.getElementById('lightbox').classList.add('open');
+  // Revoke once the lightbox is closed — store the URL so closeLightbox can clean it up
+  document.getElementById('lightbox').dataset.objectUrl = url;
 }
 function closeLightbox(e) {
   if (!e || e.target === document.getElementById('lightbox') || e.target === document.querySelector('.lightbox-close')) {
-    document.getElementById('lightbox').classList.remove('open');
+    const lb = document.getElementById('lightbox');
+    lb.classList.remove('open');
+    if (lb.dataset.objectUrl) {
+      URL.revokeObjectURL(lb.dataset.objectUrl);
+      delete lb.dataset.objectUrl;
+    }
   }
 }
 

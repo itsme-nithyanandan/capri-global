@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Capri Global — City Head Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&family=DM+Mono:wght@400;500&family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,500;1,9..144,300&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+<link rel="stylesheet" href="shared.css">
+<style>
+  /* Shell-specific: the iframe fills the entire content area */
+  .module-frame{width:100%;height:100%;border:none;display:block;background:var(--bg, #F7F6F2)}
+  .content{padding:0 !important;overflow:hidden !important}
+</style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<aside class="sidebar">
+  <div class="sidebar-brand">
+    <div class="brand-logo">
+      <div class="brand-icon">
+        <svg viewBox="0 0 20 20"><rect x="2" y="10" width="7" height="8" rx="1.5"></rect><rect x="11" y="6" width="7" height="12" rx="1.5"></rect><path d="M5.5 10V5l4.5-3 4.5 3" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+      </div>
+      <div>
+        <div class="brand-name">Capri Global Capital</div>
+        <div class="brand-sub" id="brand-sub">Chennai Operations</div>
+      </div>
+    </div>
+    <div class="brand-badge" id="brand-badge"><i class="ti ti-shield-check" style="font-size:10px"></i> City Head</div>
+  </div>
+  <nav class="sidebar-nav">
+
+    <!-- ── OVERVIEW ── -->
+    <div class="nav-section">Overview</div>
+    <div class="nav-item active" data-module="overview.html" onclick="navTo('overview.html', this)">
+      <i class="ti ti-layout-dashboard"></i> Dashboard
+    </div>
+    <div class="nav-item" data-module="payout-report.html" data-role-restrict="Payout Report" onclick="navTo('payout-report.html', this)">
+      <i class="ti ti-report-money"></i> Payout Report
+    </div>
+    <div class="nav-item" data-module="team-performance.html" data-role-restrict="Team Performance" onclick="navTo('team-performance.html', this)">
+      <i class="ti ti-users"></i> Team Performance
+    </div>
+    <div class="nav-item" data-module="push-notifications.html" onclick="navTo('push-notifications.html', this)">
+      <i class="ti ti-bell"></i> Push Notification
+      <span class="nav-badge">18</span>
+    </div>
+
+    <!-- ── PRODUCTS ── -->
+    <div class="nav-section">Products</div>
+
+    <div class="nav-group" id="grp-newcar">
+      <div class="nav-group-header" onclick="toggleNavGroup('newcar')">
+        <i class="ti ti-car nav-icon"></i>
+        <span>New Car</span>
+        <i class="ti ti-chevron-down nav-chevron"></i>
+      </div>
+      <div class="nav-sub" id="sub-newcar">
+        <div class="nav-sub-item" data-module="newcar.html?tab=allfiles" onclick="navTo('newcar.html?tab=allfiles', this, 'newcar')">
+          <i class="ti ti-files"></i> All Files
+          <span class="nav-badge" id="nav-cases-badge" style="display:none"></span>
+        </div>
+        <div class="nav-sub-item" data-module="newcar.html?tab=drafts" onclick="navTo('newcar.html?tab=drafts', this, 'newcar')">
+          <i class="ti ti-pencil"></i> Drafts
+          <span class="nav-badge" id="drafts-nav-badge" style="display:none">0</span>
+        </div>
+        <div class="nav-sub-item" data-module="newcar.html?tab=assigned" onclick="navTo('newcar.html?tab=assigned', this, 'newcar')">
+          <i class="ti ti-clipboard-list"></i> Assigned
+        </div>
+        <div class="nav-sub-item" data-module="newcar.html?tab=pdd" onclick="navTo('newcar.html?tab=pdd', this, 'newcar')">
+          <i class="ti ti-file-certificate"></i> PDD
+        </div>
+      </div>
+    </div>
+
+    <div class="nav-group" id="grp-gi">
+      <div class="nav-group-header" onclick="toggleNavGroup('gi')">
+        <i class="ti ti-shield nav-icon"></i>
+        <span>General Insurance</span>
+        <i class="ti ti-chevron-down nav-chevron"></i>
+      </div>
+      <div class="nav-sub" id="sub-gi">
+        <div class="nav-sub-item" data-module="general-insurance.html?tab=allfiles" onclick="navTo('general-insurance.html?tab=allfiles', this, 'gi')">
+          <i class="ti ti-files"></i> All Files
+        </div>
+        <div class="nav-sub-item" data-module="general-insurance.html?tab=drafts" onclick="navTo('general-insurance.html?tab=drafts', this, 'gi')">
+          <i class="ti ti-pencil"></i> Drafts
+        </div>
+        <div class="nav-sub-item" data-module="general-insurance.html?tab=assigned" onclick="navTo('general-insurance.html?tab=assigned', this, 'gi')">
+          <i class="ti ti-clipboard-list"></i> Assigned
+        </div>
+        <div class="nav-sub-item" data-module="general-insurance.html?tab=pdd" onclick="navTo('general-insurance.html?tab=pdd', this, 'gi')">
+          <i class="ti ti-file-certificate"></i> PDD
+        </div>
+      </div>
+    </div>
+
+    <div class="nav-group" id="grp-cc">
+      <div class="nav-group-header" onclick="toggleNavGroup('cc')">
+        <i class="ti ti-credit-card nav-icon"></i>
+        <span>Credit Card</span>
+        <i class="ti ti-chevron-down nav-chevron"></i>
+      </div>
+      <div class="nav-sub" id="sub-cc">
+        <div class="nav-sub-item" data-module="credit-card.html?tab=allfiles" onclick="navTo('credit-card.html?tab=allfiles', this, 'cc')">
+          <i class="ti ti-files"></i> All Files
+        </div>
+        <div class="nav-sub-item" data-module="credit-card.html?tab=drafts" onclick="navTo('credit-card.html?tab=drafts', this, 'cc')">
+          <i class="ti ti-pencil"></i> Drafts
+        </div>
+        <div class="nav-sub-item" data-module="credit-card.html?tab=assigned" onclick="navTo('credit-card.html?tab=assigned', this, 'cc')">
+          <i class="ti ti-clipboard-list"></i> Assigned
+        </div>
+        <div class="nav-sub-item" data-module="credit-card.html?tab=pdd" onclick="navTo('credit-card.html?tab=pdd', this, 'cc')">
+          <i class="ti ti-file-certificate"></i> PDD
+        </div>
+      </div>
+    </div>
+
+    <!-- ── INFO ── -->
+    <div class="nav-section">Info</div>
+    <div class="nav-item" data-module="bank-management.html" data-role-restrict="Bank Management" onclick="navTo('bank-management.html', this)">
+      <i class="ti ti-building-bank"></i> Bank Management
+    </div>
+    <div class="nav-item" data-module="branch-directory.html" onclick="navTo('branch-directory.html', this)">
+      <i class="ti ti-map-pin"></i> Branch Directory
+    </div>
+    <div class="nav-item" data-module="reports.html" data-role-restrict="Reports" onclick="navTo('reports.html', this)">
+      <i class="ti ti-chart-bar"></i> Reports
+    </div>
+
+    <!-- ── CONFIGURATION ── -->
+    <div class="nav-section">Configuration</div>
+    <div class="nav-item" data-module="users.html" data-role-restrict="Users" onclick="navTo('users.html', this)">
+      <i class="ti ti-users-cog"></i> Users
+    </div>
+    <div class="nav-item" data-module="ai-settings.html" data-role-restrict="AI Settings" onclick="navTo('ai-settings.html', this)">
+      <i class="ti ti-brain"></i> AI Settings
+      <span class="nav-badge alert">!</span>
+    </div>
+    <div class="nav-item" data-module="system-settings.html" data-role-restrict="System Settings" onclick="navTo('system-settings.html', this)">
+      <i class="ti ti-settings"></i> System Settings
+    </div>
+
+  </nav>
+</aside>
+
+<div id="sidebar-overlay" class="sidebar-overlay" onclick="toggleSidebar()"></div>
+
+<!-- MAIN -->
+<div class="main">
+  <div class="topbar">
+    <div class="topbar-left">
+      <div>
+        <div class="topbar-title" id="topbar-title">Dashboard</div>
+        <div class="topbar-sub" id="topbar-sub">Loading…</div>
+      </div>
+    </div>
+    <div class="topbar-right" id="topbar-right">
+      <!-- populated by shell.js with avatar/notifications/logout -->
+    </div>
+  </div>
+
+  <div class="content">
+    <iframe class="module-frame" id="module-frame" src="overview.html" title="Module content"></iframe>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="shared.js"></script>
+<script src="shell.js"></script>
+</body>
+</html>

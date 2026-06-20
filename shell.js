@@ -25,6 +25,7 @@ const tabTitles = {
   'branch-directory.html':       ['Branch Directory', 'Empaneled branches + radius settings'],
   'reports.html':                ['Reports', 'Generate and send reports'],
   'users.html':                  ['Users', 'Manage BMs, RMs and access controls'],
+  'user-configuration.html':     ['User Configuration', 'Role-based tab and module access'],
   'ai-settings.html':            ['AI Settings', 'Provider · model · budget · toggles'],
   'system-settings.html':        ['System Settings', 'Weights · team · configuration'],
 };

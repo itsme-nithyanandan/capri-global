@@ -101,8 +101,8 @@ function loadIdentity() {
 // Modules can call this with a list of CSS selectors to hide for bm/rm roles,
 // matching the same restriction pattern used in the shell's sidebar.
 function applyRoleRestrictions(role) {
-  const hideForBM = ['Bank Management', 'AI Settings', 'System Settings'];
-  const hideForRM = ['Bank Management', 'AI Settings', 'System Settings', 'Users', 'Team Performance', 'Payout Report', 'Reports'];
+  const hideForBM = ['Bank Management', 'AI Settings', 'System Settings', 'User Configuration'];
+  const hideForRM = ['Bank Management', 'AI Settings', 'System Settings', 'User Configuration', 'Users', 'Team Performance', 'Payout Report', 'Reports'];
   const toHide = role === 'bm' ? hideForBM : role === 'rm' ? hideForRM : [];
   if (!toHide.length) return;
   document.querySelectorAll('[data-role-restrict]').forEach(el => {

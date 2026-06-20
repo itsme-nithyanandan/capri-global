@@ -836,6 +836,7 @@ let _pddDocsByCase = {};
 let _pddRequirements = [];
 let _pddUploadTarget = null;
 let _pddApproveTarget = null;
+let _pddRevokeTarget = null;
 
 async function loadPDDQueue() {
   const loading = document.getElementById('pdd-loading');
@@ -992,7 +993,14 @@ function renderPDDQueue(list) {
 
       let approveCell;
       if (st.approved) {
-        approveCell = '<span class="badge badge-green"><i class="ti ti-shield-check" style="font-size:10px"></i> Approved</span>';
+        approveCell = canApprove
+          ? `<div style="display:flex;align-items:center;justify-content:center;gap:6px">
+              <span class="badge badge-green"><i class="ti ti-shield-check" style="font-size:10px"></i> Approved</span>
+              <button class="btn btn-xs btn-danger" onclick="openPDDRevokeModal('${c.id}')" title="Revoke approval">
+                <i class="ti ti-shield-x" style="font-size:11px"></i> Revoke
+              </button>
+            </div>`
+          : '<span class="badge badge-green"><i class="ti ti-shield-check" style="font-size:10px"></i> Approved</span>';
       } else if (!canApprove) {
         approveCell = st.allUploaded
           ? '<span style="font-size:11px;color:var(--muted2)">Awaiting BM approval</span>'
@@ -1144,5 +1152,60 @@ async function confirmPDDApproval() {
   } catch(e) {
     console.error('confirmPDDApproval failed:', e.message);
     showFlash('Approval failed');
+  }
+}
+
+function openPDDRevokeModal(caseId) {
+  const role = (window.currentLoggedInUser && window.currentLoggedInUser.role) || '';
+  if (role !== 'bm' && role !== 'city_head') {
+    showFlash('Only a Branch Manager or City Head can revoke PDD approval.');
+    return;
+  }
+  _pddRevokeTarget = caseId;
+  const idEl = document.getElementById('pdd-revoke-caseid');
+  if (idEl) idEl.textContent = 'Case ' + caseId;
+  document.getElementById('pdd-revoke-modal').classList.add('open');
+}
+
+function closePDDRevokeModal() {
+  document.getElementById('pdd-revoke-modal').classList.remove('open');
+  _pddRevokeTarget = null;
+}
+
+async function confirmPDDRevoke() {
+  const caseId = _pddRevokeTarget;
+  if (!caseId) return;
+  closePDDRevokeModal();
+
+  try {
+    const uid = (window.currentLoggedInUser && window.currentLoggedInUser.id) || null;
+    const { error } = await db.from('cases').update({
+      pdd_approved: false,
+      pdd_approved_by: null,
+      pdd_approved_at: null
+    }).eq('id', caseId);
+
+    if (error) { console.error('PDD revoke error:', error.message); showFlash('Revoke failed: ' + error.message); return; }
+
+    // Update in-memory case object
+    const c = cases.find(x => x.id === caseId);
+    if (c) c.pddApproved = false;
+
+    // Audit log entry
+    try {
+      await db.from('audit_log').insert({
+        user_id: uid,
+        action: 'PDD approval revoked — payout held',
+        table_name: 'cases',
+        record_id: caseId
+      });
+    } catch(auditErr) { console.error('Audit log write failed:', auditErr.message); }
+
+    updatePDDStats(_allPDDCases);
+    renderPDDQueue(_allPDDCases);
+    showFlash('PDD approval revoked — ' + caseId + ' payout held');
+  } catch(e) {
+    console.error('confirmPDDRevoke failed:', e.message);
+    showFlash('Revoke failed');
   }
 }

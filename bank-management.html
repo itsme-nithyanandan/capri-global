@@ -77,75 +77,12 @@
           </div>
         </div>
 
-        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);margin:14px 0 10px">Eligibility Criteria</div>
-        <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:12px;margin-bottom:14px">
-          <div>
-            <label class="bm-label">Min CIBIL</label>
-            <input id="bm-min-cibil" type="number" class="filter-input" style="width:100%" placeholder="700">
-          </div>
-          <div>
-            <label class="bm-label">Min Income (₹/mo)</label>
-            <input id="bm-min-income" type="number" class="filter-input" style="width:100%" placeholder="30000">
-          </div>
-          <div>
-            <label class="bm-label">Max FOIR %</label>
-            <input id="bm-max-foir" type="number" class="filter-input" style="width:100%" placeholder="55">
-          </div>
-          <div>
-            <label class="bm-label">Max LTV %</label>
-            <input id="bm-max-ltv" type="number" class="filter-input" style="width:100%" placeholder="85">
-          </div>
-          <div>
-            <label class="bm-label">Min Tenure (mo)</label>
-            <input id="bm-min-tenure" type="number" class="filter-input" style="width:100%" placeholder="12">
-          </div>
-          <div>
-            <label class="bm-label">Max Tenure (mo)</label>
-            <input id="bm-max-tenure" type="number" class="filter-input" style="width:100%" placeholder="84">
-          </div>
-          <div style="grid-column:span 2">
-            <label class="bm-label">Max Loan Amount (₹)</label>
-            <input id="bm-max-loan" type="number" class="filter-input" style="width:100%" placeholder="Optional — leave blank for no cap">
-          </div>
-        </div>
-
-        <label class="bm-label" style="display:block;margin-bottom:6px">Eligible Employment Types</label>
-        <div style="display:flex;gap:16px;margin-bottom:14px;flex-wrap:wrap">
-          <label style="display:flex;align-items:center;gap:6px;font-size:12.5px;cursor:pointer"><input type="checkbox" id="bm-emp-salaried" checked> Salaried</label>
-          <label style="display:flex;align-items:center;gap:6px;font-size:12.5px;cursor:pointer"><input type="checkbox" id="bm-emp-self" checked> Self-Employed</label>
-          <label style="display:flex;align-items:center;gap:6px;font-size:12.5px;cursor:pointer"><input type="checkbox" id="bm-emp-prof" checked> Professional</label>
-          <label style="display:flex;align-items:center;gap:6px;font-size:12.5px;cursor:pointer"><input type="checkbox" id="bm-emp-pension" checked> Pensioner</label>
-        </div>
-
-        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);margin:14px 0 10px">Payout Configuration</div>
-        <div style="margin-bottom:10px">
-          <label class="bm-label">Payout Type</label>
-          <select id="bm-payout-type" class="filter-select" style="width:220px" onchange="onPayoutTypeChange()">
-            <option value="flat_pct">Flat percentage</option>
-            <option value="fixed_per_file">Fixed amount per file</option>
-            <option value="slab">Slab-based (see Payout Slabs tab)</option>
-          </select>
-        </div>
-        <div id="bm-payout-flat-fields" style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px">
-          <div>
-            <label class="bm-label">Team Payout %</label>
-            <input id="bm-payout-pct" type="number" step="0.01" class="filter-input" style="width:100%" placeholder="e.g. 0.45">
-          </div>
-          <div>
-            <label class="bm-label">DSA Payout %</label>
-            <input id="bm-dsa-payout-pct" type="number" step="0.01" class="filter-input" style="width:100%" placeholder="e.g. 0.25">
-          </div>
-        </div>
-        <div id="bm-payout-fixed-fields" style="display:none;margin-bottom:14px">
-          <label class="bm-label">Fixed Payout (₹/file)</label>
-          <input id="bm-fixed-payout" type="number" class="filter-input" style="width:220px" placeholder="e.g. 2000">
-        </div>
-        <div id="bm-payout-slab-note" style="display:none;margin-bottom:14px;padding:10px 12px;background:var(--surface2);border-radius:8px;font-size:12px;color:var(--muted)">
-          Payout for this bank is determined by loan-amount tiers — set them in the <strong>Payout Slabs</strong> tab above.
-        </div>
-
         <label class="bm-label">Notes</label>
         <textarea id="bm-notes" class="filter-input" style="width:100%;min-height:60px;resize:vertical;font-family:inherit" placeholder="Internal notes about this lender (optional)"></textarea>
+
+        <div style="margin-top:14px;padding:10px 12px;background:var(--surface2);border-radius:8px;font-size:12px;color:var(--muted)">
+          Eligibility by employment type is set via the <strong>Configure</strong> button on the bank's row. Payout type and rate slabs are in the tabs above.
+        </div>
 
         <div id="bm-error" style="display:none;margin-top:12px;padding:9px 12px;background:var(--red-bg);border-radius:8px;font-size:12px;color:var(--red-text)"></div>
 
@@ -163,7 +100,7 @@
         <div id="bm-roi-content">
           <div style="background:var(--surface2);border-radius:var(--radius-sm);padding:14px;margin-bottom:16px">
             <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);margin-bottom:10px" id="bm-roi-form-title">Add ROI Slab</div>
-            <div style="display:grid;grid-template-columns:1.4fr .8fr .8fr 1fr 1fr;gap:10px;margin-bottom:10px">
+            <div style="display:grid;grid-template-columns:1.2fr .7fr .7fr .8fr 1.3fr;gap:10px;margin-bottom:10px">
               <div>
                 <label class="bm-label">Slab Label</label>
                 <input id="roi-label" class="filter-input" style="width:100%" placeholder="e.g. 750+">
@@ -177,12 +114,16 @@
                 <input id="roi-score-max" type="number" class="filter-input" style="width:100%" placeholder="900">
               </div>
               <div>
-                <label class="bm-label">Fixed Rate %</label>
-                <input id="roi-fixed-rate" type="number" step="0.01" class="filter-input" style="width:100%" placeholder="9.5">
+                <label class="bm-label">Rate %</label>
+                <input id="roi-rate-value" type="number" step="0.01" class="filter-input" style="width:100%" placeholder="9.5">
               </div>
               <div>
-                <label class="bm-label">Floating Rate %</label>
-                <input id="roi-floating-rate" type="number" step="0.01" class="filter-input" style="width:100%" placeholder="Optional">
+                <label class="bm-label" style="display:block;margin-bottom:6px">Rate Type</label>
+                <div style="display:flex;gap:10px;padding-top:6px">
+                  <label style="display:flex;align-items:center;gap:5px;font-size:12px;cursor:pointer"><input type="radio" name="roi-rate-type" value="fixed" checked> Fixed</label>
+                  <label style="display:flex;align-items:center;gap:5px;font-size:12px;cursor:pointer"><input type="radio" name="roi-rate-type" value="floating"> Floating</label>
+                  <label style="display:flex;align-items:center;gap:5px;font-size:12px;cursor:pointer"><input type="radio" name="roi-rate-type" value="ev"> EV</label>
+                </div>
               </div>
             </div>
             <div style="display:grid;grid-template-columns:1fr 1fr 2fr;gap:10px;margin-bottom:10px">
@@ -220,6 +161,38 @@
           Save the bank's details first — slabs need a saved bank to attach to.
         </div>
         <div id="bm-payout-content">
+          <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);margin-bottom:10px">Payout Type</div>
+          <div style="margin-bottom:10px">
+            <select id="bm-payout-type" class="filter-select" style="width:240px" onchange="onPayoutTypeChange()">
+              <option value="flat_pct">Flat percentage</option>
+              <option value="fixed_per_file">Fixed amount per file</option>
+              <option value="slab">Slab-based (use the table below)</option>
+            </select>
+          </div>
+          <div id="bm-payout-flat-fields" style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
+            <div>
+              <label class="bm-label">Team Payout %</label>
+              <input id="bm-payout-pct" type="number" step="0.01" class="filter-input" style="width:100%" placeholder="e.g. 0.45">
+            </div>
+            <div>
+              <label class="bm-label">DSA Payout %</label>
+              <input id="bm-dsa-payout-pct" type="number" step="0.01" class="filter-input" style="width:100%" placeholder="e.g. 0.25">
+            </div>
+          </div>
+          <div id="bm-payout-fixed-fields" style="display:none;margin-bottom:12px">
+            <label class="bm-label">Fixed Payout (₹/file)</label>
+            <input id="bm-fixed-payout" type="number" class="filter-input" style="width:240px" placeholder="e.g. 2000">
+          </div>
+          <div id="bm-payout-slab-note" style="display:none;margin-bottom:12px;padding:10px 12px;background:var(--surface2);border-radius:8px;font-size:12px;color:var(--muted)">
+            Payout is determined entirely by the loan-amount tiers below.
+          </div>
+          <div id="bm-payout-type-error" style="display:none;margin-bottom:10px;padding:8px 12px;background:var(--red-bg);border-radius:8px;font-size:11px;color:var(--red-text)"></div>
+          <div style="display:flex;justify-content:flex-end;margin-bottom:18px">
+            <button class="btn btn-sm btn-primary" onclick="savePayoutType()"><i class="ti ti-device-floppy" style="font-size:11px"></i> Save payout type</button>
+          </div>
+
+          <div style="border-top:1px solid var(--border);margin-bottom:16px"></div>
+
           <div style="background:var(--surface2);border-radius:var(--radius-sm);padding:14px;margin-bottom:16px">
             <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);margin-bottom:10px" id="bm-payout-form-title">Add Payout Slab</div>
             <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:10px">
@@ -258,6 +231,67 @@
 <style>
   .bm-label{font-size:10.5px;font-weight:600;color:var(--muted);display:block;margin-bottom:4px;text-transform:uppercase;letter-spacing:.04em}
 </style>
+
+<div class="modal-overlay" id="eligibility-modal">
+  <div class="wide-modal" style="width:600px">
+    <div class="wide-modal-header">
+      <div>
+        <div style="font-weight:600;font-size:14.5px" id="elig-modal-title">Eligibility by Category</div>
+        <div style="font-size:12px;color:var(--muted);margin-top:2px">Different CIBIL/income/FOIR/LTV per employment type</div>
+      </div>
+      <div style="display:flex;gap:7px;align-items:center">
+        <div class="close-btn" onclick="closeEligibilityModal()"><i class="ti ti-x"></i></div>
+      </div>
+    </div>
+    <div class="wide-modal-body">
+      <div class="itabs" id="elig-cat-tabs">
+        <div class="itab active" data-emp="salaried" onclick="switchEligCategory('salaried')">Salaried</div>
+        <div class="itab" data-emp="self_employed" onclick="switchEligCategory('self_employed')">Self-Employed</div>
+        <div class="itab" data-emp="professional" onclick="switchEligCategory('professional')">Professional</div>
+        <div class="itab" data-emp="pensioner" onclick="switchEligCategory('pensioner')">Pensioner</div>
+      </div>
+
+      <label style="display:flex;align-items:center;gap:7px;font-size:12.5px;cursor:pointer;margin-bottom:14px">
+        <input type="checkbox" id="elig-cat-enabled" checked onchange="onEligEnabledChange()">
+        Bank accepts this employment category
+      </label>
+
+      <div id="elig-cat-fields" style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:12px;margin-bottom:14px">
+        <div>
+          <label class="bm-label">Min CIBIL</label>
+          <input id="elig-min-cibil" type="number" class="filter-input" style="width:100%" placeholder="700">
+        </div>
+        <div>
+          <label class="bm-label">Min Income (₹/mo)</label>
+          <input id="elig-min-income" type="number" class="filter-input" style="width:100%" placeholder="30000">
+        </div>
+        <div>
+          <label class="bm-label">Max FOIR %</label>
+          <input id="elig-max-foir" type="number" class="filter-input" style="width:100%" placeholder="55">
+        </div>
+        <div>
+          <label class="bm-label">Max LTV %</label>
+          <input id="elig-max-ltv" type="number" class="filter-input" style="width:100%" placeholder="85">
+        </div>
+        <div>
+          <label class="bm-label">Min Tenure (mo)</label>
+          <input id="elig-min-tenure" type="number" class="filter-input" style="width:100%" placeholder="12">
+        </div>
+        <div>
+          <label class="bm-label">Max Tenure (mo)</label>
+          <input id="elig-max-tenure" type="number" class="filter-input" style="width:100%" placeholder="84">
+        </div>
+      </div>
+
+      <div id="elig-error" style="display:none;margin-bottom:12px;padding:9px 12px;background:var(--red-bg);border-radius:8px;font-size:12px;color:var(--red-text)"></div>
+
+      <div style="display:flex;justify-content:flex-end;gap:8px">
+        <button class="btn" onclick="closeEligibilityModal()">Close</button>
+        <button class="btn btn-primary" onclick="saveEligibilityCategory()"><i class="ti ti-device-floppy" style="font-size:12px"></i> Save this category</button>
+      </div>
+    </div>
+  </div>
+</div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <script src="shared.js"></script>

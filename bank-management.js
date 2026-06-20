@@ -47,10 +47,16 @@ async function loadBanks() {
       dsaPayoutPct: b.dsa_payout_pct,
       fixedPayout: b.fixed_payout,
       active: b.active !== false,
-      slabs: (slabsByBank[b.id]||[]).map(s => ({
-        label: s.slab_label || (s.score_min + '–' + s.score_max),
-        roi: s.fixed_rate ? s.fixed_rate+'%' : (s.floating_rate ? s.floating_rate+'%' : '—')
-      })),
+      slabs: (slabsByBank[b.id]||[]).map(s => {
+        const rateVal = s.rate_type === 'floating' ? s.floating_rate : s.fixed_rate;
+        const typeLabel = { fixed: 'Fixed', floating: 'Floating', ev: 'EV' }[s.rate_type] || '';
+        return {
+          label: s.slab_label || (s.score_min + '–' + s.score_max),
+          roi: rateVal != null ? rateVal+'%' : '—',
+          rateType: s.rate_type || 'fixed',
+          typeLabel
+        };
+      }),
       payoutSlabs: payoutSlabsByBank[b.id] || []
     }));
 
@@ -112,6 +118,7 @@ function renderBanks(){
     <td><span class="badge ${b.active?'badge-green':'badge-gray'}">${b.active?'Active':'Inactive'}</span></td>
     <td style="white-space:nowrap">
       <button class="btn btn-sm" onclick="openEditBankModal('${b.id}')">Edit</button>
+      <button class="btn btn-sm" style="margin-left:4px" onclick="openEligibilityModal('${b.id}','${b.name.replace(/'/g,"\\'")}')"><i class="ti ti-list-check" style="font-size:11px"></i> Configure</button>
       <button class="btn btn-sm ${b.active?'btn-danger':''}" style="margin-left:4px" onclick="toggleBankActive('${b.id}',${idx})">${b.active?'Deactivate':'Activate'}</button>
     </td>
   </tr>`;
@@ -138,7 +145,7 @@ function showROISlab(e,idx){
     <div style="font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);display:grid;grid-template-columns:1fr 1fr;gap:4px;margin-bottom:6px">
       <span>CIBIL Range</span><span>Interest Rate</span>
     </div>
-    ${b.slabs.map(s=>`<div class="roi-popup-row"><span style="color:var(--muted)">${s.label}</span><span style="font-family:'DM Mono',monospace;font-weight:600;color:var(--accent)">${s.roi}</span></div>`).join('')}
+    ${b.slabs.map(s=>`<div class="roi-popup-row"><span style="color:var(--muted)">${s.label}</span><span style="font-family:'DM Mono',monospace;font-weight:600;color:var(--accent)">${s.roi}${s.typeLabel?' <span style=\"font-size:9px;color:var(--muted)\">'+s.typeLabel+'</span>':''}</span></div>`).join('')}
   `;
   const rect=e.target.getBoundingClientRect();
   popup.style.left=(rect.left)+'px';
@@ -147,6 +154,134 @@ function showROISlab(e,idx){
   setTimeout(()=>document.addEventListener('click',hideROISlab,{once:true}),10);
 }
 function hideROISlab(){document.getElementById('roi-popup').style.display='none';}
+
+// ══════════════════════════════════════════════════════════════════════════
+// ELIGIBILITY BY CATEGORY MODAL (bank_eligibility_categories)
+// ══════════════════════════════════════════════════════════════════════════
+const ELIG_DEFAULTS = { min_cibil: 700, min_income: 30000, max_foir_pct: 55, max_ltv_pct: 85, min_tenure_mo: 12, max_tenure_mo: 84, active: true };
+let _eligBankId = null;
+let _eligCache = {};            // emp_type -> { min_cibil, min_income, max_foir_pct, max_ltv_pct, min_tenure_mo, max_tenure_mo, active }
+let _currentEligCategory = 'salaried';
+
+async function openEligibilityModal(bankId, bankName) {
+  _eligBankId = bankId;
+  _currentEligCategory = 'salaried';
+  document.getElementById('elig-modal-title').textContent = bankName + ' — Eligibility by Category';
+
+  _eligCache = {
+    salaried: { ...ELIG_DEFAULTS },
+    self_employed: { ...ELIG_DEFAULTS },
+    professional: { ...ELIG_DEFAULTS },
+    pensioner: { ...ELIG_DEFAULTS },
+  };
+
+  try {
+    const { data, error } = await db.from('bank_eligibility_categories').select('*').eq('bank_id', bankId);
+    if (error) throw error;
+    (data || []).forEach(row => {
+      _eligCache[row.emp_type] = {
+        min_cibil: row.min_cibil, min_income: row.min_income, max_foir_pct: row.max_foir_pct,
+        max_ltv_pct: row.max_ltv_pct, min_tenure_mo: row.min_tenure_mo, max_tenure_mo: row.max_tenure_mo,
+        active: row.active !== false
+      };
+    });
+  } catch(e) {
+    console.error('openEligibilityModal load failed:', e.message);
+  }
+
+  document.querySelectorAll('#elig-cat-tabs .itab').forEach(t => t.classList.remove('active'));
+  document.querySelector('#elig-cat-tabs .itab[data-emp="salaried"]').classList.add('active');
+  populateEligForm('salaried');
+  document.getElementById('elig-error').style.display = 'none';
+  document.getElementById('eligibility-modal').style.display = 'flex';
+}
+
+function switchEligCategory(empType) {
+  // Carry over whatever's currently typed (even if unsaved) so switching
+  // tabs back and forth doesn't silently discard in-progress edits.
+  captureEligFormIntoCache(_currentEligCategory);
+
+  document.querySelectorAll('#elig-cat-tabs .itab').forEach(t => t.classList.remove('active'));
+  document.querySelector(`#elig-cat-tabs .itab[data-emp="${empType}"]`).classList.add('active');
+  _currentEligCategory = empType;
+  populateEligForm(empType);
+  document.getElementById('elig-error').style.display = 'none';
+}
+
+function populateEligForm(empType) {
+  const c = _eligCache[empType];
+  document.getElementById('elig-cat-enabled').checked = c.active !== false;
+  document.getElementById('elig-min-cibil').value = c.min_cibil ?? '';
+  document.getElementById('elig-min-income').value = c.min_income ?? '';
+  document.getElementById('elig-max-foir').value = c.max_foir_pct ?? '';
+  document.getElementById('elig-max-ltv').value = c.max_ltv_pct ?? '';
+  document.getElementById('elig-min-tenure').value = c.min_tenure_mo ?? '';
+  document.getElementById('elig-max-tenure').value = c.max_tenure_mo ?? '';
+  onEligEnabledChange();
+}
+
+function captureEligFormIntoCache(empType) {
+  _eligCache[empType] = {
+    active: document.getElementById('elig-cat-enabled').checked,
+    min_cibil: numOrNullVal('elig-min-cibil'),
+    min_income: numOrNullVal('elig-min-income'),
+    max_foir_pct: numOrNullVal('elig-max-foir'),
+    max_ltv_pct: numOrNullVal('elig-max-ltv'),
+    min_tenure_mo: numOrNullVal('elig-min-tenure'),
+    max_tenure_mo: numOrNullVal('elig-max-tenure'),
+  };
+}
+
+function numOrNullVal(id) {
+  const v = document.getElementById(id).value;
+  return v === '' ? null : parseFloat(v);
+}
+
+function onEligEnabledChange() {
+  const enabled = document.getElementById('elig-cat-enabled').checked;
+  document.getElementById('elig-cat-fields').style.opacity = enabled ? '1' : '.4';
+  document.querySelectorAll('#elig-cat-fields input').forEach(i => i.disabled = !enabled);
+}
+
+function closeEligibilityModal() {
+  document.getElementById('eligibility-modal').style.display = 'none';
+}
+
+async function saveEligibilityCategory() {
+  const errEl = document.getElementById('elig-error');
+  captureEligFormIntoCache(_currentEligCategory);
+  const c = _eligCache[_currentEligCategory];
+
+  const payload = {
+    bank_id: _eligBankId,
+    emp_type: _currentEligCategory,
+    min_cibil: c.min_cibil, min_income: c.min_income, max_foir_pct: c.max_foir_pct,
+    max_ltv_pct: c.max_ltv_pct, min_tenure_mo: c.min_tenure_mo, max_tenure_mo: c.max_tenure_mo,
+    active: c.active, updated_at: new Date().toISOString()
+  };
+
+  try {
+    const { error } = await db.from('bank_eligibility_categories').upsert(payload, { onConflict: 'bank_id,emp_type' });
+    if (error) throw error;
+    errEl.style.display = 'none';
+    showBanksFlash(humanEmpLabel(_currentEligCategory) + ' eligibility saved');
+  } catch(e) {
+    errEl.textContent = 'Save failed: ' + e.message;
+    errEl.style.display = 'block';
+  }
+}
+
+function humanEmpLabel(empType) {
+  return { salaried: 'Salaried', self_employed: 'Self-Employed', professional: 'Professional', pensioner: 'Pensioner' }[empType] || empType;
+}
+
+function showBanksFlash(msg, isError=false) {
+  const f = document.createElement('div');
+  f.style.cssText = `position:fixed;bottom:90px;left:50%;transform:translateX(-50%);background:${isError?'#B91C1C':'#1A4F3A'};color:white;padding:10px 20px;border-radius:30px;font-size:13px;font-weight:500;z-index:999;box-shadow:0 4px 20px rgba(0,0,0,.2)`;
+  f.textContent = msg;
+  document.body.appendChild(f);
+  setTimeout(() => f.remove(), 2800);
+}
 
 // ══════════════════════════════════════════════════════════════════════════
 // BANK ADD/EDIT MODAL
@@ -169,17 +304,6 @@ function openAddBankModal() {
   document.getElementById('bm-name').value = '';
   document.getElementById('bm-short-name').value = '';
   document.getElementById('bm-type').value = 'Bank';
-  document.getElementById('bm-min-cibil').value = 700;
-  document.getElementById('bm-min-income').value = 30000;
-  document.getElementById('bm-max-foir').value = 55;
-  document.getElementById('bm-max-ltv').value = 85;
-  document.getElementById('bm-min-tenure').value = 12;
-  document.getElementById('bm-max-tenure').value = 84;
-  document.getElementById('bm-max-loan').value = '';
-  document.getElementById('bm-emp-salaried').checked = true;
-  document.getElementById('bm-emp-self').checked = true;
-  document.getElementById('bm-emp-prof').checked = true;
-  document.getElementById('bm-emp-pension').checked = true;
   document.getElementById('bm-payout-type').value = 'flat_pct';
   document.getElementById('bm-payout-pct').value = '';
   document.getElementById('bm-dsa-payout-pct').value = '';
@@ -203,23 +327,10 @@ async function openEditBankModal(bankId) {
   if (error || !b) { console.error('Could not load bank:', error?.message); return; }
 
   document.getElementById('bank-modal-title').textContent = b.name;
-  document.getElementById('bank-modal-subtitle').textContent = 'Eligibility, payout, and rate slabs';
+  document.getElementById('bank-modal-subtitle').textContent = 'Payout and rate slabs';
   document.getElementById('bm-name').value = b.name || '';
   document.getElementById('bm-short-name').value = b.short_name || '';
   document.getElementById('bm-type').value = b.type || 'Bank';
-  document.getElementById('bm-min-cibil').value = b.min_cibil ?? '';
-  document.getElementById('bm-min-income').value = b.min_income ?? '';
-  document.getElementById('bm-max-foir').value = b.max_foir_pct ?? '';
-  document.getElementById('bm-max-ltv').value = b.max_ltv_pct ?? '';
-  document.getElementById('bm-min-tenure').value = b.min_tenure_mo ?? '';
-  document.getElementById('bm-max-tenure').value = b.max_tenure_mo ?? '';
-  document.getElementById('bm-max-loan').value = b.max_loan ?? '';
-
-  const empTypes = b.emp_types || [];
-  document.getElementById('bm-emp-salaried').checked = empTypes.includes('salaried');
-  document.getElementById('bm-emp-self').checked = empTypes.includes('self_employed');
-  document.getElementById('bm-emp-prof').checked = empTypes.includes('professional');
-  document.getElementById('bm-emp-pension').checked = empTypes.includes('pensioner');
 
   const payoutType = b.payout_type || 'flat_pct';
   document.getElementById('bm-payout-type').value = payoutType;
@@ -282,30 +393,10 @@ async function saveBankDetails() {
     return;
   }
 
-  const empTypes = [];
-  if (document.getElementById('bm-emp-salaried').checked) empTypes.push('salaried');
-  if (document.getElementById('bm-emp-self').checked) empTypes.push('self_employed');
-  if (document.getElementById('bm-emp-prof').checked) empTypes.push('professional');
-  if (document.getElementById('bm-emp-pension').checked) empTypes.push('pensioner');
-
-  const payoutType = document.getElementById('bm-payout-type').value;
-
   const payload = {
     name,
     short_name: document.getElementById('bm-short-name').value.trim() || null,
     type,
-    min_cibil: numOrNull('bm-min-cibil'),
-    min_income: numOrNull('bm-min-income'),
-    max_foir_pct: numOrNull('bm-max-foir'),
-    max_ltv_pct: numOrNull('bm-max-ltv'),
-    min_tenure_mo: numOrNull('bm-min-tenure'),
-    max_tenure_mo: numOrNull('bm-max-tenure'),
-    max_loan: numOrNull('bm-max-loan'),
-    emp_types: empTypes,
-    payout_type: payoutType,
-    payout_pct: payoutType === 'flat_pct' ? numOrNull('bm-payout-pct') : null,
-    dsa_payout_pct: payoutType === 'flat_pct' ? numOrNull('bm-dsa-payout-pct') : null,
-    fixed_payout: payoutType === 'fixed_per_file' ? numOrNull('bm-fixed-payout') : null,
     notes: document.getElementById('bm-notes').value.trim() || null,
   };
 
@@ -324,7 +415,7 @@ async function saveBankDetails() {
       _bankModalMode = 'edit';
       _editingBankId = data.id;
       document.getElementById('bank-modal-title').textContent = data.name;
-      document.getElementById('bank-modal-subtitle').textContent = 'Eligibility, payout, and rate slabs';
+      document.getElementById('bank-modal-subtitle').textContent = 'Payout and rate slabs';
       document.getElementById('bm-save-btn').textContent = 'Save changes';
       setBankModalTabLocked(false);
       _roiSlabsCache = [];
@@ -345,6 +436,29 @@ async function saveBankDetails() {
 function numOrNull(id) {
   const v = document.getElementById(id).value;
   return v === '' ? null : parseFloat(v);
+}
+
+async function savePayoutType() {
+  const errEl = document.getElementById('bm-payout-type-error');
+  const payoutType = document.getElementById('bm-payout-type').value;
+
+  const payload = {
+    payout_type: payoutType,
+    payout_pct: payoutType === 'flat_pct' ? numOrNull('bm-payout-pct') : null,
+    dsa_payout_pct: payoutType === 'flat_pct' ? numOrNull('bm-dsa-payout-pct') : null,
+    fixed_payout: payoutType === 'fixed_per_file' ? numOrNull('bm-fixed-payout') : null,
+  };
+
+  try {
+    const { error } = await db.from('banks').update(payload).eq('id', _editingBankId);
+    if (error) throw error;
+    errEl.style.display = 'none';
+    showBanksFlash('Payout type saved');
+    await loadBanks();
+  } catch(e) {
+    errEl.textContent = 'Save failed: ' + e.message;
+    errEl.style.display = 'block';
+  }
 }
 
 // ══════════════════════════════════════════════════════════════════════════
@@ -376,8 +490,14 @@ function renderROISlabsTable() {
   table.style.display = '';
   empty.style.display = 'none';
 
+  const rateTypeBadge = { fixed: 'badge-blue', floating: 'badge-gray', ev: 'badge-green' };
+  const rateTypeLabel = { fixed: 'Fixed', floating: 'Floating', ev: 'EV' };
+
   tbody.innerHTML = _roiSlabsCache.map(s => {
-    const rate = s.fixed_rate ? s.fixed_rate + '% fixed' : s.floating_rate ? s.floating_rate + '% floating' : '—';
+    const rateVal = s.rate_type === 'floating' ? s.floating_rate : s.fixed_rate;
+    const rate = rateVal != null
+      ? `${rateVal}% <span class="badge ${rateTypeBadge[s.rate_type]||'badge-gray'}" style="margin-left:4px">${rateTypeLabel[s.rate_type]||s.rate_type}</span>`
+      : '—';
     const tenure = (s.min_tenure_mo || s.max_tenure_mo) ? `${s.min_tenure_mo ?? '—'}–${s.max_tenure_mo ?? '—'} mo` : '—';
     return `<tr>
       <td style="font-weight:500">${s.slab_label}</td>
@@ -393,6 +513,15 @@ function renderROISlabsTable() {
   }).join('');
 }
 
+function setROIRateTypeRadio(rateType) {
+  document.querySelectorAll('input[name="roi-rate-type"]').forEach(r => { r.checked = (r.value === (rateType || 'fixed')); });
+}
+
+function getROIRateTypeRadio() {
+  const checked = document.querySelector('input[name="roi-rate-type"]:checked');
+  return checked ? checked.value : 'fixed';
+}
+
 function editROISlab(slabId) {
   const s = _roiSlabsCache.find(x => x.id === slabId);
   if (!s) return;
@@ -400,8 +529,8 @@ function editROISlab(slabId) {
   document.getElementById('roi-label').value = s.slab_label || '';
   document.getElementById('roi-score-min').value = s.score_min ?? '';
   document.getElementById('roi-score-max').value = s.score_max ?? '';
-  document.getElementById('roi-fixed-rate').value = s.fixed_rate ?? '';
-  document.getElementById('roi-floating-rate').value = s.floating_rate ?? '';
+  document.getElementById('roi-rate-value').value = (s.rate_type === 'floating' ? s.floating_rate : s.fixed_rate) ?? '';
+  setROIRateTypeRadio(s.rate_type);
   document.getElementById('roi-min-tenure').value = s.min_tenure_mo ?? '';
   document.getElementById('roi-max-tenure').value = s.max_tenure_mo ?? '';
   document.getElementById('roi-notes').value = s.notes || '';
@@ -416,8 +545,8 @@ function cancelROISlabEdit() {
   document.getElementById('roi-label').value = '';
   document.getElementById('roi-score-min').value = '';
   document.getElementById('roi-score-max').value = '';
-  document.getElementById('roi-fixed-rate').value = '';
-  document.getElementById('roi-floating-rate').value = '';
+  document.getElementById('roi-rate-value').value = '';
+  setROIRateTypeRadio('fixed');
   document.getElementById('roi-min-tenure').value = '';
   document.getElementById('roi-max-tenure').value = '';
   document.getElementById('roi-notes').value = '';
@@ -432,16 +561,16 @@ async function saveROISlab() {
   const label = document.getElementById('roi-label').value.trim();
   const scoreMin = document.getElementById('roi-score-min').value;
   const scoreMax = document.getElementById('roi-score-max').value;
-  const fixedRate = document.getElementById('roi-fixed-rate').value;
-  const floatingRate = document.getElementById('roi-floating-rate').value;
+  const rateValue = document.getElementById('roi-rate-value').value;
+  const rateType = getROIRateTypeRadio();
 
   if (!label || scoreMin === '' || scoreMax === '') {
     errEl.textContent = 'Slab label, CIBIL min, and CIBIL max are required';
     errEl.style.display = 'block';
     return;
   }
-  if (!fixedRate && !floatingRate) {
-    errEl.textContent = 'Enter either a fixed rate or a floating rate';
+  if (rateValue === '') {
+    errEl.textContent = 'Enter a rate %';
     errEl.style.display = 'block';
     return;
   }
@@ -451,8 +580,9 @@ async function saveROISlab() {
     slab_label: label,
     score_min: parseInt(scoreMin),
     score_max: parseInt(scoreMax),
-    fixed_rate: fixedRate !== '' ? parseFloat(fixedRate) : null,
-    floating_rate: floatingRate !== '' ? parseFloat(floatingRate) : null,
+    rate_type: rateType,
+    fixed_rate: rateType !== 'floating' ? parseFloat(rateValue) : null,
+    floating_rate: rateType === 'floating' ? parseFloat(rateValue) : null,
     min_tenure_mo: document.getElementById('roi-min-tenure').value !== '' ? parseInt(document.getElementById('roi-min-tenure').value) : null,
     max_tenure_mo: document.getElementById('roi-max-tenure').value !== '' ? parseInt(document.getElementById('roi-max-tenure').value) : null,
     notes: document.getElementById('roi-notes').value.trim() || null,

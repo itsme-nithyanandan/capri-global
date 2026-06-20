@@ -90,9 +90,22 @@
 
       <div class="card" id="cases-card" style="margin:0;border-radius:var(--radius);flex:1;min-height:0;display:flex;flex-direction:column">
         <div id="cases-scroll-wrap" style="overflow:auto;flex:1;height:100%">
-        <table class="data-table" id="all-cases-table" style="width:100%">
+        <table class="data-table" id="all-cases-table" style="width:100%;table-layout:fixed">
           <thead>
-            <tr><th>Case ID</th><th>Date</th><th>Customer</th><th>Car</th><th>Bank</th><th>Loan (₹)</th><th>Created By</th><th>Reporting To</th><th>CIBIL</th><th>Status</th><th>Payout</th><th>Action</th></tr>
+            <tr>
+              <th style="width:7%">Case ID</th>
+              <th style="width:7%">Date</th>
+              <th style="width:12%">Customer</th>
+              <th style="width:8%">Car</th>
+              <th style="width:6%">Bank</th>
+              <th style="width:7%">Loan (₹)</th>
+              <th style="width:9%">Created By</th>
+              <th style="width:9%">Reporting To</th>
+              <th style="width:5%">CIBIL</th>
+              <th style="width:8%">Status</th>
+              <th style="width:6%">Payout</th>
+              <th style="width:16%;text-align:center">Action</th>
+            </tr>
           </thead>
           <tbody id="all-cases-tbody"></tbody>
         </table>

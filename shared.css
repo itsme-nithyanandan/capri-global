@@ -326,23 +326,9 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);fon
   .filter-bar,.filter-bar *{flex-wrap:wrap}
 }
 
-/* ── CASES TAB FULL HEIGHT ── */
-#tab-cases.on {
-  display: flex !important;
-  flex-direction: column;
-  height: 100%;
-  overflow: hidden;
-}
-#tab-cases > div:last-child {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-  min-height: 0;
-}
+/* ── DATA TABLE BASE STYLES ── */
 .data-table {
   width: 100%;
-  table-layout: auto;
 }
 .data-table thead {
   position: sticky;
@@ -355,68 +341,6 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);fon
   overflow: hidden;
   text-overflow: ellipsis;
   max-width: 180px;
-}
-
-
-
-
-/* ──────────────────────────── */
-
-
-#cases-card {
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
-  flex: 1;
-  min-height: 0;
-}
-#cases-scroll-wrap {
-  flex: 1;
-  overflow: auto;
-  height: 100%;
-}
-
-
-/* ──────────────────────────── */
-
-
-/* Cases tab fills full viewport height */
-.tab-pane.on { display: block; }
-#tab-cases.on { display: flex !important; flex-direction: column; flex: 1; min-height: 0; overflow: hidden; }
-#tab-cases.on {
-  display: flex !important;
-  flex-direction: column;
-  height: calc(100vh - 56px);
-  overflow: hidden;
-}
-#cases-card {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-  min-height: 0;
-}
-#cases-scroll-wrap {
-  flex: 1;
-  overflow: auto;
-  min-height: 0;
-}
-
-
-/* ──────────────────────────── */
-
-
-#tab-cases.on {
-  display: flex !important;
-  flex-direction: column;
-  position: fixed;
-  top: 56px;
-  left: var(--sidebar-w);
-  right: 0;
-  bottom: 0;
-  background: var(--bg);
-  z-index: 10;
-  overflow: hidden;
 }
 #cases-card {
   flex: 1;

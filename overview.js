@@ -4,6 +4,36 @@
 
 // ── DATA (loaded fresh by this module) ───────────────────────────────────────
 const cases=[];
+const caseOrgMap={};
+
+// ── PERIOD PRESETS — fully dynamic based on today's date ─────────────────────
+// Indian Financial Year: Apr 1 → Mar 31
+function pad2(n){ return String(n).padStart(2,'0'); }
+function toISO(y,m,d){ return `${y}-${pad2(m)}-${pad2(d)}`; }
+
+function getCurrentFY(){
+  const today = new Date();
+  const yr    = today.getFullYear();
+  const mo    = today.getMonth() + 1; // 1-based
+  const fyStart = mo >= 4 ? yr : yr - 1;
+  return fyStart;
+}
+
+function buildPeriodRanges(){
+  const fy  = getCurrentFY();
+  const fy2 = fy + 1;
+  return {
+    fy:  { from: toISO(fy,4,1),  to: toISO(fy2,3,31),  label: `FY ${fy}–${String(fy2).slice(2)} (Full year)` },
+    q1:  { from: toISO(fy,4,1),  to: toISO(fy,6,30),   label: `Q1 — Apr–Jun ${fy}` },
+    q2:  { from: toISO(fy,7,1),  to: toISO(fy,9,30),   label: `Q2 — Jul–Sep ${fy}` },
+    q3:  { from: toISO(fy,10,1), to: toISO(fy,12,31),  label: `Q3 — Oct–Dec ${fy}` },
+    q4:  { from: toISO(fy2,1,1), to: toISO(fy2,3,31),  label: `Q4 — Jan–Mar ${fy2}` },
+    h1:  { from: toISO(fy,4,1),  to: toISO(fy,9,30),   label: `H1 — Apr–Sep ${fy}` },
+    h2:  { from: toISO(fy,10,1), to: toISO(fy2,3,31),  label: `H2 — Oct–Mar ${fy2}` },
+  };
+}
+
+let PERIOD_RANGES = buildPeriodRanges();
 
 // ── INIT ──────────────────────────────────────────────────────────────────────
 document.addEventListener('capri:identityReady', async (e) => {
@@ -133,6 +163,23 @@ function onBMChange(){
     rmSel.disabled = false;
   }
   applyDashFilters();
+}
+
+function getFilteredCases(){
+  const bank = document.getElementById('dash-bank-filter')?.value || '';
+  const bm   = document.getElementById('dash-bm-filter')?.value  || '';
+  const rm   = document.getElementById('dash-rm-filter')?.value  || '';
+  const from = document.getElementById('dash-date-from')?.value  || '';
+  const to   = document.getElementById('dash-date-to')?.value    || '';
+  return cases.filter(c=>{
+    if(bank && c.bank !== bank) return false;
+    const org = caseOrgMap[c.id] || {};
+    if(bm && org.bm !== bm) return false;
+    if(rm && org.rm !== rm) return false;
+    if(from && c.date < from) return false;
+    if(to   && c.date > to)   return false;
+    return true;
+  });
 }
 
 function applyDashFilters(){
@@ -333,7 +380,6 @@ function resetDashFilters(){
 }
 
 // ── LOAD LIVE CASES (independent copy — this module has its own iframe scope) ──
-const caseOrgMap={};
 async function loadLiveCases(user) {
   try {
     // Query the view which already has created_by_name and reporting_to_name

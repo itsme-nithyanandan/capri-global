@@ -9,6 +9,7 @@ const cases=[];
 document.addEventListener('capri:identityReady', async (e) => {
   const user = e.detail;
   if (!user) return;
+  await loadOrgHierarchy();
   initOrgFilters();
   initPeriodDropdown();
   await loadLiveCases(user);
@@ -90,6 +91,27 @@ function setPeriod(key){
   }
 
   applyDashFilters();
+}
+
+let orgHierarchy = []; // populated live by loadOrgHierarchy() — no more hardcoded BM/RM names
+
+async function loadOrgHierarchy() {
+  try {
+    const { data: members, error } = await db.from('users')
+      .select('id,name,role,color,reports_to')
+      .eq('active', true)
+      .in('role', ['bm','rm']);
+    if (error) { console.error('Org hierarchy fetch error:', error.message); return; }
+
+    const bms = (members || []).filter(m => m.role === 'bm');
+    orgHierarchy = bms.map(bm => ({
+      bm: { name: bm.name, color: bm.color || '#1A4F3A' },
+      rms: (members || []).filter(r => r.role === 'rm' && r.reports_to === bm.id)
+        .map(r => ({ name: r.name, color: r.color || '#1E40AF' }))
+    }));
+  } catch(e) {
+    console.error('loadOrgHierarchy failed:', e.message);
+  }
 }
 
 function initOrgFilters(){

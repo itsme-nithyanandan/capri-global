@@ -43,6 +43,7 @@ document.addEventListener('capri:identityReady', async (e) => {
   const requestedTab = new URLSearchParams(window.location.search).get('tab') || 'allfiles';
   showNewCarTab(requestedTab);
 
+  await loadOrgHierarchy();
   await loadLiveCases(user);
 });
 loadIdentity();
@@ -51,6 +52,34 @@ loadIdentity();
 const cases=[];
 window.cases = cases; // expose globally — top-level const does NOT auto-attach to window
 const caseOrgMap={}; // legacy — always empty, kept for renderAllCases fallback compatibility
+
+let orgHierarchy = []; // populated live by loadOrgHierarchy() — no more hardcoded BM/RM names
+
+async function loadOrgHierarchy() {
+  try {
+    const { data: members, error } = await db.from('users')
+      .select('id,name,role,color,reports_to')
+      .eq('active', true)
+      .in('role', ['bm','rm']);
+    if (error) { console.error('Org hierarchy fetch error:', error.message); return; }
+
+    const bms = (members || []).filter(m => m.role === 'bm');
+    orgHierarchy = bms.map(bm => ({
+      bm: { name: bm.name, color: bm.color || '#1A4F3A' },
+      rms: (members || []).filter(r => r.role === 'rm' && r.reports_to === bm.id)
+        .map(r => ({ name: r.name, color: r.color || '#1E40AF' }))
+    }));
+
+    // Populate the All Files BM filter dropdown with real names
+    const bmSel = document.getElementById('cases-bm-filter');
+    if (bmSel) {
+      bmSel.innerHTML = '<option value="">All BMs</option>'
+        + orgHierarchy.map(o => `<option>${o.bm.name}</option>`).join('');
+    }
+  } catch(e) {
+    console.error('loadOrgHierarchy failed:', e.message);
+  }
+}
 
 const docTypeMeta = {
   pan:     {label:'PAN',      icon:'ti-id',             color:'#1E40AF'},

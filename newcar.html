@@ -10,11 +10,15 @@
 <style>
   body{display:block;min-height:100vh;padding:20px}
   .fab-new-case{left:24px!important}
+  /* tab-cases needs flex layout (not block) for its internal scroll area —
+     but only once it's actually the active pane, otherwise the inline flex
+     would override .tab-pane{display:none} and show through other tabs. */
+  .nc-cases-pane.on{display:flex!important}
 </style>
 </head>
 <body>
 
-<div class="tab-pane" id="tab-cases" style="display:flex;flex-direction:column;flex:1;min-height:0">
+<div class="tab-pane nc-cases-pane" id="tab-cases" style="flex-direction:column;flex:1;min-height:0">
       <div style="flex-shrink:0">
         <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
           <button onclick="toggleCasesFilter()" id="cases-filter-btn"

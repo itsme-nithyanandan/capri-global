@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Payout Report — Capri Global</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&family=DM+Mono:wght@400;500&family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,500;1,9..144,300&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+<link rel="stylesheet" href="shared.css">
+<style>
+  body{display:block;min-height:100vh;padding:20px}
+</style>
+</head>
+<body>
+
+<div class="g2" style="margin-bottom:18px">
+  <div class="card card-pad">
+    <div class="card-title">Payout Settings</div>
+    <div class="setting-row">
+      <div class="setting-info"><div class="setting-label">Calculation period</div></div>
+      <select class="filter-select" id="report-month-select"></select>
+    </div>
+    <div class="setting-row">
+      <div class="setting-info"><div class="setting-label">Team member</div></div>
+      <select class="filter-select" id="payout-member">
+        <option value="all">All members</option>
+      </select>
+    </div>
+    <div class="setting-row">
+      <div class="setting-info"><div class="setting-label">Include DSA/banker payout</div></div>
+      <div class="tog on" onclick="this.classList.toggle('on');this.querySelector('.tog-k').style.left=this.classList.contains('on')?'18px':'2px'"><div class="tog-k" style="left:18px"></div></div>
+    </div>
+    <div style="margin-top:16px">
+      <button class="btn btn-primary" onclick="calcPayout()"><i class="ti ti-calculator" style="font-size:13px"></i> Calculate payout</button>
+    </div>
+  </div>
+  <div class="card card-pad" id="payout-result">
+    <div class="card-title">Payout Summary</div>
+    <div class="empty-state"><i class="ti ti-calculator"></i><span>Configure settings and calculate to see payout breakdown</span></div>
+  </div>
+</div>
+<div class="card">
+  <div class="card-pad" style="padding-bottom:0">
+    <div class="card-title">Per-Case Payout Breakdown</div>
+  </div>
+  <table class="data-table">
+    <thead><tr><th>Case ID</th><th>Customer</th><th>Bank</th><th>Loan (₹)</th><th>Member</th><th>Team Payout</th><th>DSA Payout</th><th>PDD Status</th><th>Status</th></tr></thead>
+    <tbody id="payout-tbody"><tr><td colspan="9"><div class="empty-state" style="padding:24px"><i class="ti ti-table-off"></i><span>Calculate payout to see case breakdown</span></div></td></tr></tbody>
+  </table>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="shared.js"></script>
+<script src="payout-report.js"></script>
+</body>
+</html>

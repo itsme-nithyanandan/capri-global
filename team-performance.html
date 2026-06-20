@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Team Performance — Capri Global</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&family=DM+Mono:wght@400;500&family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,500;1,9..144,300&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+<link rel="stylesheet" href="shared.css">
+<style>
+  body{display:block;min-height:100vh;padding:20px}
+</style>
+</head>
+<body>
+
+<div class="g4" style="margin-bottom:18px" id="team-kpis">
+  <div class="empty-state" style="padding:24px"><i class="ti ti-loader"></i><span>Loading team performance…</span></div>
+</div>
+
+<div class="g-main" style="margin-bottom:18px">
+  <div class="card card-pad">
+    <div class="card-title">Team Detail</div>
+    <div id="team-detail"></div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="shared.js"></script>
+<script src="team-performance.js"></script>
+</body>
+</html>

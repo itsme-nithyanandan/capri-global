@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Users — Capri Global</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&family=DM+Mono:wght@400;500&family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,500;1,9..144,300&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+<link rel="stylesheet" href="shared.css">
+<style>
+  body{display:block;min-height:100vh;padding:20px}
+</style>
+</head>
+<body>
+
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
+  <div>
+    <div style="font-size:16px;font-weight:600">Users</div>
+    <div style="font-size:12px;color:var(--muted);margin-top:2px">Create users, assign roles and configure tab access</div>
+  </div>
+  <button class="btn btn-primary" onclick="openUserModal()">
+    <i class="ti ti-plus" style="font-size:13px"></i> Add user
+  </button>
+</div>
+
+<div class="card card-pad" style="margin-bottom:20px">
+  <div style="font-size:13px;font-weight:600;margin-bottom:4px">
+    <i class="ti ti-shield-check" style="color:var(--accent);font-size:14px"></i> Role Access Control
+  </div>
+  <div style="font-size:12px;color:var(--muted);margin-bottom:14px">Define which tabs each role can access</div>
+  <div style="overflow-x:auto">
+  <table style="width:100%;border-collapse:collapse;font-size:12px">
+    <thead>
+      <tr style="background:var(--surface2);border-bottom:2px solid var(--border)">
+        <th style="text-align:left;padding:10px 14px;font-weight:600;text-transform:uppercase;font-size:10px;letter-spacing:.05em;color:var(--muted)">Module / Tab</th>
+        <th style="text-align:center;padding:10px 14px;font-weight:700;font-size:11px;color:var(--accent)">City Head</th>
+        <th style="text-align:center;padding:10px 14px;font-weight:700;font-size:11px;color:#1E40AF">Branch Manager</th>
+        <th style="text-align:center;padding:10px 14px;font-weight:700;font-size:11px;color:#5B21B6">Rel. Manager</th>
+      </tr>
+    </thead>
+    <tbody id="access-table-body"></tbody>
+  </table>
+  </div>
+  <div style="margin-top:12px;display:flex;justify-content:flex-end">
+    <button class="btn btn-primary btn-sm" onclick="saveAccessConfig()">
+      <i class="ti ti-device-floppy" style="font-size:12px"></i> Save access config
+    </button>
+  </div>
+</div>
+
+<div id="users-list-container" style="overflow-x:auto">
+  <div style="text-align:center;padding:40px;color:var(--muted)">
+    <i class="ti ti-loader" style="font-size:24px;display:block;margin-bottom:8px"></i>
+    Loading users...
+  </div>
+</div>
+
+<div class="modal-overlay" id="user-modal-overlay" onclick="closeUserModal()" style="display:none">
+  <div class="modal" onclick="event.stopPropagation()" style="max-width:460px;width:100%">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
+      <div style="font-size:15px;font-weight:600" id="user-modal-title">Add User</div>
+      <button onclick="closeUserModal()" style="background:none;border:none;cursor:pointer;font-size:18px;color:var(--muted)"><i class="ti ti-x"></i></button>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:14px">
+      <div>
+        <label style="font-size:11px;font-weight:600;color:var(--muted);display:block;margin-bottom:5px;text-transform:uppercase;letter-spacing:.05em">Full Name</label>
+        <input id="um-name" type="text" placeholder="e.g. Karthik M" class="filter-input" style="width:100%;padding:9px 12px;font-size:13px">
+      </div>
+      <div>
+        <label style="font-size:11px;font-weight:600;color:var(--muted);display:block;margin-bottom:5px;text-transform:uppercase;letter-spacing:.05em">Email</label>
+        <input id="um-email" type="email" placeholder="name@capriglobal.in" class="filter-input" style="width:100%;padding:9px 12px;font-size:13px">
+      </div>
+      <div>
+        <label style="font-size:11px;font-weight:600;color:var(--muted);display:block;margin-bottom:5px;text-transform:uppercase;letter-spacing:.05em">Phone</label>
+        <input id="um-phone" type="tel" placeholder="9876543210" class="filter-input" style="width:100%;padding:9px 12px;font-size:13px">
+      </div>
+      <div>
+        <label style="font-size:11px;font-weight:600;color:var(--muted);display:block;margin-bottom:5px;text-transform:uppercase;letter-spacing:.05em">Role</label>
+        <select id="um-role" class="filter-select" style="width:100%;padding:9px 12px;font-size:13px" onchange="onUserRoleChange()">
+          <option value="">Select role</option>
+          <option value="city_head">City Head</option>
+          <option value="bm">Branch Manager (BM)</option>
+          <option value="rm">Relationship Manager (RM)</option>
+        </select>
+      </div>
+      <div id="um-reports-wrap" style="display:none">
+        <label style="font-size:11px;font-weight:600;color:var(--muted);display:block;margin-bottom:5px;text-transform:uppercase;letter-spacing:.05em">Reports To</label>
+        <select id="um-reports-to" class="filter-select" style="width:100%;padding:9px 12px;font-size:13px">
+          <option value="">Select manager</option>
+        </select>
+      </div>
+      <div id="um-password-wrap">
+        <label style="font-size:11px;font-weight:600;color:var(--muted);display:block;margin-bottom:5px;text-transform:uppercase;letter-spacing:.05em">Password <span style="color:var(--red-text)">*</span></label>
+        <input id="um-password" type="password" placeholder="Min 8 characters" class="filter-input" style="width:100%;padding:9px 12px;font-size:13px">
+        <div style="font-size:11px;color:var(--muted);margin-top:4px">User can change this after first login</div>
+      </div>
+    </div>
+
+    <div id="um-error" style="display:none;margin-top:12px;padding:10px 14px;background:var(--red-bg);border-radius:8px;font-size:12px;color:var(--red-text)"></div>
+
+    <div style="display:flex;gap:10px;margin-top:20px;justify-content:flex-end">
+      <button class="btn" onclick="closeUserModal()">Cancel</button>
+      <button class="btn btn-primary" id="um-save-btn" onclick="saveUser()">
+        <i class="ti ti-check" style="font-size:13px"></i> Create user
+      </button>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="shared.js"></script>
+<script src="users.js"></script>
+</body>
+</html>

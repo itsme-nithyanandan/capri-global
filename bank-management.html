@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bank Management — Capri Global</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&family=DM+Mono:wght@400;500&family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,500;1,9..144,300&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+<link rel="stylesheet" href="shared.css">
+<style>
+  body{display:block;min-height:100vh;padding:20px}
+</style>
+</head>
+<body>
+
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+  <div style="display:flex;gap:8px">
+    <input class="filter-input" id="banks-search" placeholder="Search bank..." style="width:210px" oninput="renderBanks()">
+    <select class="filter-select" id="banks-type-filter" onchange="renderBanks()"><option value="">All types</option><option value="Bank">Bank</option><option value="NBFC">NBFC</option></select>
+  </div>
+  <button class="btn btn-primary btn-sm"><i class="ti ti-plus" style="font-size:12px"></i> Add new bank</button>
+</div>
+<div class="card">
+  <div id="banks-loading" style="padding:32px;text-align:center;color:var(--muted);font-size:13px">
+    <i class="ti ti-loader" style="font-size:24px;display:block;margin-bottom:8px;opacity:.4"></i> Loading banks…
+  </div>
+  <div id="banks-empty" style="display:none;padding:48px 20px;text-align:center">
+    <i class="ti ti-building-bank" style="font-size:36px;display:block;margin-bottom:10px;color:var(--muted2)"></i>
+    <div style="font-size:13px;font-weight:500;color:var(--muted)">No banks configured yet</div>
+    <div style="font-size:12px;color:var(--muted2);margin-top:4px">Add banks in Supabase to see them here</div>
+  </div>
+  <table class="data-table" id="banks-table" style="display:none">
+    <thead><tr><th>Bank / NBFC</th><th>Type</th><th>Min CIBIL</th><th>FOIR %</th><th>LTV %</th><th>Team Payout</th><th>ROI Slab</th><th>Status</th><th>Action</th></tr></thead>
+    <tbody id="banks-tbody"></tbody>
+  </table>
+</div>
+
+<div id="roi-popup" class="roi-popup" style="display:none;position:fixed;z-index:500"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="shared.js"></script>
+<script src="bank-management.js"></script>
+</body>
+</html>

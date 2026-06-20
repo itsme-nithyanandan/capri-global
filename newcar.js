@@ -1030,6 +1030,15 @@ function openPDDUpload(caseId, docType, docLabel, existingDocId) {
   if (input) { input.value = ''; input.click(); }
 }
 
+// Builds the human-readable file name used both for the Storage object key and
+// the `file_name` shown in the UI — e.g. "CPG-167 PAN Card.jpg". Strips
+// characters that aren't safe in a Storage path/URL (keeps letters, numbers,
+// spaces, hyphens) and collapses extra whitespace.
+function buildDocFileName(caseId, docLabel, ext) {
+  const safeLabel = (docLabel || 'Document').replace(/[^\w\s-]/g, ' ').replace(/\s+/g, ' ').trim();
+  return `${caseId} ${safeLabel}.${ext}`;
+}
+
 async function handlePDDFileSelected(event) {
   const file = event.target.files[0];
   if (!file || !_pddUploadTarget) return;
@@ -1044,8 +1053,9 @@ async function handlePDDFileSelected(event) {
   showFlash('Uploading ' + docLabel + '…');
 
   try {
-    const ext = file.name.split('.').pop();
-    const storagePath = `${caseId}/${docType}_${Date.now()}.${ext}`;
+    const ext = (file.name.split('.').pop() || 'bin').toLowerCase();
+    const friendlyName = buildDocFileName(caseId, docLabel, ext);
+    const storagePath = `${caseId}/${friendlyName}`;
 
     const { error: uploadErr } = await db.storage.from('pdd-documents').upload(storagePath, file, { upsert: true });
     if (uploadErr) { console.error('PDD file upload error:', uploadErr.message); showFlash('Upload failed: ' + uploadErr.message); return; }
@@ -1057,7 +1067,7 @@ async function handlePDDFileSelected(event) {
       doc_label: docLabel,
       status: 'Received',
       storage_path: storagePath,
-      file_name: file.name,
+      file_name: friendlyName,
       file_size_kb: Math.round(file.size / 1024),
       uploaded_by: uid,
       uploaded_at: new Date().toISOString(),

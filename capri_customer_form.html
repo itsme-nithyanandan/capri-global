@@ -2425,6 +2425,15 @@ function cardIdForDocLabel(label) {
   return null;
 }
 
+// Builds the human-readable file name used both for the Storage object key and
+// the `documents.file_name` shown in the UI — e.g. "CPG-167 PAN Card.jpg".
+// Strips characters that aren't safe in a Storage path/URL (keeps letters,
+// numbers, spaces, hyphens) and collapses extra whitespace.
+function buildDocFileName(caseId, docLabel, ext) {
+  const safeLabel = (docLabel || 'Document').replace(/[^\w\s-]/g, ' ').replace(/\s+/g, ' ').trim();
+  return `${caseId} ${safeLabel}.${ext}`;
+}
+
 // Renders a previously-saved document (from the `documents` table) onto its
 // card/zone as "already on file" — distinct from a fresh local pick, since
 // there's no in-browser File object for it, only metadata + storage_path.
@@ -2478,7 +2487,8 @@ async function uploadAllDocuments(caseId) {
 
     try {
       const ext = (file.name.split('.').pop() || 'bin').toLowerCase();
-      const storagePath = `${caseId}/${meta.type}_${cardId}_${Date.now()}.${ext}`;
+      const friendlyName = buildDocFileName(caseId, meta.label, ext);
+      const storagePath = `${caseId}/${friendlyName}`;
 
       const { error: uploadErr } = await db.storage.from('Customer_Documets').upload(storagePath, file, { upsert: true });
       if (uploadErr) {
@@ -2492,7 +2502,7 @@ async function uploadAllDocuments(caseId) {
         doc_type: meta.type,
         doc_label: meta.label,
         storage_path: storagePath,
-        file_name: file.name,
+        file_name: friendlyName,
         file_size_kb: Math.round(file.size / 1024),
         mime_type: file.type,
         uploaded_by: uid,

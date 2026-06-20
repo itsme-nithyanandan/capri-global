@@ -8,11 +8,8 @@ const NC_TAB_MAP = { allfiles: 'cases', drafts: 'drafts', assigned: 'assigned', 
 function showNewCarTab(urlTab) {
   const tab = NC_TAB_MAP[urlTab] || 'cases';
   document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('on'));
-  document.querySelectorAll('.nc-tab-btn').forEach(b => b.classList.remove('active'));
   const pane = document.getElementById('tab-' + tab);
   if (pane) pane.classList.add('on');
-  const btn = document.querySelector('.nc-tab-btn[data-tab="' + urlTab + '"]');
-  if (btn) btn.classList.add('active');
 
   if (tab === 'drafts') loadDrafts();
   if (tab === 'pdd') loadPDDQueue();

@@ -8,29 +8,13 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
 <link rel="stylesheet" href="shared.css">
 <style>
-  body{display:block;min-height:100vh}
-  .nc-tabs{display:flex;gap:0;border-bottom:1px solid var(--border);padding:0 20px;background:var(--surface);flex-shrink:0}
-  .nc-tab-btn{padding:13px 18px;font-size:13px;font-weight:500;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;background:none;border-left:none;border-right:none;border-top:none;font-family:inherit;display:flex;align-items:center;gap:6px}
-  .nc-tab-btn:hover{color:var(--text)}
-  .nc-tab-btn.active{color:var(--accent);border-bottom-color:var(--accent);font-weight:600}
-  .nc-page{display:flex;flex-direction:column;height:100vh;overflow:hidden}
-  .nc-content{flex:1;overflow-y:auto;padding:20px}
+  body{display:block;min-height:100vh;padding:20px}
   .fab-new-case{left:24px!important}
 </style>
 </head>
 <body>
 
-<div class="nc-page">
-  <div class="nc-tabs">
-    <button class="nc-tab-btn" data-tab="allfiles" onclick="showNewCarTab('allfiles')"><i class="ti ti-files" style="font-size:14px"></i> All Files</button>
-    <button class="nc-tab-btn" data-tab="drafts" onclick="showNewCarTab('drafts')"><i class="ti ti-pencil" style="font-size:14px"></i> Drafts</button>
-    <button class="nc-tab-btn" data-tab="assigned" onclick="showNewCarTab('assigned')"><i class="ti ti-clipboard-list" style="font-size:14px"></i> Assigned</button>
-    <button class="nc-tab-btn" data-tab="pdd" onclick="showNewCarTab('pdd')"><i class="ti ti-file-certificate" style="font-size:14px"></i> PDD</button>
-  </div>
-
-  <div class="nc-content">
-
-    <div class="tab-pane" id="tab-cases" style="display:flex;flex-direction:column;flex:1;min-height:0">
+<div class="tab-pane" id="tab-cases" style="display:flex;flex-direction:column;flex:1;min-height:0">
       <div style="flex-shrink:0">
         <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
           <button onclick="toggleCasesFilter()" id="cases-filter-btn"
@@ -225,9 +209,6 @@
         </div>
       </div>
     </div>
-
-  </div>
-</div>
 
 <div class="modal-overlay" id="case-detail-modal">
   <div class="wide-modal">

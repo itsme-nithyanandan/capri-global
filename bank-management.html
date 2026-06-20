@@ -16,9 +16,9 @@
 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
   <div style="display:flex;gap:8px">
     <input class="filter-input" id="banks-search" placeholder="Search bank..." style="width:210px" oninput="renderBanks()">
-    <select class="filter-select" id="banks-type-filter" onchange="renderBanks()"><option value="">All types</option><option value="Bank">Bank</option><option value="NBFC">NBFC</option></select>
+    <select class="filter-select" id="banks-type-filter" onchange="renderBanks()"><option value="">All types</option><option value="Bank">Bank</option><option value="NBFC">NBFC</option><option value="PSU">PSU</option></select>
   </div>
-  <button class="btn btn-primary btn-sm"><i class="ti ti-plus" style="font-size:12px"></i> Add new bank</button>
+  <button class="btn btn-primary btn-sm" onclick="openAddBankModal()"><i class="ti ti-plus" style="font-size:12px"></i> Add new bank</button>
 </div>
 <div class="card">
   <div id="banks-loading" style="padding:32px;text-align:center;color:var(--muted);font-size:13px">
@@ -36,6 +36,217 @@
 </div>
 
 <div id="roi-popup" class="roi-popup" style="display:none;position:fixed;z-index:500"></div>
+
+<div class="modal-overlay" id="bank-modal">
+  <div class="wide-modal">
+    <div class="wide-modal-header">
+      <div>
+        <div style="font-weight:600;font-size:14.5px" id="bank-modal-title">Add New Bank</div>
+        <div style="font-size:12px;color:var(--muted);margin-top:2px" id="bank-modal-subtitle">Eligibility, payout, and rate slabs</div>
+      </div>
+      <div style="display:flex;gap:7px;align-items:center">
+        <div class="close-btn" onclick="closeBankModal()"><i class="ti ti-x"></i></div>
+      </div>
+    </div>
+    <div class="wide-modal-body">
+      <div class="itabs">
+        <div class="itab active" id="bm-tab-details" onclick="switchBankModalTab('details')">Bank Details</div>
+        <div class="itab" id="bm-tab-roi" onclick="switchBankModalTab('roi')">ROI Slabs</div>
+        <div class="itab" id="bm-tab-payout" onclick="switchBankModalTab('payout')">Payout Slabs</div>
+      </div>
+
+      <!-- ── DETAILS TAB ── -->
+      <div class="itab-pane on" id="bm-pane-details">
+        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);margin:4px 0 10px">Basic Info</div>
+        <div style="display:grid;grid-template-columns:2fr 1fr 1fr;gap:12px;margin-bottom:14px">
+          <div>
+            <label class="bm-label">Bank / NBFC Name <span style="color:var(--red-text)">*</span></label>
+            <input id="bm-name" class="filter-input" style="width:100%" placeholder="e.g. HDFC Bank">
+          </div>
+          <div>
+            <label class="bm-label">Short Name</label>
+            <input id="bm-short-name" class="filter-input" style="width:100%" placeholder="e.g. HDFC">
+          </div>
+          <div>
+            <label class="bm-label">Type <span style="color:var(--red-text)">*</span></label>
+            <select id="bm-type" class="filter-select" style="width:100%">
+              <option value="Bank">Bank</option>
+              <option value="NBFC">NBFC</option>
+              <option value="PSU">PSU</option>
+            </select>
+          </div>
+        </div>
+
+        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);margin:14px 0 10px">Eligibility Criteria</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:12px;margin-bottom:14px">
+          <div>
+            <label class="bm-label">Min CIBIL</label>
+            <input id="bm-min-cibil" type="number" class="filter-input" style="width:100%" placeholder="700">
+          </div>
+          <div>
+            <label class="bm-label">Min Income (₹/mo)</label>
+            <input id="bm-min-income" type="number" class="filter-input" style="width:100%" placeholder="30000">
+          </div>
+          <div>
+            <label class="bm-label">Max FOIR %</label>
+            <input id="bm-max-foir" type="number" class="filter-input" style="width:100%" placeholder="55">
+          </div>
+          <div>
+            <label class="bm-label">Max LTV %</label>
+            <input id="bm-max-ltv" type="number" class="filter-input" style="width:100%" placeholder="85">
+          </div>
+          <div>
+            <label class="bm-label">Min Tenure (mo)</label>
+            <input id="bm-min-tenure" type="number" class="filter-input" style="width:100%" placeholder="12">
+          </div>
+          <div>
+            <label class="bm-label">Max Tenure (mo)</label>
+            <input id="bm-max-tenure" type="number" class="filter-input" style="width:100%" placeholder="84">
+          </div>
+          <div style="grid-column:span 2">
+            <label class="bm-label">Max Loan Amount (₹)</label>
+            <input id="bm-max-loan" type="number" class="filter-input" style="width:100%" placeholder="Optional — leave blank for no cap">
+          </div>
+        </div>
+
+        <label class="bm-label" style="display:block;margin-bottom:6px">Eligible Employment Types</label>
+        <div style="display:flex;gap:16px;margin-bottom:14px;flex-wrap:wrap">
+          <label style="display:flex;align-items:center;gap:6px;font-size:12.5px;cursor:pointer"><input type="checkbox" id="bm-emp-salaried" checked> Salaried</label>
+          <label style="display:flex;align-items:center;gap:6px;font-size:12.5px;cursor:pointer"><input type="checkbox" id="bm-emp-self" checked> Self-Employed</label>
+          <label style="display:flex;align-items:center;gap:6px;font-size:12.5px;cursor:pointer"><input type="checkbox" id="bm-emp-prof" checked> Professional</label>
+          <label style="display:flex;align-items:center;gap:6px;font-size:12.5px;cursor:pointer"><input type="checkbox" id="bm-emp-pension" checked> Pensioner</label>
+        </div>
+
+        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);margin:14px 0 10px">Payout Configuration</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px">
+          <div>
+            <label class="bm-label">Payout Type</label>
+            <select id="bm-payout-type" class="filter-select" style="width:100%" onchange="onPayoutTypeChange()">
+              <option value="percentage">Percentage of loan</option>
+              <option value="dsa_percentage">DSA percentage</option>
+              <option value="fixed">Fixed amount per file</option>
+            </select>
+          </div>
+          <div>
+            <label class="bm-label" id="bm-payout-value-label">Payout %</label>
+            <input id="bm-payout-value" type="number" class="filter-input" style="width:100%" placeholder="e.g. 1.5">
+          </div>
+        </div>
+
+        <label class="bm-label">Notes</label>
+        <textarea id="bm-notes" class="filter-input" style="width:100%;min-height:60px;resize:vertical;font-family:inherit" placeholder="Internal notes about this lender (optional)"></textarea>
+
+        <div id="bm-error" style="display:none;margin-top:12px;padding:9px 12px;background:var(--red-bg);border-radius:8px;font-size:12px;color:var(--red-text)"></div>
+
+        <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:18px">
+          <button class="btn" onclick="closeBankModal()">Cancel</button>
+          <button class="btn btn-primary" id="bm-save-btn" onclick="saveBankDetails()">Create bank</button>
+        </div>
+      </div>
+
+      <!-- ── ROI SLABS TAB ── -->
+      <div class="itab-pane" id="bm-pane-roi">
+        <div id="bm-roi-locked" style="display:none;padding:24px;text-align:center;color:var(--muted);font-size:12.5px">
+          Save the bank's details first — slabs need a saved bank to attach to.
+        </div>
+        <div id="bm-roi-content">
+          <div style="background:var(--surface2);border-radius:var(--radius-sm);padding:14px;margin-bottom:16px">
+            <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);margin-bottom:10px" id="bm-roi-form-title">Add ROI Slab</div>
+            <div style="display:grid;grid-template-columns:1.4fr .8fr .8fr 1fr 1fr;gap:10px;margin-bottom:10px">
+              <div>
+                <label class="bm-label">Slab Label</label>
+                <input id="roi-label" class="filter-input" style="width:100%" placeholder="e.g. 750+">
+              </div>
+              <div>
+                <label class="bm-label">CIBIL Min</label>
+                <input id="roi-score-min" type="number" class="filter-input" style="width:100%" placeholder="750">
+              </div>
+              <div>
+                <label class="bm-label">CIBIL Max</label>
+                <input id="roi-score-max" type="number" class="filter-input" style="width:100%" placeholder="900">
+              </div>
+              <div>
+                <label class="bm-label">Fixed Rate %</label>
+                <input id="roi-fixed-rate" type="number" step="0.01" class="filter-input" style="width:100%" placeholder="9.5">
+              </div>
+              <div>
+                <label class="bm-label">Floating Rate %</label>
+                <input id="roi-floating-rate" type="number" step="0.01" class="filter-input" style="width:100%" placeholder="Optional">
+              </div>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr 2fr;gap:10px;margin-bottom:10px">
+              <div>
+                <label class="bm-label">Min Tenure (mo)</label>
+                <input id="roi-min-tenure" type="number" class="filter-input" style="width:100%" placeholder="Optional">
+              </div>
+              <div>
+                <label class="bm-label">Max Tenure (mo)</label>
+                <input id="roi-max-tenure" type="number" class="filter-input" style="width:100%" placeholder="Optional">
+              </div>
+              <div>
+                <label class="bm-label">Notes</label>
+                <input id="roi-notes" class="filter-input" style="width:100%" placeholder="Optional">
+              </div>
+            </div>
+            <div id="roi-form-error" style="display:none;margin-bottom:10px;padding:8px 12px;background:var(--red-bg);border-radius:8px;font-size:11px;color:var(--red-text)"></div>
+            <div style="display:flex;gap:8px;justify-content:flex-end">
+              <button class="btn btn-sm" id="roi-cancel-btn" style="display:none" onclick="cancelROISlabEdit()">Cancel</button>
+              <button class="btn btn-sm btn-primary" id="roi-save-btn" onclick="saveROISlab()"><i class="ti ti-plus" style="font-size:11px"></i> Add slab</button>
+            </div>
+          </div>
+
+          <table class="data-table" id="roi-slabs-table">
+            <thead><tr><th>Label</th><th>CIBIL Range</th><th>Rate</th><th>Tenure</th><th>Status</th><th>Action</th></tr></thead>
+            <tbody id="roi-slabs-tbody"></tbody>
+          </table>
+          <div id="roi-slabs-empty" style="display:none;padding:24px;text-align:center;color:var(--muted);font-size:12.5px">No ROI slabs configured for this bank yet</div>
+        </div>
+      </div>
+
+      <!-- ── PAYOUT SLABS TAB ── -->
+      <div class="itab-pane" id="bm-pane-payout">
+        <div id="bm-payout-locked" style="display:none;padding:24px;text-align:center;color:var(--muted);font-size:12.5px">
+          Save the bank's details first — slabs need a saved bank to attach to.
+        </div>
+        <div id="bm-payout-content">
+          <div style="background:var(--surface2);border-radius:var(--radius-sm);padding:14px;margin-bottom:16px">
+            <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);margin-bottom:10px" id="bm-payout-form-title">Add Payout Slab</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:10px">
+              <div>
+                <label class="bm-label">Loan From (₹)</label>
+                <input id="payout-loan-from" type="number" class="filter-input" style="width:100%" placeholder="0">
+              </div>
+              <div>
+                <label class="bm-label">Loan To (₹)</label>
+                <input id="payout-loan-to" type="number" class="filter-input" style="width:100%" placeholder="1000000">
+              </div>
+              <div>
+                <label class="bm-label">Payout %</label>
+                <input id="payout-pct" type="number" step="0.01" class="filter-input" style="width:100%" placeholder="1.5">
+              </div>
+            </div>
+            <div id="payout-form-error" style="display:none;margin-bottom:10px;padding:8px 12px;background:var(--red-bg);border-radius:8px;font-size:11px;color:var(--red-text)"></div>
+            <div style="display:flex;gap:8px;justify-content:flex-end">
+              <button class="btn btn-sm" id="payout-cancel-btn" style="display:none" onclick="cancelPayoutSlabEdit()">Cancel</button>
+              <button class="btn btn-sm btn-primary" id="payout-save-btn" onclick="savePayoutSlab()"><i class="ti ti-plus" style="font-size:11px"></i> Add slab</button>
+            </div>
+          </div>
+
+          <table class="data-table" id="payout-slabs-table">
+            <thead><tr><th>Loan Range (₹)</th><th>Payout %</th><th>Status</th><th>Action</th></tr></thead>
+            <tbody id="payout-slabs-tbody"></tbody>
+          </table>
+          <div id="payout-slabs-empty" style="display:none;padding:24px;text-align:center;color:var(--muted);font-size:12.5px">No payout slabs configured for this bank yet</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<style>
+  .bm-label{font-size:10.5px;font-weight:600;color:var(--muted);display:block;margin-bottom:4px;text-transform:uppercase;letter-spacing:.04em}
+</style>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <script src="shared.js"></script>

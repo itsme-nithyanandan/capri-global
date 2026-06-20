@@ -118,19 +118,30 @@
         </div>
 
         <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);margin:14px 0 10px">Payout Configuration</div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px">
+        <div style="margin-bottom:10px">
+          <label class="bm-label">Payout Type</label>
+          <select id="bm-payout-type" class="filter-select" style="width:220px" onchange="onPayoutTypeChange()">
+            <option value="flat_pct">Flat percentage</option>
+            <option value="fixed_per_file">Fixed amount per file</option>
+            <option value="slab">Slab-based (see Payout Slabs tab)</option>
+          </select>
+        </div>
+        <div id="bm-payout-flat-fields" style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px">
           <div>
-            <label class="bm-label">Payout Type</label>
-            <select id="bm-payout-type" class="filter-select" style="width:100%" onchange="onPayoutTypeChange()">
-              <option value="percentage">Percentage of loan</option>
-              <option value="dsa_percentage">DSA percentage</option>
-              <option value="fixed">Fixed amount per file</option>
-            </select>
+            <label class="bm-label">Team Payout %</label>
+            <input id="bm-payout-pct" type="number" step="0.01" class="filter-input" style="width:100%" placeholder="e.g. 0.45">
           </div>
           <div>
-            <label class="bm-label" id="bm-payout-value-label">Payout %</label>
-            <input id="bm-payout-value" type="number" class="filter-input" style="width:100%" placeholder="e.g. 1.5">
+            <label class="bm-label">DSA Payout %</label>
+            <input id="bm-dsa-payout-pct" type="number" step="0.01" class="filter-input" style="width:100%" placeholder="e.g. 0.25">
           </div>
+        </div>
+        <div id="bm-payout-fixed-fields" style="display:none;margin-bottom:14px">
+          <label class="bm-label">Fixed Payout (₹/file)</label>
+          <input id="bm-fixed-payout" type="number" class="filter-input" style="width:220px" placeholder="e.g. 2000">
+        </div>
+        <div id="bm-payout-slab-note" style="display:none;margin-bottom:14px;padding:10px 12px;background:var(--surface2);border-radius:8px;font-size:12px;color:var(--muted)">
+          Payout for this bank is determined by loan-amount tiers — set them in the <strong>Payout Slabs</strong> tab above.
         </div>
 
         <label class="bm-label">Notes</label>

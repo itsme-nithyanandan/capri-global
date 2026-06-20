@@ -89,8 +89,8 @@ function renderBanks(){
     const idx = banks.indexOf(b);
     let payoutDisplay = '—';
     if (b.fixedPayout) payoutDisplay = '₹'+Number(b.fixedPayout).toLocaleString('en-IN')+'/file';
-    else if (b.dsaPayoutPct) payoutDisplay = b.dsaPayoutPct+'%';
     else if (b.payoutPct) payoutDisplay = b.payoutPct+'%';
+    else if (b.dsaPayoutPct) payoutDisplay = b.dsaPayoutPct+'%';
 
     const hasSlabs = b.slabs && b.slabs.length > 0;
     const topRoi = hasSlabs ? b.slabs[0].roi : '—';
@@ -180,8 +180,10 @@ function openAddBankModal() {
   document.getElementById('bm-emp-self').checked = true;
   document.getElementById('bm-emp-prof').checked = true;
   document.getElementById('bm-emp-pension').checked = true;
-  document.getElementById('bm-payout-type').value = 'percentage';
-  document.getElementById('bm-payout-value').value = '';
+  document.getElementById('bm-payout-type').value = 'flat_pct';
+  document.getElementById('bm-payout-pct').value = '';
+  document.getElementById('bm-dsa-payout-pct').value = '';
+  document.getElementById('bm-fixed-payout').value = '';
   document.getElementById('bm-notes').value = '';
   onPayoutTypeChange();
   document.getElementById('bm-error').style.display = 'none';
@@ -219,12 +221,11 @@ async function openEditBankModal(bankId) {
   document.getElementById('bm-emp-prof').checked = empTypes.includes('professional');
   document.getElementById('bm-emp-pension').checked = empTypes.includes('pensioner');
 
-  const payoutType = b.payout_type || (b.fixed_payout ? 'fixed' : b.dsa_payout_pct ? 'dsa_percentage' : 'percentage');
+  const payoutType = b.payout_type || 'flat_pct';
   document.getElementById('bm-payout-type').value = payoutType;
-  document.getElementById('bm-payout-value').value =
-    payoutType === 'fixed' ? (b.fixed_payout ?? '') :
-    payoutType === 'dsa_percentage' ? (b.dsa_payout_pct ?? '') :
-    (b.payout_pct ?? '');
+  document.getElementById('bm-payout-pct').value = b.payout_pct ?? '';
+  document.getElementById('bm-dsa-payout-pct').value = b.dsa_payout_pct ?? '';
+  document.getElementById('bm-fixed-payout').value = b.fixed_payout ?? '';
   onPayoutTypeChange();
 
   document.getElementById('bm-notes').value = b.notes || '';
@@ -264,18 +265,9 @@ function switchBankModalTab(tab) {
 
 function onPayoutTypeChange() {
   const type = document.getElementById('bm-payout-type').value;
-  const label = document.getElementById('bm-payout-value-label');
-  const input = document.getElementById('bm-payout-value');
-  if (type === 'fixed') {
-    label.textContent = 'Fixed Payout (₹/file)';
-    input.placeholder = 'e.g. 5000';
-  } else if (type === 'dsa_percentage') {
-    label.textContent = 'DSA Payout %';
-    input.placeholder = 'e.g. 1.2';
-  } else {
-    label.textContent = 'Payout %';
-    input.placeholder = 'e.g. 1.5';
-  }
+  document.getElementById('bm-payout-flat-fields').style.display = type === 'flat_pct' ? 'grid' : 'none';
+  document.getElementById('bm-payout-fixed-fields').style.display = type === 'fixed_per_file' ? 'block' : 'none';
+  document.getElementById('bm-payout-slab-note').style.display = type === 'slab' ? 'block' : 'none';
 }
 
 async function saveBankDetails() {
@@ -297,8 +289,6 @@ async function saveBankDetails() {
   if (document.getElementById('bm-emp-pension').checked) empTypes.push('pensioner');
 
   const payoutType = document.getElementById('bm-payout-type').value;
-  const payoutValRaw = document.getElementById('bm-payout-value').value;
-  const payoutVal = payoutValRaw !== '' ? parseFloat(payoutValRaw) : null;
 
   const payload = {
     name,
@@ -313,9 +303,9 @@ async function saveBankDetails() {
     max_loan: numOrNull('bm-max-loan'),
     emp_types: empTypes,
     payout_type: payoutType,
-    payout_pct: payoutType === 'percentage' ? payoutVal : null,
-    dsa_payout_pct: payoutType === 'dsa_percentage' ? payoutVal : null,
-    fixed_payout: payoutType === 'fixed' ? payoutVal : null,
+    payout_pct: payoutType === 'flat_pct' ? numOrNull('bm-payout-pct') : null,
+    dsa_payout_pct: payoutType === 'flat_pct' ? numOrNull('bm-dsa-payout-pct') : null,
+    fixed_payout: payoutType === 'fixed_per_file' ? numOrNull('bm-fixed-payout') : null,
     notes: document.getElementById('bm-notes').value.trim() || null,
   };
 

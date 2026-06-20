@@ -687,6 +687,10 @@ async function loadLiveCases(user) {
 
     // Re-render
     if (typeof renderAllCases === 'function' && document.getElementById('all-cases-tbody')) renderAllCases();
+    // PDD queue is filtered from this same `cases` array, but loadPDDQueue() may have
+    // already run (and bailed into its empty state) before this data arrived — re-run
+    // it now so the PDD tab reflects live cases instead of staying stuck on "empty".
+    if (typeof loadPDDQueue === 'function' && document.getElementById('pdd-queue-wrap')) loadPDDQueue();
 
     console.log('Live cases loaded:', mapped.length);
   } catch(e) { console.error('loadLiveCases error:', e.message); }

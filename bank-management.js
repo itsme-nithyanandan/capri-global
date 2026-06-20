@@ -5,9 +5,11 @@
 let banks=[]; // populated live by loadBanks()
 
 const typeBadge={
-  'Bank':    'badge-blue',
-  'PSU':     'badge-gold',
-  'NBFC':    'badge-purple',
+  'PVT Bank':  'badge-blue',
+  'PSU Bank':  'badge-gold',
+  'NBFC':      'badge-purple',
+  'HFC':       'badge-blue',
+  'Co-op Bank':'badge-gold',
 };
 
 
@@ -303,10 +305,9 @@ function openAddBankModal() {
   document.getElementById('bank-modal-subtitle').textContent = 'Save bank details first, then configure slabs';
   document.getElementById('bm-name').value = '';
   document.getElementById('bm-short-name').value = '';
-  document.getElementById('bm-type').value = 'Bank';
+  document.getElementById('bm-type').value = 'PVT Bank';
   document.getElementById('bm-payout-type').value = 'flat_pct';
   document.getElementById('bm-payout-pct').value = '';
-  document.getElementById('bm-dsa-payout-pct').value = '';
   document.getElementById('bm-fixed-payout').value = '';
   document.getElementById('bm-notes').value = '';
   onPayoutTypeChange();
@@ -330,12 +331,11 @@ async function openEditBankModal(bankId) {
   document.getElementById('bank-modal-subtitle').textContent = 'Payout and rate slabs';
   document.getElementById('bm-name').value = b.name || '';
   document.getElementById('bm-short-name').value = b.short_name || '';
-  document.getElementById('bm-type').value = b.type || 'Bank';
+  document.getElementById('bm-type').value = b.type || 'PVT Bank';
 
   const payoutType = b.payout_type || 'flat_pct';
   document.getElementById('bm-payout-type').value = payoutType;
   document.getElementById('bm-payout-pct').value = b.payout_pct ?? '';
-  document.getElementById('bm-dsa-payout-pct').value = b.dsa_payout_pct ?? '';
   document.getElementById('bm-fixed-payout').value = b.fixed_payout ?? '';
   onPayoutTypeChange();
 
@@ -376,7 +376,7 @@ function switchBankModalTab(tab) {
 
 function onPayoutTypeChange() {
   const type = document.getElementById('bm-payout-type').value;
-  document.getElementById('bm-payout-flat-fields').style.display = type === 'flat_pct' ? 'grid' : 'none';
+  document.getElementById('bm-payout-flat-fields').style.display = type === 'flat_pct' ? 'block' : 'none';
   document.getElementById('bm-payout-fixed-fields').style.display = type === 'fixed_per_file' ? 'block' : 'none';
   document.getElementById('bm-payout-slab-note').style.display = type === 'slab' ? 'block' : 'none';
 }
@@ -445,7 +445,6 @@ async function savePayoutType() {
   const payload = {
     payout_type: payoutType,
     payout_pct: payoutType === 'flat_pct' ? numOrNull('bm-payout-pct') : null,
-    dsa_payout_pct: payoutType === 'flat_pct' ? numOrNull('bm-dsa-payout-pct') : null,
     fixed_payout: payoutType === 'fixed_per_file' ? numOrNull('bm-fixed-payout') : null,
   };
 
@@ -513,13 +512,13 @@ function renderROISlabsTable() {
   }).join('');
 }
 
-function setROIRateTypeRadio(rateType) {
-  document.querySelectorAll('input[name="roi-rate-type"]').forEach(r => { r.checked = (r.value === (rateType || 'fixed')); });
-}
+const RATE_TYPES = ['fixed', 'floating', 'ev'];
 
-function getROIRateTypeRadio() {
-  const checked = document.querySelector('input[name="roi-rate-type"]:checked');
-  return checked ? checked.value : 'fixed';
+function onRateTypeCheckChange() {
+  RATE_TYPES.forEach(t => {
+    const checked = document.getElementById('roi-check-' + t).checked;
+    document.getElementById('roi-rate-' + t + '-wrap').style.display = checked ? 'block' : 'none';
+  });
 }
 
 function editROISlab(slabId) {
@@ -529,8 +528,18 @@ function editROISlab(slabId) {
   document.getElementById('roi-label').value = s.slab_label || '';
   document.getElementById('roi-score-min').value = s.score_min ?? '';
   document.getElementById('roi-score-max').value = s.score_max ?? '';
-  document.getElementById('roi-rate-value').value = (s.rate_type === 'floating' ? s.floating_rate : s.fixed_rate) ?? '';
-  setROIRateTypeRadio(s.rate_type);
+
+  // Editing an existing row only ever represents one rate_type — check just
+  // that one box and fill its value. Checking additional boxes while editing
+  // is still allowed (saveROISlab treats the original type as an update and
+  // any extra checked types as new rows).
+  RATE_TYPES.forEach(t => {
+    document.getElementById('roi-check-' + t).checked = (t === s.rate_type);
+    document.getElementById('roi-rate-' + t).value = '';
+  });
+  document.getElementById('roi-rate-' + s.rate_type).value = (s.rate_type === 'floating' ? s.floating_rate : s.fixed_rate) ?? '';
+  onRateTypeCheckChange();
+
   document.getElementById('roi-min-tenure').value = s.min_tenure_mo ?? '';
   document.getElementById('roi-max-tenure').value = s.max_tenure_mo ?? '';
   document.getElementById('roi-notes').value = s.notes || '';
@@ -545,8 +554,11 @@ function cancelROISlabEdit() {
   document.getElementById('roi-label').value = '';
   document.getElementById('roi-score-min').value = '';
   document.getElementById('roi-score-max').value = '';
-  document.getElementById('roi-rate-value').value = '';
-  setROIRateTypeRadio('fixed');
+  RATE_TYPES.forEach(t => {
+    document.getElementById('roi-check-' + t).checked = false;
+    document.getElementById('roi-rate-' + t).value = '';
+  });
+  onRateTypeCheckChange();
   document.getElementById('roi-min-tenure').value = '';
   document.getElementById('roi-max-tenure').value = '';
   document.getElementById('roi-notes').value = '';
@@ -561,41 +573,61 @@ async function saveROISlab() {
   const label = document.getElementById('roi-label').value.trim();
   const scoreMin = document.getElementById('roi-score-min').value;
   const scoreMax = document.getElementById('roi-score-max').value;
-  const rateValue = document.getElementById('roi-rate-value').value;
-  const rateType = getROIRateTypeRadio();
+  const minTenure = document.getElementById('roi-min-tenure').value !== '' ? parseInt(document.getElementById('roi-min-tenure').value) : null;
+  const maxTenure = document.getElementById('roi-max-tenure').value !== '' ? parseInt(document.getElementById('roi-max-tenure').value) : null;
+  const notes = document.getElementById('roi-notes').value.trim() || null;
 
   if (!label || scoreMin === '' || scoreMax === '') {
     errEl.textContent = 'Slab label, CIBIL min, and CIBIL max are required';
     errEl.style.display = 'block';
     return;
   }
-  if (rateValue === '') {
-    errEl.textContent = 'Enter a rate %';
+
+  // Collect every checked type that also has a rate value filled in.
+  const entries = RATE_TYPES
+    .filter(t => document.getElementById('roi-check-' + t).checked)
+    .map(t => ({ type: t, value: document.getElementById('roi-rate-' + t).value }))
+    .filter(e => e.value !== '');
+
+  if (!entries.length) {
+    errEl.textContent = 'Check at least one rate scheme and enter its rate %';
     errEl.style.display = 'block';
     return;
   }
 
-  const payload = {
+  const basePayload = {
     bank_id: _editingBankId,
     slab_label: label,
     score_min: parseInt(scoreMin),
     score_max: parseInt(scoreMax),
-    rate_type: rateType,
-    fixed_rate: rateType !== 'floating' ? parseFloat(rateValue) : null,
-    floating_rate: rateType === 'floating' ? parseFloat(rateValue) : null,
-    min_tenure_mo: document.getElementById('roi-min-tenure').value !== '' ? parseInt(document.getElementById('roi-min-tenure').value) : null,
-    max_tenure_mo: document.getElementById('roi-max-tenure').value !== '' ? parseInt(document.getElementById('roi-max-tenure').value) : null,
-    notes: document.getElementById('roi-notes').value.trim() || null,
+    min_tenure_mo: minTenure,
+    max_tenure_mo: maxTenure,
+    notes,
   };
 
   try {
-    if (_editingROISlabId) {
-      const { error } = await db.from('bank_rate_slabs').update(payload).eq('id', _editingROISlabId);
-      if (error) throw error;
-    } else {
-      const { error } = await db.from('bank_rate_slabs').insert({ ...payload, active: true });
-      if (error) throw error;
+    // If editing, the original row's rate_type gets updated in place; any
+    // other checked types are inserted as additional new slab rows sharing
+    // the same label/CIBIL range/tenure.
+    const editingSlab = _editingROISlabId ? _roiSlabsCache.find(x => x.id === _editingROISlabId) : null;
+
+    for (const entry of entries) {
+      const rowPayload = {
+        ...basePayload,
+        rate_type: entry.type,
+        fixed_rate: entry.type !== 'floating' ? parseFloat(entry.value) : null,
+        floating_rate: entry.type === 'floating' ? parseFloat(entry.value) : null,
+      };
+
+      if (editingSlab && entry.type === editingSlab.rate_type) {
+        const { error } = await db.from('bank_rate_slabs').update(rowPayload).eq('id', _editingROISlabId);
+        if (error) throw error;
+      } else {
+        const { error } = await db.from('bank_rate_slabs').insert({ ...rowPayload, active: true });
+        if (error) throw error;
+      }
     }
+
     cancelROISlabEdit();
     await loadROISlabsForModal(_editingBankId);
     await loadBanks();

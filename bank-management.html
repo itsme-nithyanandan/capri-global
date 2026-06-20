@@ -16,7 +16,7 @@
 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
   <div style="display:flex;gap:8px">
     <input class="filter-input" id="banks-search" placeholder="Search bank..." style="width:210px" oninput="renderBanks()">
-    <select class="filter-select" id="banks-type-filter" onchange="renderBanks()"><option value="">All types</option><option value="Bank">Bank</option><option value="NBFC">NBFC</option><option value="PSU">PSU</option></select>
+    <select class="filter-select" id="banks-type-filter" onchange="renderBanks()"><option value="">All types</option><option value="PVT Bank">Private Bank</option><option value="PSU Bank">PSU Bank</option><option value="NBFC">NBFC</option><option value="HFC">HFC</option><option value="Co-op Bank">Co-op Bank</option></select>
   </div>
   <button class="btn btn-primary btn-sm" onclick="openAddBankModal()"><i class="ti ti-plus" style="font-size:12px"></i> Add new bank</button>
 </div>
@@ -70,9 +70,11 @@
           <div>
             <label class="bm-label">Type <span style="color:var(--red-text)">*</span></label>
             <select id="bm-type" class="filter-select" style="width:100%">
-              <option value="Bank">Bank</option>
+              <option value="PVT Bank">Private</option>
+              <option value="PSU Bank">PSU Bank</option>
               <option value="NBFC">NBFC</option>
-              <option value="PSU">PSU</option>
+              <option value="HFC">HFC</option>
+              <option value="Co-op Bank">Co-op Bank</option>
             </select>
           </div>
         </div>
@@ -100,7 +102,7 @@
         <div id="bm-roi-content">
           <div style="background:var(--surface2);border-radius:var(--radius-sm);padding:14px;margin-bottom:16px">
             <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);margin-bottom:10px" id="bm-roi-form-title">Add ROI Slab</div>
-            <div style="display:grid;grid-template-columns:1.2fr .7fr .7fr .8fr 1.3fr;gap:10px;margin-bottom:10px">
+            <div style="display:grid;grid-template-columns:1.4fr .8fr .8fr;gap:10px;margin-bottom:10px">
               <div>
                 <label class="bm-label">Slab Label</label>
                 <input id="roi-label" class="filter-input" style="width:100%" placeholder="e.g. 750+">
@@ -113,19 +115,29 @@
                 <label class="bm-label">CIBIL Max</label>
                 <input id="roi-score-max" type="number" class="filter-input" style="width:100%" placeholder="900">
               </div>
-              <div>
-                <label class="bm-label">Rate %</label>
-                <input id="roi-rate-value" type="number" step="0.01" class="filter-input" style="width:100%" placeholder="9.5">
+            </div>
+
+            <label class="bm-label" style="display:block;margin-bottom:6px">Rate Schemes (check all that apply)</label>
+            <div style="display:flex;gap:18px;margin-bottom:10px">
+              <label style="display:flex;align-items:center;gap:6px;font-size:12.5px;cursor:pointer"><input type="checkbox" id="roi-check-fixed" onchange="onRateTypeCheckChange()"> Fixed</label>
+              <label style="display:flex;align-items:center;gap:6px;font-size:12.5px;cursor:pointer"><input type="checkbox" id="roi-check-floating" onchange="onRateTypeCheckChange()"> Floating</label>
+              <label style="display:flex;align-items:center;gap:6px;font-size:12.5px;cursor:pointer"><input type="checkbox" id="roi-check-ev" onchange="onRateTypeCheckChange()"> EV</label>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:10px">
+              <div id="roi-rate-fixed-wrap" style="display:none">
+                <label class="bm-label">Fixed Rate %</label>
+                <input id="roi-rate-fixed" type="number" step="0.01" class="filter-input" style="width:100%" placeholder="9.5">
               </div>
-              <div>
-                <label class="bm-label" style="display:block;margin-bottom:6px">Rate Type</label>
-                <div style="display:flex;gap:10px;padding-top:6px">
-                  <label style="display:flex;align-items:center;gap:5px;font-size:12px;cursor:pointer"><input type="radio" name="roi-rate-type" value="fixed" checked> Fixed</label>
-                  <label style="display:flex;align-items:center;gap:5px;font-size:12px;cursor:pointer"><input type="radio" name="roi-rate-type" value="floating"> Floating</label>
-                  <label style="display:flex;align-items:center;gap:5px;font-size:12px;cursor:pointer"><input type="radio" name="roi-rate-type" value="ev"> EV</label>
-                </div>
+              <div id="roi-rate-floating-wrap" style="display:none">
+                <label class="bm-label">Floating Rate %</label>
+                <input id="roi-rate-floating" type="number" step="0.01" class="filter-input" style="width:100%" placeholder="8.5">
+              </div>
+              <div id="roi-rate-ev-wrap" style="display:none">
+                <label class="bm-label">EV Rate %</label>
+                <input id="roi-rate-ev" type="number" step="0.01" class="filter-input" style="width:100%" placeholder="6.5">
               </div>
             </div>
+
             <div style="display:grid;grid-template-columns:1fr 1fr 2fr;gap:10px;margin-bottom:10px">
               <div>
                 <label class="bm-label">Min Tenure (mo)</label>
@@ -169,15 +181,9 @@
               <option value="slab">Slab-based (use the table below)</option>
             </select>
           </div>
-          <div id="bm-payout-flat-fields" style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
-            <div>
-              <label class="bm-label">Team Payout %</label>
-              <input id="bm-payout-pct" type="number" step="0.01" class="filter-input" style="width:100%" placeholder="e.g. 0.45">
-            </div>
-            <div>
-              <label class="bm-label">DSA Payout %</label>
-              <input id="bm-dsa-payout-pct" type="number" step="0.01" class="filter-input" style="width:100%" placeholder="e.g. 0.25">
-            </div>
+          <div id="bm-payout-flat-fields" style="margin-bottom:12px">
+            <label class="bm-label">Payout %</label>
+            <input id="bm-payout-pct" type="number" step="0.01" class="filter-input" style="width:240px" placeholder="e.g. 0.45">
           </div>
           <div id="bm-payout-fixed-fields" style="display:none;margin-bottom:12px">
             <label class="bm-label">Fixed Payout (₹/file)</label>
@@ -185,10 +191,6 @@
           </div>
           <div id="bm-payout-slab-note" style="display:none;margin-bottom:12px;padding:10px 12px;background:var(--surface2);border-radius:8px;font-size:12px;color:var(--muted)">
             Payout is determined entirely by the loan-amount tiers below.
-          </div>
-          <div id="bm-payout-type-error" style="display:none;margin-bottom:10px;padding:8px 12px;background:var(--red-bg);border-radius:8px;font-size:11px;color:var(--red-text)"></div>
-          <div style="display:flex;justify-content:flex-end;margin-bottom:18px">
-            <button class="btn btn-sm btn-primary" onclick="savePayoutType()"><i class="ti ti-device-floppy" style="font-size:11px"></i> Save payout type</button>
           </div>
 
           <div style="border-top:1px solid var(--border);margin-bottom:16px"></div>
@@ -221,6 +223,11 @@
             <tbody id="payout-slabs-tbody"></tbody>
           </table>
           <div id="payout-slabs-empty" style="display:none;padding:24px;text-align:center;color:var(--muted);font-size:12.5px">No payout slabs configured for this bank yet</div>
+
+          <div id="bm-payout-type-error" style="display:none;margin-top:16px;padding:8px 12px;background:var(--red-bg);border-radius:8px;font-size:11px;color:var(--red-text)"></div>
+          <div style="display:flex;justify-content:flex-end;margin-top:16px">
+            <button class="btn btn-primary" onclick="savePayoutType()"><i class="ti ti-device-floppy" style="font-size:12px"></i> Save payout type</button>
+          </div>
         </div>
       </div>
 

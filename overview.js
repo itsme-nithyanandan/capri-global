@@ -244,6 +244,15 @@ function applyDashFilters(){
     ? '₹'+(disbLoan/10000000).toFixed(2)+' Cr disbursed'
     : '₹'+(disbLoan/100000).toFixed(1)+'L disbursed';
 
+  // ── KPI: PDD Pending — disbursed cases not yet PDD-approved
+  const pddPending = disb.filter(c=>!c.pddApproved);
+  const pddEl = document.getElementById('kpi-pdd-pending');
+  const pddSubEl = document.getElementById('kpi-pdd-pending-sub');
+  if (pddEl) pddEl.textContent = pddPending.length;
+  if (pddSubEl) pddSubEl.textContent = pddPending.length===0
+    ? 'All disbursed cases cleared'
+    : pddPending.length+' case'+(pddPending.length!==1?'s':'')+' awaiting documents/approval';
+
   // ── KPI 5: Rejected
   const rej     = d.filter(c=>c.status==='Rejected');
   const rejLoan = rej.reduce((s,c)=>s+c.loan,0);

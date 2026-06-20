@@ -117,7 +117,7 @@ function renderAllCases(data){
       <td style="font-family:'DM Mono',monospace;font-size:12px;color:var(--green-text);font-weight:600">${c.payout>0?fmt(c.payout):'—'}</td>
       <td style="white-space:nowrap">
         <button class="btn btn-sm" onclick="openCaseDetailModal('${c.id}')"><i class="ti ti-eye" style="font-size:11px"></i> View</button>
-        <button class="btn btn-sm" style="margin-left:4px" onclick="openCaseActionMenu(event,'${c.id}')"><i class="ti ti-edit" style="font-size:11px"></i> Edit</button>
+        ${c.status !== 'Disbursed' ? `<button class="btn btn-sm" style="margin-left:4px" onclick="openCaseActionMenu(event,'${c.id}')"><i class="ti ti-edit" style="font-size:11px"></i> Edit</button>` : ''}
       </td>
     </tr>`;
     }).join('');
@@ -849,6 +849,9 @@ async function loadPDDQueue() {
   try {
     const disbursedCases = cases.filter(c => c.status === 'Disbursed');
     if (loading) loading.style.display = 'none';
+
+    const pendingCount = disbursedCases.filter(c => !c.pddApproved).length;
+    notifyBadgeCount('pdd', pendingCount);
 
     if (!disbursedCases.length) {
       if (empty) empty.style.display = 'block';

@@ -65,7 +65,44 @@ function toggleNavGroup(key) {
   if (!isOpen) {
     sub.classList.add('open');
     if (header) header.classList.add('open');
+    // Populate All Files / Drafts / PDD badges the moment the group opens,
+    // rather than waiting for each sub-tab to actually be visited at least once.
+    if (key === 'newcar') refreshNewCarBadges();
   }
+}
+
+function setNavBadge(id, count) {
+  const badge = document.getElementById(id);
+  if (!badge) return;
+  badge.textContent = count;
+  badge.style.display = count > 0 ? '' : 'none';
+}
+
+// Queries Supabase directly from the shell (not via the iframe, which may not
+// even be loaded yet) so the New Car badges reflect live data as soon as the
+// dropdown is opened, independent of which sub-tabs have actually been visited.
+async function refreshNewCarBadges() {
+  const user = window.currentLoggedInUser;
+  if (!user || typeof db === 'undefined') return;
+
+  try {
+    let q = db.from('cases_with_names').select('id,status,pdd_approved').neq('status', 'Draft');
+    if (user.role === 'bm') q = q.or('created_by.eq.' + user.id + ',bm_id.eq.' + user.id);
+    else if (user.role === 'rm') q = q.eq('created_by', user.id);
+    const { data: liveCases, error } = await q;
+    if (error) { console.error('refreshNewCarBadges cases fetch failed:', error.message); }
+    else if (liveCases) {
+      setNavBadge('nav-cases-badge', liveCases.length);
+      const pddPending = liveCases.filter(c => c.status === 'Disbursed' && !c.pdd_approved).length;
+      setNavBadge('pdd-nav-badge', pddPending);
+    }
+  } catch(e) { console.error('refreshNewCarBadges cases/pdd error:', e.message); }
+
+  try {
+    const { data: drafts, error } = await db.from('case_drafts').select('id');
+    if (error) { console.error('refreshNewCarBadges drafts fetch failed:', error.message); }
+    else if (drafts) setNavBadge('drafts-nav-badge', drafts.length);
+  } catch(e) { console.error('refreshNewCarBadges drafts error:', e.message); }
 }
 
 // ── MOBILE SIDEBAR ────────────────────────────────────────────────────────────
@@ -102,7 +139,6 @@ function buildTopbarRight() {
   const topbarRight = document.getElementById('topbar-right');
   if (!topbarRight) return;
   topbarRight.innerHTML = `
-    <div class="icon-btn" title="Search" style="position:relative"><i class="ti ti-search"></i></div>
     <div style="position:relative" id="avatar-menu-wrap">
       <button id="topbar-avatar-btn" onclick="toggleAvatarMenu()"
         style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,var(--gold),var(--gold-light));border:2px solid rgba(200,168,82,.4);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#1A1814;cursor:pointer">··</button>
@@ -173,7 +209,7 @@ window.addEventListener('message', (e) => {
 
   if (msg.type === 'badge-update') {
     const { navKey, count } = msg.payload || {};
-    const badgeMap = { drafts: 'drafts-nav-badge', cases: 'nav-cases-badge' };
+    const badgeMap = { drafts: 'drafts-nav-badge', cases: 'nav-cases-badge', pdd: 'pdd-nav-badge' };
     const badgeId = badgeMap[navKey];
     if (!badgeId) return;
     const badge = document.getElementById(badgeId);

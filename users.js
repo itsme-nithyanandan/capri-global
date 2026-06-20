@@ -17,6 +17,20 @@ const accessConfig = {
   settings:  { city_head:true, bm:false, rm:false },
 };
 
+const tabLabels = {
+  dashboard: 'Dashboard',
+  cases:     'Cases (All Files)',
+  team:      'Team Performance',
+  members:   'Team Members',
+  rto:       'RTO',
+  payout:    'Payout Report',
+  reports:   'Reports',
+  banks:     'Bank Management',
+  branches:  'Branch Directory',
+  ai:        'AI Settings',
+  settings:  'System Settings',
+};
+
 function renderAccessTable() {
   const tbody = document.getElementById('access-table-body');
   if (!tbody) return;
@@ -408,9 +422,19 @@ async function toggleUserActive(userId, currentActive) {
 document.addEventListener('capri:identityReady', async (e) => {
   const user = e.detail;
   if (!user) return;
-  renderAccessTable();
-  await loadAccessConfig();
-  renderAccessTable();
-  await loadUsersTab();
+
+  try {
+    renderAccessTable();
+    await loadAccessConfig();
+    renderAccessTable();
+  } catch(err) {
+    console.error('Role access table init failed:', err.message);
+  }
+
+  try {
+    await loadUsersTab();
+  } catch(err) {
+    console.error('Users list init failed:', err.message);
+  }
 });
 loadIdentity();

@@ -1,6 +1,10 @@
 // ══════════════════════════════════════════════════════════════════════════
 // USER-CONFIGURATION.JS — Role-based tab/module access control
 //
+// Backed by the `role_module_access` table (one row per role + module_key),
+// not a JSON blob — this is what shared.js's applyRoleRestrictions() reads
+// to actually hide/show nav items, via each nav element's data-module-key.
+//
 // Row order mirrors the actual sidebar nav in dashboard.html (Overview →
 // Products → Info). Users/User Configuration themselves are intentionally
 // excluded — they're already hardcoded to City Head (+ BM for Users) in the
@@ -29,7 +33,9 @@ const MODULE_META = {
   settings:  { label: 'System Settings' },
 };
 
-// ── MUTABLE PERMISSION STATE — what actually gets saved/loaded ──────────────
+// ── MUTABLE PERMISSION STATE — defaults shown until loadAccessConfig() pulls
+// the real values from role_module_access; also the shape saveAccessConfig()
+// writes back from. ───────────────────────────────────────────────────────
 const accessConfig = {
   dashboard: { city_head:true, bm:true,  rm:true  },
   payout:    { city_head:true, bm:true,  rm:false },
@@ -75,35 +81,38 @@ function renderAccessTable() {
 
 async function saveAccessConfig() {
   try {
-    const { error } = await db.from('system_settings')
-      .upsert({ key: 'role_access_config', value: JSON.stringify(accessConfig) }, { onConflict: 'key' });
+    const uid = (window.currentLoggedInUser && window.currentLoggedInUser.id) || null;
+    const now = new Date().toISOString();
+    const rows = [];
+    Object.entries(accessConfig).forEach(([moduleKey, roles]) => {
+      ['city_head', 'bm', 'rm'].forEach(role => {
+        rows.push({ role, module_key: moduleKey, can_access: !!roles[role], updated_by: uid, updated_at: now });
+      });
+    });
+
+    const { error } = await db.from('role_module_access')
+      .upsert(rows, { onConflict: 'role,module_key' });
     if (error) throw error;
+
     showConfigFlash('Access config saved');
   } catch(e) {
-    // Fallback to localStorage
-    localStorage.setItem('capri_access_config', JSON.stringify(accessConfig));
-    showConfigFlash('Saved locally');
+    console.error('saveAccessConfig failed:', e.message);
+    showConfigFlash('Save failed: ' + e.message, true);
   }
 }
 
 async function loadAccessConfig() {
   try {
-    const { data } = await db.from('system_settings').select('value').eq('key','role_access_config').single();
-    if (data?.value) {
-      const saved = JSON.parse(data.value);
-      Object.keys(saved).forEach(tab => {
-        if (accessConfig[tab]) Object.assign(accessConfig[tab], saved[tab]);
-      });
-    }
+    const { data, error } = await db.from('role_module_access').select('role,module_key,can_access');
+    if (error) throw error;
+
+    (data || []).forEach(row => {
+      const mod = accessConfig[row.module_key];
+      if (mod && row.role in mod) mod[row.role] = row.can_access;
+    });
   } catch(e) {
-    // Try localStorage fallback
-    const local = localStorage.getItem('capri_access_config');
-    if (local) {
-      const saved = JSON.parse(local);
-      Object.keys(saved).forEach(tab => {
-        if (accessConfig[tab]) Object.assign(accessConfig[tab], saved[tab]);
-      });
-    }
+    console.error('loadAccessConfig failed:', e.message);
+    showConfigFlash('Could not load saved config — showing defaults', true);
   }
 }
 

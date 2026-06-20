@@ -98,14 +98,37 @@ function loadIdentity() {
 }
 
 // ── ROLE-BASED VISIBILITY HELPER ──────────────────────────────────────────────
-// Modules can call this with a list of CSS selectors to hide for bm/rm roles,
-// matching the same restriction pattern used in the shell's sidebar.
-function applyRoleRestrictions(role) {
-  const hideForBM = ['Bank Management', 'AI Settings', 'System Settings', 'User Configuration'];
-  const hideForRM = ['Bank Management', 'AI Settings', 'System Settings', 'User Configuration', 'Users', 'Team Performance', 'Payout Report', 'Reports'];
-  const toHide = role === 'bm' ? hideForBM : role === 'rm' ? hideForRM : [];
-  if (!toHide.length) return;
-  document.querySelectorAll('[data-role-restrict]').forEach(el => {
-    if (toHide.some(t => (el.dataset.roleRestrict || '').includes(t))) el.style.display = 'none';
-  });
+// Two layers of restriction:
+// 1. A small static list for Users / User Configuration — these are
+//    deliberately excluded from the DB-driven table below (see
+//    user-configuration.js for why), so they stay hardcoded here.
+// 2. Everything else is driven by the `role_module_access` table, matched
+//    against each nav element's `data-module-key` attribute. This is what
+//    the "User Configuration" page's checkboxes actually control.
+async function applyRoleRestrictions(role) {
+  const hideForBM = ['User Configuration'];
+  const hideForRM = ['User Configuration', 'Users'];
+  const staticHide = role === 'bm' ? hideForBM : role === 'rm' ? hideForRM : [];
+  if (staticHide.length) {
+    document.querySelectorAll('[data-role-restrict]').forEach(el => {
+      if (staticHide.some(t => (el.dataset.roleRestrict || '').includes(t))) el.style.display = 'none';
+    });
+  }
+
+  // City Head always sees every DB-driven module too — nothing further to check.
+  if (role !== 'bm' && role !== 'rm') return;
+
+  try {
+    const { data, error } = await db.from('role_module_access')
+      .select('module_key,can_access')
+      .eq('role', role);
+    if (error) { console.error('Role module access fetch error:', error.message); return; }
+
+    const denied = new Set((data || []).filter(r => r.can_access === false).map(r => r.module_key));
+    document.querySelectorAll('[data-module-key]').forEach(el => {
+      if (denied.has(el.dataset.moduleKey)) el.style.display = 'none';
+    });
+  } catch(e) {
+    console.error('applyRoleRestrictions DB lookup failed:', e.message);
+  }
 }

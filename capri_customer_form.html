@@ -1527,6 +1527,26 @@ async function loadCaseForEdit(caseId) {
 
     restoreFormData(data);
 
+    // Load any documents already saved against this case, and mark the
+    // matching card/zone as "on file" instead of leaving it at "Tap to upload"
+    // — covers the static doc types in DOC_TYPE_MAP (PAN, Aadhaar, DL, etc.);
+    // dynamic salary-slip/Form16/ITR slots aren't restored here yet.
+    try {
+      const { data: docs, error: docsErr } = await db.from('documents').select('*').eq('case_id', caseId);
+      if (docsErr) {
+        console.error('Could not load existing documents for edit:', docsErr.message);
+      } else {
+        (docs || []).forEach(doc => {
+          const cardId = cardIdForDocLabel(doc.doc_label);
+          if (!cardId) return; // dynamic slot doc, or unrecognized label — skip
+          savedDocs[cardId] = doc;
+          markCardAsSaved(cardId, doc);
+        });
+      }
+    } catch(docsLoadErr) {
+      console.error('loadCaseForEdit document load failed:', docsLoadErr.message);
+    }
+
     const _dt = document.getElementById('draft-time');
     if(_dt) _dt.textContent = caseId + ' · Editing';
 
@@ -1765,7 +1785,17 @@ function injectUZActions(el, id, title) {
 
 function openUZLightbox(id) {
   const file = uploadedFiles[id];
-  if (!file) return;
+  if (!file) {
+    const saved = savedDocs[id];
+    if (saved && saved.storage_path) {
+      const { data } = db.storage.from('Customer_Documets').getPublicUrl(saved.storage_path);
+      if (data && data.publicUrl) window.open(data.publicUrl, '_blank');
+      else showFlash('Could not open document', true);
+    } else {
+      showFlash('No file to preview', true);
+    }
+    return;
+  }
   if (file.type === 'application/pdf') {
     const url = URL.createObjectURL(file);
     window.open(url, '_blank');
@@ -2383,6 +2413,48 @@ const DOC_TYPE_MAP = {
   'uz-co':    { type: 'other',   label: 'Co-applicant Statement' },
 };
 
+// Reverse lookup: a saved `documents` row only carries doc_label/doc_type, so when
+// re-opening Edit we need to map it back to the specific card/zone id that should
+// show as "already on file". Only covers the static cards above — the dynamic
+// salary-slip/Form16/ITR slots aren't restored yet since their labels depend on
+// slot config (month/FY) chosen at upload time, not a fixed id.
+function cardIdForDocLabel(label) {
+  for (const [cardId, meta] of Object.entries(DOC_TYPE_MAP)) {
+    if (meta.label === label) return cardId;
+  }
+  return null;
+}
+
+// Renders a previously-saved document (from the `documents` table) onto its
+// card/zone as "already on file" — distinct from a fresh local pick, since
+// there's no in-browser File object for it, only metadata + storage_path.
+function markCardAsSaved(cardId, doc) {
+  const el = document.getElementById(cardId);
+  if (!el) return;
+  el.classList.add('uploaded');
+
+  const sizeText = doc.file_size_kb ? doc.file_size_kb + ' KB · on file' : 'On file';
+
+  if (el.classList.contains('doc-card')) {
+    const titleEl = el.querySelector('.doc-card-title');
+    const subEl   = el.querySelector('.doc-card-sub');
+    const iconEl  = el.querySelector('.doc-card-top .uz-icon');
+    if (titleEl) titleEl.textContent = doc.file_name || 'Document on file';
+    if (subEl)   subEl.textContent   = sizeText;
+    if (iconEl)  iconEl.className    = 'ti ti-circle-check uz-icon';
+    if (cardId === 'dc-af' || cardId === 'dc-ab') showAadhaarBack();
+    if (cardId === 'dc-dl' || cardId === 'dc-dlb') showDLBack();
+  } else if (el.classList.contains('upload-zone')) {
+    const titleEl = el.querySelector('.uz-title');
+    const subEl   = el.querySelector('.uz-sub');
+    const iconEl  = el.querySelector('.uz-icon');
+    if (titleEl) titleEl.textContent = doc.file_name || 'Document on file';
+    if (subEl)   subEl.textContent   = sizeText;
+    if (iconEl)  iconEl.className    = 'ti ti-circle-check uz-icon';
+    injectUZActions(el, cardId, doc.doc_label || '');
+  }
+}
+
 async function uploadAllDocuments(caseId) {
   const cardIds = Object.keys(uploadedFiles);
   if (!cardIds.length) return; // nothing selected — fine, documents are optional at save time
@@ -2415,7 +2487,7 @@ async function uploadAllDocuments(caseId) {
         continue;
       }
 
-      const { error: insertErr } = await db.from('documents').insert({
+      const rowPayload = {
         case_id: caseId,
         doc_type: meta.type,
         doc_label: meta.label,
@@ -2425,7 +2497,19 @@ async function uploadAllDocuments(caseId) {
         mime_type: file.type,
         uploaded_by: uid,
         uploaded_at: new Date().toISOString()
-      });
+      };
+
+      // If this card already had a saved document (editing an existing case),
+      // update that row instead of inserting a second one for the same doc.
+      const existing = savedDocs[cardId];
+      let insertErr, savedRow;
+      if (existing && existing.id) {
+        const { data, error } = await db.from('documents').update(rowPayload).eq('id', existing.id).select().single();
+        insertErr = error; savedRow = data;
+      } else {
+        const { data, error } = await db.from('documents').insert(rowPayload).select().single();
+        insertErr = error; savedRow = data;
+      }
       if (insertErr) {
         console.error('Document row insert failed for', cardId, ':', insertErr.message);
         failCount++;
@@ -2444,6 +2528,7 @@ async function uploadAllDocuments(caseId) {
         });
       } catch(auditErr) { console.error('Audit log write failed for document upload:', auditErr.message); }
 
+      savedDocs[cardId] = savedRow;
       successCount++;
     } catch(e) {
       console.error('uploadAllDocuments failed for', cardId, ':', e.message);
@@ -2452,8 +2537,12 @@ async function uploadAllDocuments(caseId) {
   }
 
   console.log('Document upload complete:', successCount, 'succeeded,', failCount, 'failed');
-  if (failCount > 0) {
-    showFlash(failCount + ' document(s) failed to upload — case was still submitted');
+  if (failCount > 0 && successCount > 0) {
+    showFlash(successCount + ' document(s) uploaded, ' + failCount + ' failed — check and retry', true);
+  } else if (failCount > 0) {
+    showFlash(failCount + ' document(s) failed to upload — case was still submitted', true);
+  } else if (successCount > 0) {
+    showFlash(successCount + ' document(s) uploaded successfully');
   }
 }
 
@@ -2469,6 +2558,11 @@ const DOC_SAMPLES = {
 
 // Store selected files in memory per card
 const uploadedFiles = {};
+
+// Existing `documents` rows for the case being edited, keyed by card id —
+// populated by loadCaseForEdit() so already-uploaded docs show as such
+// instead of resetting to "Tap to upload" every time Edit is reopened.
+const savedDocs = {};
 
 // Capture each uz-* zone's original icon/title/sub text once at load, so
 // removeUZDoc() can restore the exact placeholder state later.
@@ -2566,7 +2660,17 @@ function hideDLBack() {
 // Lightbox
 function openLightbox(cardId) {
   const file = uploadedFiles[cardId];
-  if (!file) return;
+  if (!file) {
+    const saved = savedDocs[cardId];
+    if (saved && saved.storage_path) {
+      const { data } = db.storage.from('Customer_Documets').getPublicUrl(saved.storage_path);
+      if (data && data.publicUrl) window.open(data.publicUrl, '_blank');
+      else showFlash('Could not open document', true);
+    } else {
+      showFlash('No file to preview', true);
+    }
+    return;
+  }
 
   // PDFs: open in a new tab so the browser's native PDF viewer renders it
   if (file.type === 'application/pdf') {

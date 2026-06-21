@@ -559,11 +559,6 @@ input[data-aadhaar]{font-family:'DM Mono',monospace;letter-spacing:.1em}
             </div>
           </div>
         </div>
-
-        <div class="alert alert-info show" style="margin-top:10px">
-          <i class="ti ti-cpu"></i>
-          <div>Engine auto-reads name and DOB from all uploaded documents and cross-verifies with manually entered details. Any mismatch is flagged before submission.</div>
-        </div>
       </div>
 
       <!-- PERMANENT ADDRESS -->
@@ -674,7 +669,7 @@ input[data-aadhaar]{font-family:'DM Mono',monospace;letter-spacing:.1em}
           <div class="doc-card-top" onclick="triggerUpload('dc-perf','perf-sample.jpg','Performa uploaded ✓')">
             <i class="ti ti-file-invoice uz-icon"></i>
             <div class="doc-card-title">Tap to upload performa invoice</div>
-            <div class="doc-card-sub">PDF · JPG · PNG · Max 5MB — engine auto-reads on-road price &amp; car model</div>
+            <div class="doc-card-sub">PDF · JPG · PNG · Max 5MB</div>
           </div>
           <div class="doc-card-actions">
             <button class="doc-action-btn view" onclick="openLightbox('dc-perf')"><i class="ti ti-eye" style="font-size:13px"></i> Preview</button>
@@ -736,14 +731,23 @@ input[data-aadhaar]{font-family:'DM Mono',monospace;letter-spacing:.1em}
             <span class="field-hint">Auto = On road price − Loan amount</span>
           </div>
         </div>
-        <div class="field" style="max-width:230px">
-          <label>Preferred tenure</label>
-          <select id="v-tenure">
-            <option value="">Select</option>
-            <option value="12">12 months</option><option value="24">24 months</option><option value="36">36 months</option>
-            <option value="48">48 months</option><option value="60" selected>60 months</option>
-            <option value="72">72 months</option><option value="84">84 months</option>
-          </select>
+        <div class="g2" style="max-width:480px">
+          <div class="field">
+            <label>Preferred tenure</label>
+            <select id="v-tenure">
+              <option value="">Select</option>
+              <option value="12">12 months</option><option value="24">24 months</option><option value="36">36 months</option>
+              <option value="48">48 months</option><option value="60" selected>60 months</option>
+              <option value="72">72 months</option><option value="84">84 months</option>
+              <option value="96">96 months</option><option value="108">108 months</option><option value="120">120 months</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>&nbsp;</label>
+            <button type="button" onclick="openShareModal()" style="width:100%;padding:9px 12px;border-radius:var(--r-sm);border:1px solid var(--accent);background:var(--green-bg);color:var(--accent);font-family:inherit;font-size:13px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:5px;white-space:nowrap;transition:all .15s" title="Share CIBIL request with customer">
+              <i class="ti ti-share" style="font-size:14px"></i> Get CIBIL
+            </button>
+          </div>
         </div>
 
         <!-- BANK & BRANCH popup — shown after CIBIL ≥ 650 -->
@@ -995,10 +999,11 @@ input[data-aadhaar]{font-family:'DM Mono',monospace;letter-spacing:.1em}
           <div class="uz-title">Click to upload PDF bank statement</div>
           <div class="uz-sub">PDF only · Max 10MB · Password-protected accepted</div>
         </div>
-        <div class="alert alert-info show" style="margin-top:10px">
-          <i class="ti ti-info-circle"></i>
-          <div>If customer has multiple accounts, upload each separately. Engine consolidates income across all accounts.</div>
-        </div>
+        <div id="extra-bank-stmts"></div>
+        <button type="button" class="btn-add-slot" onclick="addBankStatementSlot()" style="margin-top:10px;background:none;border:1px dashed var(--border2);border-radius:var(--r-sm);padding:9px 14px;font-family:inherit;font-size:12.5px;font-weight:500;color:var(--accent);cursor:pointer;display:flex;align-items:center;gap:6px">
+          <i class="ti ti-plus" style="font-size:13px"></i> Add another bank statement
+        </button>
+        <div class="field-hint" style="margin-top:8px">If the customer has more than one bank account, upload each statement separately.</div>
       </div>
 
       <div class="form-panel">
@@ -1012,13 +1017,8 @@ input[data-aadhaar]{font-family:'DM Mono',monospace;letter-spacing:.1em}
           </div>
           <div class="field">
             <label>CIBIL score</label>
-            <div style="display:flex;gap:8px;align-items:flex-start">
-              <input type="number" id="v-cibil" placeholder="e.g. 750" min="300" max="900" oninput="onCibilInput(this.value)" style="flex:1">
-              <button type="button" onclick="openShareModal()" style="flex-shrink:0;padding:9px 12px;border-radius:var(--r-sm);border:1px solid var(--accent);background:var(--green-bg);color:var(--accent);font-family:inherit;font-size:12px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:5px;white-space:nowrap;transition:all .15s" title="Share CIBIL request with customer">
-                <i class="ti ti-share" style="font-size:14px"></i> Get CIBIL
-              </button>
-            </div>
-            <span class="field-hint">Enter score or use the button to request from customer</span>
+            <input type="number" id="v-cibil" placeholder="e.g. 750" min="300" max="900" oninput="onCibilInput(this.value)">
+            <span class="field-hint">Use the "Get CIBIL" button near Preferred tenure to request it from the customer</span>
           </div>
           <div class="field">
             <label>Report date</label>
@@ -1028,47 +1028,22 @@ input[data-aadhaar]{font-family:'DM Mono',monospace;letter-spacing:.1em}
         <div class="upload-zone" id="uz-cic" onclick="simulateCIC()">
           <i class="ti ti-report-analytics uz-icon"></i>
           <div class="uz-title">Click to upload CIC report (PDF)</div>
-          <div class="uz-sub">PDF only · Max 10MB — engine auto-extracts all loan accounts, EMIs and flags risk keywords</div>
-        </div>
-
-        <!-- CIC result — shown after upload -->
-        <div id="cic-result" style="display:none;margin-top:14px">
-          <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:12px">
-            <div class="ltv-card"><div class="ltv-card-label">Total accounts</div><div class="ltv-card-val">6</div></div>
-            <div class="ltv-card"><div class="ltv-card-label">Active EMIs</div><div class="ltv-card-val" style="color:var(--amber-txt)">3</div></div>
-            <div class="ltv-card"><div class="ltv-card-label">Total EMI/month</div><div class="ltv-card-val" style="font-size:14px">₹46,500</div></div>
-            <div class="ltv-card"><div class="ltv-card-label">Flagged</div><div class="ltv-card-val" style="color:var(--red-txt)">2</div></div>
-          </div>
-          <div class="alert alert-warn show" style="margin-bottom:10px">
-            <i class="ti ti-alert-triangle"></i>
-            <div><strong>2 risk keywords detected</strong> — Bajaj Finance: Written Off &nbsp;·&nbsp; Tata Capital: Settlement. Most banks will reject on these flags. Discuss with city head before submitting.</div>
-          </div>
-          <div style="overflow-x:auto">
-            <table style="width:100%;border-collapse:collapse;font-size:12px">
-              <thead>
-                <tr style="background:var(--surface2)">
-                  <th style="padding:7px 10px;border-bottom:1px solid var(--border);text-align:left;font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em">#</th>
-                  <th style="padding:7px 10px;border-bottom:1px solid var(--border);text-align:left;font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em">Lender</th>
-                  <th style="padding:7px 10px;border-bottom:1px solid var(--border);text-align:left;font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em">Type</th>
-                  <th style="padding:7px 10px;border-bottom:1px solid var(--border);text-align:left;font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em">Sanctioned</th>
-                  <th style="padding:7px 10px;border-bottom:1px solid var(--border);text-align:left;font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em">Outstanding</th>
-                  <th style="padding:7px 10px;border-bottom:1px solid var(--border);text-align:left;font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em">EMI/mo</th>
-                  <th style="padding:7px 10px;border-bottom:1px solid var(--border);text-align:left;font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em">Flag</th>
-                </tr>
-              </thead>
-              <tbody id="cic-tbody"></tbody>
-            </table>
-          </div>
+          <div class="uz-sub">PDF only · Max 10MB</div>
         </div>
       </div>
 
       <!-- FOIR MATCHER -->
       <div class="form-panel" id="foir-panel" style="display:none">
         <div class="panel-title"><i class="ti ti-adjustments"></i> FOIR matcher — per preferred bank</div>
-        <div class="g2" style="margin-bottom:14px;max-width:420px">
+        <div class="field-hint" style="margin-bottom:12px">Review the uploaded CIC report and enter the customer's existing EMI total below.</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:14px;max-width:620px">
           <div class="field">
             <label>Net monthly income (₹)</label>
             <input type="number" id="foir-income" placeholder="From Section 3" oninput="runFOIR()">
+          </div>
+          <div class="field">
+            <label>Existing EMI total (₹/month)</label>
+            <input type="number" id="foir-existing-emi" placeholder="From CIC report" oninput="runFOIR()">
           </div>
           <div class="field">
             <label>Preferred bank</label>
@@ -1643,14 +1618,6 @@ const BANKS_FOIR = [
   {n:'Cholamandalam',limit:70},
 ];
 
-const CIC_DATA = [
-  {lender:'HDFC Bank',    type:'Home Loan',   sanctioned:3500000, outstanding:2100000, emi:32000, status:'Active',  flag:''},
-  {lender:'Bajaj Finance',type:'Personal Loan',sanctioned:200000,  outstanding:0,       emi:0,     status:'Closed',  flag:'Written Off'},
-  {lender:'ICICI Bank',   type:'Credit Card', sanctioned:150000,  outstanding:45000,   emi:5000,  status:'Active',  flag:''},
-  {lender:'Tata Capital', type:'Consumer',    sanctioned:80000,   outstanding:0,       emi:0,     status:'Closed',  flag:'Settlement'},
-  {lender:'Axis Bank',    type:'Auto Loan',   sanctioned:450000,  outstanding:180000,  emi:9500,  status:'Active',  flag:''},
-];
-
 const fmt = n => '₹' + Number(Math.round(n)).toLocaleString('en-IN');
 
 // ── MANDATORY FIELDS PER SECTION ────────────────────────────────────────────
@@ -1768,6 +1735,41 @@ function markUpload(id, title, sub) {
   document.body.appendChild(input);
   input.click();
   setTimeout(() => document.body.removeChild(input), 1000);
+}
+
+// Builds an upload-zone-style row for an additional bank statement, beyond
+// the primary one (uz-stmt). Number of statements is open-ended — there's
+// no upfront count selector like the salary-slip/Form16/ITR slots use.
+let _extraStmtCount = 0;
+
+function addBankStatementSlot() {
+  _extraStmtCount++;
+  const n = _extraStmtCount + 1; // uz-stmt is implicitly statement #1
+  const key = 'stmt-' + n;
+  const container = document.getElementById('extra-bank-stmts');
+
+  const row = document.createElement('div');
+  row.className = 'upload-zone';
+  row.id = key;
+  row.style.marginTop = '10px';
+  row.style.position = 'relative';
+  row.innerHTML = `
+    <div class="slot-icon-btn remove" onclick="event.stopPropagation();removeBankStatementSlot('${key}')" title="Remove this statement" style="position:absolute;top:8px;right:8px;z-index:2">
+      <i class="ti ti-x" style="font-size:13px"></i>
+    </div>
+    <i class="ti ti-upload uz-icon"></i>
+    <div class="uz-title">Click to upload bank statement ${n}</div>
+    <div class="uz-sub">PDF only · Max 10MB · Password-protected accepted</div>
+  `;
+  row.onclick = (e) => { if (e.target.closest('.slot-icon-btn')) return; markUpload(key, 'Bank statement ' + n + ' uploaded ✓', 'Click to replace'); };
+  container.appendChild(row);
+}
+
+function removeBankStatementSlot(key) {
+  delete uploadedFiles[key];
+  delete savedDocs[key];
+  const row = document.getElementById(key);
+  if (row) row.remove();
 }
 
 // Adds a Preview / Replace / Remove button row to a uz-* zone after upload,
@@ -2093,36 +2095,18 @@ function simulateCIC() {
     const subEl = el.querySelector('.uz-sub');
     if (icon) icon.className = 'ti ti-circle-check uz-icon';
     if (titleEl) titleEl.textContent = file.name;
-    if (subEl) subEl.textContent = (file.size/1024).toFixed(0) + ' KB · analysing';
+    if (subEl) subEl.textContent = (file.size/1024).toFixed(0) + ' KB';
     injectUZActions(el, 'uz-cic', 'CIC report uploaded ✓');
-    showFlash('CIC report uploaded — analysing');
-    showCICAnalysis();
+    showFlash('CIC report uploaded');
+    showFOIRPanel();
   };
   document.body.appendChild(input);
   input.click();
   setTimeout(() => document.body.removeChild(input), 1000);
 }
 
-function showCICAnalysis() {
-  document.getElementById('cic-result').style.display = 'block';
+function showFOIRPanel() {
   document.getElementById('foir-panel').style.display = 'block';
-
-  const tbody = document.getElementById('cic-tbody');
-  tbody.innerHTML = CIC_DATA.map((r, i) => {
-    let flagHtml = '<span style="font-size:11px;padding:2px 8px;border-radius:10px;background:var(--green-bg);color:var(--green-txt);font-weight:500">Clean</span>';
-    if (r.flag === 'Written Off') flagHtml = '<span style="font-size:11px;padding:2px 8px;border-radius:10px;background:var(--red-bg);color:var(--red-txt);font-weight:500">⚠ Written Off</span>';
-    else if (r.flag === 'Settlement') flagHtml = '<span style="font-size:11px;padding:2px 8px;border-radius:10px;background:var(--amber-bg);color:var(--amber-txt);font-weight:500">⚠ Settlement</span>';
-    const bg = i % 2 === 0 ? '' : 'background:var(--surface2)';
-    return `<tr style="${bg}">
-      <td style="padding:8px 10px;border-bottom:1px solid var(--border);font-weight:500">${r.lender}</td>
-      <td style="padding:8px 10px;border-bottom:1px solid var(--border);color:var(--muted)">${r.type}</td>
-      <td style="padding:8px 10px;border-bottom:1px solid var(--border);font-family:'DM Mono',monospace">${fmt(r.sanctioned)}</td>
-      <td style="padding:8px 10px;border-bottom:1px solid var(--border);font-family:'DM Mono',monospace">${r.outstanding > 0 ? fmt(r.outstanding) : 'Nil'}</td>
-      <td style="padding:8px 10px;border-bottom:1px solid var(--border);font-family:'DM Mono',monospace">${r.emi > 0 ? fmt(r.emi) : '—'}</td>
-      <td style="padding:8px 10px;border-bottom:1px solid var(--border)">${flagHtml}</td>
-    </tr>`;
-  }).join('');
-
   // pre-fill FOIR income from section 3
   const inc = document.getElementById('inc-net')?.value;
   if (inc) document.getElementById('foir-income').value = inc;
@@ -2130,11 +2114,13 @@ function showCICAnalysis() {
 }
 
 // ── FOIR MATCHER ──────────────────────────────────────────────────────────────
+// Existing EMI total is entered manually by the RM/BM after reviewing the
+// uploaded CIC report — there's no automated extraction.
 function runFOIR() {
-  const income = parseFloat(document.getElementById('foir-income').value) || 0;
-  const pref   = document.getElementById('foir-bank').value;
+  const income   = parseFloat(document.getElementById('foir-income').value) || 0;
+  const totalEMI = parseFloat(document.getElementById('foir-existing-emi').value) || 0;
+  const pref     = document.getElementById('foir-bank').value;
   if (!income) { document.getElementById('foir-results').innerHTML = '<div style="font-size:12px;color:var(--muted);padding:10px">Enter net monthly income above to see FOIR results.</div>'; return; }
-  const totalEMI = CIC_DATA.filter(r => r.status === 'Active').reduce((s, r) => s + r.emi, 0);
   const foirPct  = Math.round((totalEMI / income) * 100);
   const banks = pref === 'all' ? BANKS_FOIR : BANKS_FOIR.filter(b => b.n === pref);
   document.getElementById('foir-results').innerHTML = `
@@ -2181,18 +2167,72 @@ function populateSummary() {
   document.getElementById('s-income').textContent  = inc !== '—' ? '₹' + Number(inc).toLocaleString('en-IN') : '—';
   document.getElementById('s-cibil').textContent   = g('v-cibil');
 
-  const uploadedDocs = [
-    ['uz-pan','PAN card'],['uz-af','Aadhaar front'],['uz-ab','Aadhaar back'],
-    ['uz-dl','Driving license'],['uz-stmt','Bank statement'],['uz-cic','CIC report'],
-    ['uz-perf','Performa invoice'],
-  ];
-  document.getElementById('s-docs').innerHTML = uploadedDocs.map(([id, label]) => {
+  const empType = g('emp-type');
+  const rows = [];
+
+  const addDocRow = (id, label) => {
     const uploaded = document.getElementById(id)?.classList.contains('uploaded');
-    return `<div class="summary-row">
+    rows.push(`<div class="summary-row">
       <span class="summary-key">${label}</span>
       <span class="summary-val" style="color:${uploaded?'var(--green-txt)':'var(--muted)'}">${uploaded?'✓ Uploaded':'Not uploaded'}</span>
-    </div>`;
-  }).join('');
+    </div>`);
+  };
+
+  const addCountRow = (label, done, total) => {
+    const ok = total > 0 && done === total;
+    rows.push(`<div class="summary-row">
+      <span class="summary-key">${label}</span>
+      <span class="summary-val" style="color:${ok?'var(--green-txt)':total>0?'var(--amber-txt)':'var(--muted)'}">${total>0 ? done+' of '+total+' uploaded' : 'Not uploaded'}</span>
+    </div>`);
+  };
+
+  // Always-relevant KYC/vehicle documents
+  addDocRow('dc-pan', 'PAN card');
+  addDocRow('dc-af', 'Aadhaar front');
+  addDocRow('dc-ab', 'Aadhaar back');
+  addDocRow('dc-dl', 'DL front');
+  addDocRow('dc-dlb', 'DL back');
+  addDocRow('dc-perf', 'Performa invoice');
+
+  // Employment-type-specific documents — only shown if actually relevant
+  if (empType === 'sal') {
+    const n = parseInt(document.getElementById('slip-n')?.value) || 0;
+    const from = parseInt(document.getElementById('slip-from')?.value) || 0;
+    let done = 0;
+    for (let i = 0; i < n; i++) if (slotDone['sl-' + (from + i)]) done++;
+    addCountRow('Salary slips', done, n);
+
+    const fn = parseInt(document.getElementById('f16-n')?.value) || 0;
+    const ffrom = parseInt(document.getElementById('f16-from')?.value) || 0;
+    let fdone = 0;
+    for (let i = 0; i < fn; i++) if (slotDone['f16-' + (ffrom + i)]) fdone++;
+    addCountRow('Form 16', fdone, fn);
+
+    addDocRow('uz-cid-f', 'Company ID front');
+    addDocRow('uz-cid-b', 'Company ID back');
+  }
+  if (empType === 'self' || empType === 'prof') {
+    const n = parseInt(document.getElementById('itr-n')?.value) || 0;
+    const from = parseInt(document.getElementById('itr-from')?.value) || 0;
+    let done = 0;
+    for (let i = 0; i < n; i++) if (slotDone['itr-' + (from + i)]) done++;
+    addCountRow('ITR', done, n);
+
+    addDocRow('uz-gst', 'GST returns');
+  }
+
+  // Bank statements — the primary zone plus any added via "Add another"
+  const stmtIds = ['uz-stmt', ...Array.from(document.querySelectorAll('#extra-bank-stmts .upload-zone')).map(el => el.id)];
+  const stmtDone = stmtIds.filter(id => document.getElementById(id)?.classList.contains('uploaded')).length;
+  addCountRow('Bank statement(s)', stmtDone, stmtIds.length);
+
+  addDocRow('uz-cic', 'CIC report');
+
+  if (document.getElementById('co-chk')?.checked) {
+    addDocRow('uz-co', 'Co-applicant statement');
+  }
+
+  document.getElementById('s-docs').innerHTML = rows.join('');
 }
 
 // ── DRAFT SAVE ────────────────────────────────────────────────────────────────
@@ -2496,6 +2536,7 @@ async function uploadAllDocuments(caseId) {
       if (cardId.startsWith('sl-'))  meta = { type: 'salary',  label: 'Salary Slip — ' + (slotLabelFor(cardId) || cardId) };
       else if (cardId.startsWith('f16-')) meta = { type: 'form16', label: 'Form 16 — ' + (slotLabelFor(cardId) || cardId) };
       else if (cardId.startsWith('itr-')) meta = { type: 'itr',    label: 'ITR — ' + (slotLabelFor(cardId) || cardId) };
+      else if (cardId.startsWith('stmt-')) meta = { type: 'bank', label: 'Bank Statement ' + cardId.split('-')[1] };
       else meta = { type: 'other', label: cardId };
     }
 

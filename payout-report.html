@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Payout Report — Capri Global</title>
+<title>Payout — Capri Global</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&family=DM+Mono:wght@400;500&family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,500;1,9..144,300&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
 <link rel="stylesheet" href="shared.css">
@@ -13,39 +13,43 @@
 </head>
 <body>
 
-<div class="g2" style="margin-bottom:18px">
-  <div class="card card-pad">
-    <div class="card-title">Payout Settings</div>
-    <div class="setting-row">
-      <div class="setting-info"><div class="setting-label">Calculation period</div></div>
-      <select class="filter-select" id="report-month-select"></select>
-    </div>
-    <div class="setting-row">
-      <div class="setting-info"><div class="setting-label">Team member</div></div>
-      <select class="filter-select" id="payout-member">
-        <option value="all">All members</option>
-      </select>
-    </div>
-    <div class="setting-row">
-      <div class="setting-info"><div class="setting-label">Include DSA/banker payout</div></div>
-      <div class="tog on" onclick="this.classList.toggle('on');this.querySelector('.tog-k').style.left=this.classList.contains('on')?'18px':'2px'"><div class="tog-k" style="left:18px"></div></div>
-    </div>
-    <div style="margin-top:16px">
-      <button class="btn btn-primary" onclick="calcPayout()"><i class="ti ti-calculator" style="font-size:13px"></i> Calculate payout</button>
-    </div>
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+  <div>
+    <div style="font-size:16px;font-weight:600">Payout</div>
+    <div style="font-size:12px;color:var(--muted);margin-top:2px">Payout earned on disbursed cases, by bank payout %</div>
   </div>
-  <div class="card card-pad" id="payout-result">
-    <div class="card-title">Payout Summary</div>
-    <div class="empty-state"><i class="ti ti-calculator"></i><span>Configure settings and calculate to see payout breakdown</span></div>
+  <button class="btn btn-sm" onclick="exportPayoutCSV()"><i class="ti ti-download" style="font-size:12px"></i> Export CSV</button>
+</div>
+
+<div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap">
+  <input class="filter-input" id="payout-search" placeholder="Search case ID, customer..." style="width:220px" oninput="renderPayoutTable()">
+  <select class="filter-select" id="payout-period" onchange="renderPayoutTable()"></select>
+  <select class="filter-select" id="payout-member" onchange="renderPayoutTable()"><option value="all">All members</option></select>
+  <button class="btn btn-sm" onclick="resetPayoutFilters()"><i class="ti ti-refresh" style="font-size:12px"></i> Reset</button>
+</div>
+
+<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:18px">
+  <div class="kpi" style="padding:14px 16px">
+    <div class="kpi-label">Disbursed cases</div>
+    <div class="kpi-value" style="font-size:22px" id="kpi-case-count">—</div>
+  </div>
+  <div class="kpi" style="padding:14px 16px">
+    <div class="kpi-label">Total disbursed amount</div>
+    <div class="kpi-value" style="font-size:20px" id="kpi-disbursed-total">—</div>
+  </div>
+  <div class="kpi" style="padding:14px 16px;border-color:var(--green-border)">
+    <div class="kpi-label">Total payout</div>
+    <div class="kpi-value" style="font-size:20px;color:var(--green-text)" id="kpi-payout-total">—</div>
   </div>
 </div>
+
 <div class="card">
-  <div class="card-pad" style="padding-bottom:0">
-    <div class="card-title">Per-Case Payout Breakdown</div>
-  </div>
   <table class="data-table">
-    <thead><tr><th>Case ID</th><th>Customer</th><th>Bank</th><th>Loan (₹)</th><th>Member</th><th>Team Payout</th><th>DSA Payout</th><th>PDD Status</th><th>Status</th></tr></thead>
-    <tbody id="payout-tbody"><tr><td colspan="9"><div class="empty-state" style="padding:24px"><i class="ti ti-table-off"></i><span>Calculate payout to see case breakdown</span></div></td></tr></tbody>
+    <thead><tr>
+      <th>Case ID</th><th>Customer</th><th>Bank</th><th>Member</th>
+      <th>Disbursed Amount</th><th>Payout %</th><th>Payout Amount</th>
+    </tr></thead>
+    <tbody id="payout-tbody"><tr><td colspan="7"><div class="empty-state" style="padding:24px"><i class="ti ti-table-off"></i><span>Loading...</span></div></td></tr></tbody>
   </table>
 </div>
 

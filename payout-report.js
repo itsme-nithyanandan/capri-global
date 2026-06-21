@@ -1,12 +1,19 @@
 // ══════════════════════════════════════════════════════════════════════════
-// PAYOUT-REPORT.JS
+// PAYOUT-REPORT.JS — "Payout" module
+//
+// Payout amount = disbursed amount × the bank's payout config, full stop.
+// Only Disbursed cases are shown — payout isn't real until disbursal happens.
+//
+//   flat_pct        → disbursed_amount × payout_pct (the bank's "team" %)
+//   fixed_per_file  → a flat ₹ amount per file, regardless of loan size
+//   slab            → looked up from bank_payout_slabs by disbursed amount
 // ══════════════════════════════════════════════════════════════════════════
 
-const cases=[];
-const caseOrgMap={};
-let teamMembers=[]; // populated live by loadTeamMembersForPayout() — no more hardcoded names
+const cases = [];
+let teamMembers = [];
+let banksById = {};          // bankId -> { name, payout_type, payout_pct, fixed_payout }
+let payoutSlabsByBank = {};  // bankId -> [{ loan_from, loan_to, payout_pct }]
 
-// ── LOAD REAL TEAM MEMBERS (replaces hardcoded Anand R / Priya S / Karthik M / Divya L) ──
 async function loadTeamMembersForPayout() {
   try {
     const { data: members, error } = await db.from('users')
@@ -27,143 +34,206 @@ async function loadTeamMembersForPayout() {
   }
 }
 
-function calcPayout(){
-  const member=document.getElementById('payout-member').value;
-  const filtered=member==='all'?cases:cases.filter(c=>c.member===member);
-  const disbursed=filtered.filter(c=>c.status==='Disbursed'||c.status==='Sanctioned');
-  const total=disbursed.reduce((s,c)=>s+c.payout,0);
-  const totalLoan=disbursed.reduce((s,c)=>s+c.loan,0);
+async function loadBanksForPayout() {
+  try {
+    const { data, error } = await db.from('banks').select('id,name,payout_type,payout_pct,fixed_payout').eq('active', true);
+    if (error) throw error;
+    banksById = {};
+    (data || []).forEach(b => { banksById[b.id] = b; });
+  } catch(e) {
+    console.error('loadBanksForPayout failed:', e.message);
+  }
 
-  document.getElementById('payout-result').innerHTML=`
-    <div class="card-title">Payout Summary</div>
-    <div class="g2" style="margin-bottom:14px">
-      <div class="kpi" style="padding:14px 16px"><div class="kpi-label">Disbursed/Sanctioned</div><div class="kpi-value" style="font-size:24px">${disbursed.length}</div></div>
-      <div class="kpi" style="padding:14px 16px;border-color:var(--green-border)"><div class="kpi-label">Total Payout</div><div class="kpi-value" style="font-size:20px;color:var(--green-text)">${fmt(total)}</div></div>
-    </div>
-    <div style="font-size:12px;color:var(--muted);margin-bottom:10px">Loan book: <strong style="color:var(--text)">${fmt(totalLoan)}</strong></div>
-    ${teamMembers.map(m=>{
-      const mCases=disbursed.filter(c=>c.member===m.name);
-      const mPay=mCases.reduce((s,c)=>s+c.payout,0);
-      if(member!=='all'&&m.name!==member)return '';
-      if(mCases.length===0)return '';
-      return `<div class="payout-row">
-        <div class="avatar" style="background:${m.color};width:22px;height:22px;font-size:9px">${initials(m.name)}</div>
-        <div class="payout-bank">${m.name} · ${mCases.length} files</div>
-        <div class="payout-amt">${fmt(mPay)}</div>
-      </div>`;
-    }).join('')}
-    <div style="margin-top:14px;display:flex;gap:7px">
-      <button class="btn btn-primary btn-sm"><i class="ti ti-download" style="font-size:12px"></i> Download statement</button>
-      <button class="btn btn-sm"><i class="ti ti-brand-whatsapp" style="font-size:12px"></i> Send via WhatsApp</button>
-    </div>
-  `;
+  try {
+    const { data, error } = await db.from('bank_payout_slabs').select('bank_id,loan_from,loan_to,payout_pct').eq('active', true);
+    if (error) throw error;
+    payoutSlabsByBank = {};
+    (data || []).forEach(s => {
+      if (!payoutSlabsByBank[s.bank_id]) payoutSlabsByBank[s.bank_id] = [];
+      payoutSlabsByBank[s.bank_id].push(s);
+    });
+  } catch(e) {
+    console.error('loadPayoutSlabsForPayout failed:', e.message);
+  }
+}
 
-  document.getElementById('payout-tbody').innerHTML=disbursed.map(c=>{
-    let pddCell = '<span style="font-size:11px;color:var(--muted2)">—</span>';
-    if (c.status === 'Disbursed') {
-      pddCell = c.pddApproved
-        ? '<span class="badge badge-green" style="font-size:10px"><i class="ti ti-check" style="font-size:9px"></i> Cleared</span>'
-        : '<span class="badge badge-amber" style="font-size:10px"><i class="ti ti-lock" style="font-size:9px"></i> PDD Hold</span>';
-    }
-    return `<tr>
-    <td style="font-family:'DM Mono',monospace;font-size:11px">${c.id}</td>
-    <td style="font-weight:500">${c.cust}</td>
-    <td>${c.bank}</td>
-    <td style="font-family:'DM Mono',monospace;font-size:12px">${fmt(c.loan)}</td>
-    <td>${c.member}</td>
-    <td style="font-family:'DM Mono',monospace;color:var(--green-text);font-weight:600">${fmt(c.payout)}</td>
-    <td style="font-family:'DM Mono',monospace;color:var(--muted)">${fmt(Math.round(c.payout*0.6))}</td>
-    <td>${pddCell}</td>
-    <td><span class="badge ${statusColor(c.status)}">${c.status}</span></td>
-  </tr>`;
-  }).join('');
+// Resolves the payout % label and the actual payout amount for one case,
+// based on its bank's configured payout_type.
+function computePayoutForCase(c) {
+  const disbursedAmt = c.disbursedAmount || c.loan || 0;
+  const bank = c.bankId ? banksById[c.bankId] : null;
+
+  if (!bank) return { disbursedAmt, pctLabel: 'No bank set', amount: 0 };
+
+  if (bank.payout_type === 'fixed_per_file') {
+    const amt = parseFloat(bank.fixed_payout) || 0;
+    return { disbursedAmt, pctLabel: 'Fixed ' + fmt(amt), amount: amt };
+  }
+
+  if (bank.payout_type === 'slab') {
+    const slabs = payoutSlabsByBank[c.bankId] || [];
+    const match = slabs.find(s => disbursedAmt >= parseFloat(s.loan_from) && disbursedAmt <= parseFloat(s.loan_to));
+    if (!match) return { disbursedAmt, pctLabel: 'No matching slab', amount: 0 };
+    const pct = parseFloat(match.payout_pct) || 0;
+    return { disbursedAmt, pctLabel: pct + '%', amount: disbursedAmt * pct / 100 };
+  }
+
+  // flat_pct (default/fallback)
+  const pct = parseFloat(bank.payout_pct) || 0;
+  return { disbursedAmt, pctLabel: pct + '%', amount: disbursedAmt * pct / 100 };
+}
+
+// Cases only count toward payout once disbursed, PDD-approved, and tied to
+// a bank that's still marked Active in Bank Management — an inactive bank
+// won't be in banksById at all, since loadBanksForPayout() only fetches
+// active ones.
+function getFilteredPayoutRows() {
+  const q      = (document.getElementById('payout-search')?.value || '').toLowerCase().trim();
+  const period = document.getElementById('payout-period')?.value || '';
+  const member = document.getElementById('payout-member')?.value || 'all';
+
+  let rows = cases.filter(c => c.status === 'Disbursed' && c.pddApproved && c.bankId && banksById[c.bankId]);
+
+  if (member !== 'all') rows = rows.filter(c => c.member === member);
+  if (period) rows = rows.filter(c => (c.disbursedDate || '').startsWith(period));
+  if (q) rows = rows.filter(c => c.id.toLowerCase().includes(q) || (c.cust || '').toLowerCase().includes(q));
+  return rows;
+}
+
+function renderPayoutTable() {
+  const rows = getFilteredPayoutRows();
+  const computed = rows.map(c => ({ c, p: computePayoutForCase(c) }));
+
+  const caseCount     = computed.length;
+  const disbursedTotal = computed.reduce((s, x) => s + x.p.disbursedAmt, 0);
+  const payoutTotal    = computed.reduce((s, x) => s + x.p.amount, 0);
+
+  document.getElementById('kpi-case-count').textContent     = caseCount;
+  document.getElementById('kpi-disbursed-total').textContent = fmt(disbursedTotal);
+  document.getElementById('kpi-payout-total').textContent    = fmt(payoutTotal);
+
+  const tbody = document.getElementById('payout-tbody');
+  if (!computed.length) {
+    tbody.innerHTML = '<tr><td colspan="7"><div class="empty-state" style="padding:24px"><i class="ti ti-table-off"></i><span>No payable cases — needs Disbursed + PDD approved + an active bank</span></div></td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = computed.map(({ c, p }) => `
+    <tr>
+      <td style="font-family:'DM Mono',monospace;font-size:11px">${c.id}</td>
+      <td style="font-weight:500">${c.cust}</td>
+      <td>${c.bank}</td>
+      <td>${c.member}</td>
+      <td style="font-family:'DM Mono',monospace;font-size:12px">${fmt(p.disbursedAmt)}</td>
+      <td style="font-family:'DM Mono',monospace;font-size:12px;color:var(--muted)">${p.pctLabel}</td>
+      <td style="font-family:'DM Mono',monospace;font-weight:600;color:var(--green-text)">${fmt(p.amount)}</td>
+    </tr>`).join('');
+}
+
+function resetPayoutFilters() {
+  document.getElementById('payout-search').value = '';
+  document.getElementById('payout-period').value = '';
+  document.getElementById('payout-member').value = 'all';
+  renderPayoutTable();
+}
+
+function exportPayoutCSV() {
+  const rows = getFilteredPayoutRows();
+
+  const computed = rows.map(c => ({ c, p: computePayoutForCase(c) }));
+  if (!computed.length) { showPayoutFlash('Nothing to export with current filters', true); return; }
+
+  const header = ['Case ID','Customer','Bank','Member','Disbursed Amount','Payout %','Payout Amount'];
+  const lines = [header.join(',')];
+  computed.forEach(({ c, p }) => {
+    lines.push([
+      c.id, `"${(c.cust||'').replace(/"/g,'""')}"`, `"${(c.bank||'').replace(/"/g,'""')}"`, `"${(c.member||'').replace(/"/g,'""')}"`,
+      p.disbursedAmt, `"${p.pctLabel}"`, Math.round(p.amount)
+    ].join(','));
+  });
+
+  const blob = new Blob([lines.join('\n')], { type: 'text/csv' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'payout-report-' + new Date().toISOString().slice(0,10) + '.csv';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+function showPayoutFlash(msg, isError=false) {
+  const f = document.createElement('div');
+  f.style.cssText = `position:fixed;bottom:30px;left:50%;transform:translateX(-50%);background:${isError?'#B91C1C':'#1A4F3A'};color:white;padding:10px 20px;border-radius:30px;font-size:13px;font-weight:500;z-index:999;box-shadow:0 4px 20px rgba(0,0,0,.2)`;
+  f.textContent = msg;
+  document.body.appendChild(f);
+  setTimeout(() => f.remove(), 2800);
 }
 
 async function loadLiveCases(user) {
   try {
-    // Query the view which already has created_by_name and reporting_to_name
     let q = db.from('cases_with_names')
-      .select('id,cust_name,car_model,preferred_bank_name,preferred_bank_id,pdd_approved,loan_amount,status,cibil_score,submitted_at,created_at,payout_amount,created_by,bm_id,cust_mobile,curr_pincode,perm_pincode,inc_net_monthly,emp_type,created_by_name,creator_role,reporting_to_name')
-      .neq('status','Draft')
-      .order('created_at',{ascending:false});
+      .select('id,cust_name,car_model,preferred_bank_name,preferred_bank_id,loan_amount,disbursed_amount,disbursed_date,pdd_approved,status,created_by,bm_id,created_by_name,reporting_to_name')
+      .eq('status', 'Disbursed')
+      .order('disbursed_date', { ascending: false });
 
-    if (user.role==='bm') q = q.or('created_by.eq.'+user.id+',bm_id.eq.'+user.id);
-    else if (user.role==='rm') q = q.eq('created_by',user.id);
+    if (user.role === 'bm') q = q.or('created_by.eq.' + user.id + ',bm_id.eq.' + user.id);
+    else if (user.role === 'rm') q = q.eq('created_by', user.id);
 
-    let { data:liveCases, error } = await q;
+    let { data: liveCases, error } = await q;
 
-    // If preferred_bank_id and/or pdd_approved aren't exposed on this view, retry
-    // without them rather than failing the entire cases load — PDD seeding falls
-    // back to universal requirements and approval state defaults to false in that case.
-    if (error && /preferred_bank_id|pdd_approved/i.test(error.message||'')) {
-      console.warn('preferred_bank_id/pdd_approved not available on cases_with_names view, retrying without them:', error.message);
+    // If disbursed_amount/disbursed_date/preferred_bank_id aren't exposed on
+    // this view (stale view definition), retry without them rather than
+    // failing entirely — payout just can't be computed for those cases.
+    if (error && /disbursed_amount|disbursed_date|preferred_bank_id|pdd_approved/i.test(error.message || '')) {
+      console.warn('Some payout columns not available on cases_with_names view, retrying without them:', error.message);
       let q2 = db.from('cases_with_names')
-        .select('id,cust_name,car_model,preferred_bank_name,loan_amount,status,cibil_score,submitted_at,created_at,payout_amount,created_by,bm_id,cust_mobile,curr_pincode,perm_pincode,inc_net_monthly,emp_type,created_by_name,creator_role,reporting_to_name')
-        .neq('status','Draft')
-        .order('created_at',{ascending:false});
-      if (user.role==='bm') q2 = q2.or('created_by.eq.'+user.id+',bm_id.eq.'+user.id);
-      else if (user.role==='rm') q2 = q2.eq('created_by',user.id);
+        .select('id,cust_name,car_model,preferred_bank_name,loan_amount,status,created_by,bm_id,created_by_name,reporting_to_name')
+        .eq('status', 'Disbursed')
+        .order('created_at', { ascending: false });
+      if (user.role === 'bm') q2 = q2.or('created_by.eq.' + user.id + ',bm_id.eq.' + user.id);
+      else if (user.role === 'rm') q2 = q2.eq('created_by', user.id);
       const retry = await q2;
       liveCases = retry.data;
       error = retry.error;
     }
 
     if (error) { console.error('Cases fetch error:', error.message); return; }
-    if (!liveCases||!liveCases.length) return;
 
-    const mapped = liveCases.map(c => {
-      return {
-        id: c.id,
-        date: (c.submitted_at||c.created_at||'').slice(0,10),
-        cust: c.cust_name||'—',
-        car: c.car_model||'—',
-        bank: c.preferred_bank_name||'—',
-        bankId: c.preferred_bank_id||null,
-        pddApproved: c.pdd_approved||false,
-        bmId: c.bm_id||null,
-        loan: c.loan_amount||0,
-        member: c.created_by_name||'—',
-        bm: c.reporting_to_name||'—',
-        createdByName: c.created_by_name||'—',
-        reportsToName: c.reporting_to_name||'—',
-        cibil: c.cibil_score||0,
-        status: c.status,
-        payout: c.payout_amount||0,
-        mobile: c.cust_mobile||'',
-        pincode: c.curr_pincode||c.perm_pincode||'',
-        income: c.inc_net_monthly||0,
-        emp: c.emp_type||'',
-        isLive: true,
-        _raw: c
-      };
-    });
+    const mapped = (liveCases || []).map(c => ({
+      id: c.id,
+      cust: c.cust_name || '—',
+      bank: c.preferred_bank_name || '—',
+      bankId: c.preferred_bank_id || null,
+      loan: c.loan_amount || 0,
+      disbursedAmount: c.disbursed_amount || null,
+      disbursedDate: c.disbursed_date || null,
+      pddApproved: c.pdd_approved || false,
+      member: c.created_by_name || '—',
+      status: c.status,
+    }));
 
-    // Replace cases array with live only
     cases.length = 0;
     mapped.forEach(c => cases.push(c));
 
-    // Update caseOrgMap
-    mapped.forEach(c => { caseOrgMap[c.id] = { bm: c.createdByName, rm: c.reportsToName }; });
-
-    // Update nav badge
     notifyBadgeCount('cases', cases.length);
+    renderPayoutTable();
 
-    // Re-render
-    if (typeof applyDashFilters === 'function') applyDashFilters();
-    if (typeof renderAllCases === 'function' && document.getElementById('all-cases-tbody')) renderAllCases();
-
-    console.log('Live cases loaded:', mapped.length);
+    console.log('Disbursed cases loaded:', mapped.length);
   } catch(e) { console.error('loadLiveCases error:', e.message); }
 }
 
-function populateMonthOptions(selectId) {
-  const sel = document.getElementById(selectId);
+function populatePeriodOptions() {
+  const sel = document.getElementById('payout-period');
   if (!sel) return;
-  const opts = [];
+  const opts = ['<option value="">All time</option>'];
   const now = new Date();
-  for (let i = 0; i < 6; i++) {
+  for (let i = 0; i < 12; i++) {
     const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
-    opts.push(`<option>${d.toLocaleDateString('en-IN',{month:'long',year:'numeric'})}</option>`);
+    const value = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0');
+    const label = d.toLocaleDateString('en-IN', { month: 'long', year: 'numeric' });
+    opts.push(`<option value="${value}">${label}</option>`);
   }
   sel.innerHTML = opts.join('');
 }
@@ -172,8 +242,9 @@ function populateMonthOptions(selectId) {
 document.addEventListener('capri:identityReady', async (e) => {
   const user = e.detail;
   if (!user) return;
-  populateMonthOptions('report-month-select');
+  populatePeriodOptions();
   await loadTeamMembersForPayout();
+  await loadBanksForPayout();
   await loadLiveCases(user);
 });
 loadIdentity();

@@ -6,7 +6,7 @@
 
 const tabTitles = {
   'overview.html':               ['Dashboard', 'Loading…'],
-  'payout-report.html':          ['Payout Report', 'Commission calculation per member'],
+  'payout-report.html':          ['Payout', 'Payout earned on disbursed cases'],
   'team-performance.html':       ['Team Performance', 'Individual targets and actuals'],
   'push-notifications.html':     ['Push Notification', 'Digital lead pipeline'],
   'newcar.html?tab=allfiles':    ['New Car — All Files', 'Complete pipeline view · city head'],

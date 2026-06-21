@@ -603,11 +603,17 @@ input[data-aadhaar]{font-family:'DM Mono',monospace;letter-spacing:.1em}
       <!-- CURRENT ADDRESS -->
       <div class="form-panel">
         <div class="panel-title"><i class="ti ti-home"></i> Current / residential address</div>
-        <label class="same-addr-toggle">
-          <input type="checkbox" id="same-chk" onchange="toggleSameAddr()">
-          Same as permanent address
-        </label>
-        <div id="curr-addr-wrap">
+        <div style="display:flex;gap:12px;margin-bottom:14px">
+          <label class="same-addr-toggle" style="margin-bottom:0;flex:1">
+            <input type="radio" name="addr-mode" id="addr-mode-same" value="same" checked onchange="toggleSameAddr()">
+            Same as permanent address
+          </label>
+          <label class="same-addr-toggle" style="margin-bottom:0;flex:1">
+            <input type="radio" name="addr-mode" id="addr-mode-diff" value="different" onchange="toggleSameAddr()">
+            Different current address
+          </label>
+        </div>
+        <div id="curr-addr-wrap" style="display:none">
           <div class="field" style="margin-bottom:14px">
             <label>Address line 1</label>
             <input type="text" id="c-addr1" placeholder="Door no., street name">
@@ -730,26 +736,14 @@ input[data-aadhaar]{font-family:'DM Mono',monospace;letter-spacing:.1em}
             <span class="field-hint">Auto = On road price − Loan amount</span>
           </div>
         </div>
-        <div class="g2" style="max-width:480px">
-          <div class="field">
-            <label>Preferred tenure</label>
-            <select id="v-tenure">
-              <option value="">Select</option>
-              <option value="12">12 months</option><option value="24">24 months</option><option value="36">36 months</option>
-              <option value="48">48 months</option><option value="60" selected>60 months</option>
-              <option value="72">72 months</option><option value="84">84 months</option>
-            </select>
-          </div>
-          <div class="field">
-            <label>CIBIL score</label>
-            <div style="display:flex;gap:8px;align-items:flex-start">
-              <input type="number" id="v-cibil" placeholder="e.g. 750" min="300" max="900" oninput="onCibilInput(this.value)" style="flex:1">
-              <button type="button" onclick="openShareModal()" style="flex-shrink:0;padding:9px 12px;border-radius:var(--r-sm);border:1px solid var(--accent);background:var(--green-bg);color:var(--accent);font-family:inherit;font-size:12px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:5px;white-space:nowrap;transition:all .15s" title="Share CIBIL request with customer">
-                <i class="ti ti-share" style="font-size:14px"></i> Get CIBIL
-              </button>
-            </div>
-            <span class="field-hint">Enter CIBIL score or use the button to request from customer</span>
-          </div>
+        <div class="field" style="max-width:230px">
+          <label>Preferred tenure</label>
+          <select id="v-tenure">
+            <option value="">Select</option>
+            <option value="12">12 months</option><option value="24">24 months</option><option value="36">36 months</option>
+            <option value="48">48 months</option><option value="60" selected>60 months</option>
+            <option value="72">72 months</option><option value="84">84 months</option>
+          </select>
         </div>
 
         <!-- BANK & BRANCH popup — shown after CIBIL ≥ 650 -->
@@ -1009,12 +1003,22 @@ input[data-aadhaar]{font-family:'DM Mono',monospace;letter-spacing:.1em}
 
       <div class="form-panel">
         <div class="panel-title"><i class="ti ti-report-analytics"></i> CIC / credit bureau report</div>
-        <div class="g2" style="margin-bottom:14px;max-width:480px">
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:14px;max-width:720px">
           <div class="field">
             <label>Bureau type</label>
-            <select>
+            <select id="cic-bureau-type">
               <option>CIBIL (TransUnion)</option><option>Experian</option><option>Equifax</option><option>CRIF High Mark</option>
             </select>
+          </div>
+          <div class="field">
+            <label>CIBIL score</label>
+            <div style="display:flex;gap:8px;align-items:flex-start">
+              <input type="number" id="v-cibil" placeholder="e.g. 750" min="300" max="900" oninput="onCibilInput(this.value)" style="flex:1">
+              <button type="button" onclick="openShareModal()" style="flex-shrink:0;padding:9px 12px;border-radius:var(--r-sm);border:1px solid var(--accent);background:var(--green-bg);color:var(--accent);font-family:inherit;font-size:12px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:5px;white-space:nowrap;transition:all .15s" title="Share CIBIL request with customer">
+                <i class="ti ti-share" style="font-size:14px"></i> Get CIBIL
+              </button>
+            </div>
+            <span class="field-hint">Enter score or use the button to request from customer</span>
           </div>
           <div class="field">
             <label>Report date</label>
@@ -1228,14 +1232,6 @@ const _resumeId    = _params.get('resume') || null;  // draft case ID to resume
 const _resumeSec   = parseInt(_params.get('section')) || 1;
 const _editId      = _params.get('edit') || null;     // submitted case ID to edit (loads from `cases` table)
 
-(function() {
-  if (_isEmbedded) {
-    const style = document.createElement('style');
-    style.textContent = '.float-progress { display: none !important; }';
-    document.head.appendChild(style);
-  }
-})();
-
 // ── INIT — runs when form opens ──────────────────────────────────────────────
 (async () => {
   try {
@@ -1311,6 +1307,11 @@ async function generateCaseId() {
 
 // ── COLLECT ALL FORM DATA ─────────────────────────────────────────────────────
 function collectFormData() {
+  // If "Same as permanent" is still selected, make sure the (hidden) current
+  // address fields reflect whatever's in Permanent right now — not just
+  // whatever they held the last time the radio itself was actually clicked.
+  if (document.getElementById('addr-mode-same')?.checked) toggleSameAddr();
+
   const g  = id => document.getElementById(id)?.value?.trim() || null;
   const gn = id => { const v = parseFloat(document.getElementById(id)?.value); return isNaN(v) ? null : v; };
   const gb = id => document.getElementById(id)?.checked || false;
@@ -1341,7 +1342,7 @@ function collectFormData() {
     perm_state:         g('p-state'),
     perm_pincode:       g('p-pin'),
     // ── Current address ──
-    curr_same_as_perm:  gb('same-chk'),
+    curr_same_as_perm:  gb('addr-mode-same'),
     curr_addr1:         g('c-addr1'),
     curr_addr2:         g('c-addr2'),
     curr_city:          g('c-city'),
@@ -1595,7 +1596,14 @@ function restoreFormData(data) {
   s('f-email', data.cust_email); s('f-marital', data.cust_marital); s('f-dependants', data.cust_dependants);
   s('p-addr1', data.perm_addr1); s('p-addr2', data.perm_addr2); s('p-city', data.perm_city);
   s('p-dist', data.perm_district); s('p-state', data.perm_state); s('p-pin', data.perm_pincode);
-  s('c-addr1', data.curr_addr1); s('c-city', data.curr_city); s('c-pin', data.curr_pincode);
+  s('c-addr1', data.curr_addr1); s('c-addr2', data.curr_addr2); s('c-city', data.curr_city);
+  s('c-dist', data.curr_district); s('c-state', data.curr_state); s('c-pin', data.curr_pincode);
+  // curr_same_as_perm defaults true when absent (e.g. older/partial drafts),
+  // matching the radio's own default-checked state.
+  const sameAddr = data.curr_same_as_perm !== false;
+  document.getElementById('addr-mode-same').checked = sameAddr;
+  document.getElementById('addr-mode-diff').checked = !sameAddr;
+  toggleSameAddr();
   s('d-name', data.dealer_name); s('car-model', data.car_model); s('v-fuel', data.car_fuel);
   s('v-loan', data.loan_amount); s('v-tenure', data.loan_tenure_months); s('v-cibil', data.cibil_score);
   s('emp-type', data.emp_type); s('emp-company', data.emp_company); s('inc-net', data.inc_net_monthly);
@@ -1844,15 +1852,21 @@ function lookupPin(pre) {
 
 // ── SAME ADDRESS ──────────────────────────────────────────────────────────────
 function toggleSameAddr() {
-  const on = document.getElementById('same-chk').checked;
+  const same = document.getElementById('addr-mode-same').checked;
   const wrap = document.getElementById('curr-addr-wrap');
-  wrap.style.opacity = on ? '0.4' : '1';
-  wrap.style.pointerEvents = on ? 'none' : 'auto';
-  if (on) {
+
+  if (same) {
+    // Hidden from the user, but still filled in the background so the form
+    // submits a complete current address — just mirrored from permanent.
     document.getElementById('c-addr1').value = document.getElementById('p-addr1').value;
     document.getElementById('c-addr2').value = document.getElementById('p-addr2').value;
     document.getElementById('c-city').value  = document.getElementById('p-city').value;
+    document.getElementById('c-dist').value  = document.getElementById('p-dist').value;
+    document.getElementById('c-state').value = document.getElementById('p-state').value;
     document.getElementById('c-pin').value   = document.getElementById('p-pin').value;
+    wrap.style.display = 'none';
+  } else {
+    wrap.style.display = 'block';
   }
 }
 

@@ -73,15 +73,29 @@ async function loadBanks() {
   }
 }
 
+function resetBankFilters() {
+  const searchEl = document.getElementById('banks-search');
+  const typeEl   = document.getElementById('banks-type-filter');
+  const statusEl = document.getElementById('banks-status-filter');
+  if (searchEl) searchEl.value = '';
+  if (typeEl) typeEl.value = '';
+  if (statusEl) statusEl.value = '';
+  renderBanks();
+}
+
 function renderBanks(){
   const searchEl = document.getElementById('banks-search');
   const typeEl   = document.getElementById('banks-type-filter');
+  const statusEl = document.getElementById('banks-status-filter');
   const q        = (searchEl?.value || '').toLowerCase();
   const typeF    = typeEl?.value || '';
+  const statusF  = statusEl?.value || '';
 
   const filtered = banks.filter(b => {
     if (q && !b.name.toLowerCase().includes(q)) return false;
     if (typeF && b.type !== typeF) return false;
+    if (statusF === 'active' && !b.active) return false;
+    if (statusF === 'inactive' && b.active) return false;
     return true;
   });
 

@@ -17,6 +17,8 @@
   <div style="display:flex;gap:8px">
     <input class="filter-input" id="banks-search" placeholder="Search bank..." style="width:210px" oninput="renderBanks()">
     <select class="filter-select" id="banks-type-filter" onchange="renderBanks()"><option value="">All types</option><option value="PVT Bank">Private Bank</option><option value="PSU Bank">PSU Bank</option><option value="NBFC">NBFC</option><option value="HFC">HFC</option><option value="Co-op Bank">Co-op Bank</option></select>
+    <select class="filter-select" id="banks-status-filter" onchange="renderBanks()"><option value="">All statuses</option><option value="active">Active</option><option value="inactive">Inactive</option></select>
+    <button class="btn btn-sm" onclick="resetBankFilters()"><i class="ti ti-refresh" style="font-size:12px"></i> Reset</button>
   </div>
   <button class="btn btn-primary btn-sm" onclick="openAddBankModal()"><i class="ti ti-plus" style="font-size:12px"></i> Add new bank</button>
 </div>
@@ -30,7 +32,7 @@
     <div style="font-size:12px;color:var(--muted2);margin-top:4px">Add banks in Supabase to see them here</div>
   </div>
   <table class="data-table" id="banks-table" style="display:none">
-    <thead><tr><th>Bank / NBFC</th><th>Type</th><th>Min CIBIL</th><th>FOIR %</th><th>LTV %</th><th>Team Payout</th><th>ROI Slab</th><th>Status</th><th>Action</th></tr></thead>
+    <thead><tr><th>Bank / NBFC</th><th>Type</th><th>Min CIBIL</th><th>FOIR %</th><th>LTV %</th><th>Payout</th><th>ROI Slab</th><th>Status</th><th>Action</th></tr></thead>
     <tbody id="banks-tbody"></tbody>
   </table>
 </div>

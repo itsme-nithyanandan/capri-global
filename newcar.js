@@ -1346,9 +1346,75 @@ async function confirmPDDApproval() {
     updatePDDStats(_allPDDCases);
     renderPDDQueue(_allPDDCases);
     showFlash('PDD approved — ' + caseId + ' cleared for payout');
+
+    await snapshotPayoutForCase(caseId);
   } catch(e) {
     console.error('confirmPDDApproval failed:', e.message);
     showFlash('Approval failed');
+  }
+}
+
+// Locks in a payout record the moment PDD is approved — does a fresh fetch
+// of the case/bank/slabs rather than trusting whatever's in the in-memory
+// `cases` array, so this is correct even if that array is stale or missing
+// fields. Mirrors the same calc logic as payout-report.js's
+// computePayoutForCase(), but persisted instead of recomputed on every load.
+async function snapshotPayoutForCase(caseId) {
+  try {
+    const { data: c, error: cErr } = await db.from('cases')
+      .select('id,cust_name,disbursed_amount,loan_amount,preferred_bank_id,created_by,bm_id')
+      .eq('id', caseId).single();
+    if (cErr || !c) { console.error('snapshotPayoutForCase: case fetch failed:', cErr?.message); return; }
+
+    if (!c.preferred_bank_id) { console.warn('snapshotPayoutForCase: no bank set for', caseId, '— skipping'); return; }
+
+    const { data: bank, error: bErr } = await db.from('banks')
+      .select('id,name,active,payout_type,payout_pct,fixed_payout')
+      .eq('id', c.preferred_bank_id).single();
+    if (bErr || !bank) { console.error('snapshotPayoutForCase: bank fetch failed:', bErr?.message); return; }
+    if (!bank.active) { console.warn('snapshotPayoutForCase: bank is inactive, skipping payout snapshot for', caseId); return; }
+
+    const disbursedAmt = parseFloat(c.disbursed_amount) || parseFloat(c.loan_amount) || 0;
+
+    let payoutPct = null, payoutAmount = 0;
+    if (bank.payout_type === 'fixed_per_file') {
+      payoutAmount = parseFloat(bank.fixed_payout) || 0;
+    } else if (bank.payout_type === 'slab') {
+      const { data: slabs } = await db.from('bank_payout_slabs')
+        .select('loan_from,loan_to,payout_pct').eq('bank_id', bank.id).eq('active', true);
+      const match = (slabs || []).find(s => disbursedAmt >= parseFloat(s.loan_from) && disbursedAmt <= parseFloat(s.loan_to));
+      if (match) { payoutPct = parseFloat(match.payout_pct) || 0; payoutAmount = disbursedAmt * payoutPct / 100; }
+    } else {
+      payoutPct = parseFloat(bank.payout_pct) || 0;
+      payoutAmount = disbursedAmt * payoutPct / 100;
+    }
+
+    let memberName = '—';
+    if (c.created_by) {
+      const { data: member } = await db.from('users').select('name').eq('id', c.created_by).maybeSingle();
+      if (member) memberName = member.name;
+    }
+
+    const payload = {
+      case_id: caseId,
+      cust_name: c.cust_name || null,
+      bank_id: bank.id,
+      bank_name: bank.name,
+      member_id: c.created_by || null,
+      member_name: memberName,
+      bm_id: c.bm_id || null,
+      disbursed_amount: disbursedAmt,
+      payout_type: bank.payout_type,
+      payout_pct: payoutPct,
+      payout_amount: payoutAmount,
+      status: 'pending',
+      updated_at: new Date().toISOString()
+    };
+
+    const { error: upsertErr } = await db.from('payouts').upsert(payload, { onConflict: 'case_id' });
+    if (upsertErr) console.error('snapshotPayoutForCase: upsert failed:', upsertErr.message);
+  } catch(e) {
+    console.error('snapshotPayoutForCase failed:', e.message);
   }
 }
 
@@ -1401,6 +1467,19 @@ async function confirmPDDRevoke() {
     updatePDDStats(_allPDDCases);
     renderPDDQueue(_allPDDCases);
     showFlash('PDD approval revoked — ' + caseId + ' payout held');
+
+    // Clean up the payout snapshot too — but only if it's still "pending".
+    // If it's already been approved/paid, leave the record alone; that's
+    // real payment history and shouldn't vanish just because PDD got revoked
+    // after the fact.
+    try {
+      const { data: existingPayout } = await db.from('payouts').select('id,status').eq('case_id', caseId).maybeSingle();
+      if (existingPayout && existingPayout.status === 'pending') {
+        await db.from('payouts').delete().eq('id', existingPayout.id);
+      } else if (existingPayout) {
+        console.warn('PDD revoked but payout already', existingPayout.status, '— leaving payout record intact for', caseId);
+      }
+    } catch(payoutCleanupErr) { console.error('Payout cleanup on revoke failed:', payoutCleanupErr.message); }
   } catch(e) {
     console.error('confirmPDDRevoke failed:', e.message);
     showFlash('Revoke failed');

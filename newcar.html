@@ -277,7 +277,7 @@
       <button class="btn" id="status-btn-Logged In" style="justify-content:flex-start;padding:10px 14px" onclick="submitStatusChange('Logged In')">
         <span class="badge badge-blue" style="margin-right:6px">●</span> Logged In
       </button>
-      <button class="btn" id="status-btn-Sanctioned" style="justify-content:flex-start;padding:10px 14px" onclick="submitStatusChange('Sanctioned')">
+      <button class="btn" id="status-btn-Sanctioned" style="justify-content:flex-start;padding:10px 14px" onclick="openSanctionedDetailsModal()">
         <span class="badge badge-green" style="margin-right:6px">●</span> Sanctioned
       </button>
       <button class="btn" id="status-btn-Disbursed" style="justify-content:flex-start;padding:10px 14px" onclick="confirmDisbursement()">
@@ -293,20 +293,60 @@
   </div>
 </div>
 
+<div class="modal-overlay" id="sanctioned-details-modal">
+  <div class="modal" style="width:380px">
+    <div style="font-size:15px;font-weight:600;color:var(--text);margin-bottom:4px">Mark as Sanctioned</div>
+    <div style="font-size:12px;color:var(--muted);margin-bottom:16px" id="sanc-caseid">Case —</div>
+
+    <label style="font-size:11px;font-weight:600;color:var(--muted);display:block;margin-bottom:5px;text-transform:uppercase;letter-spacing:.05em">Sanctioned Amount (₹) <span style="color:var(--red-text)">*</span></label>
+    <input id="sanc-amount" type="number" min="0" placeholder="e.g. 850000" class="filter-input" style="width:100%;padding:9px 12px;font-size:13px;margin-bottom:12px">
+
+    <label style="font-size:11px;font-weight:600;color:var(--muted);display:block;margin-bottom:5px;text-transform:uppercase;letter-spacing:.05em">Sanctioned Date <span style="color:var(--red-text)">*</span></label>
+    <input id="sanc-date" type="date" class="filter-input" style="width:100%;padding:9px 12px;font-size:13px;margin-bottom:12px">
+
+    <label style="font-size:11px;font-weight:600;color:var(--muted);display:block;margin-bottom:5px;text-transform:uppercase;letter-spacing:.05em">Sanction Proof <span style="color:var(--muted);font-weight:400;text-transform:none;letter-spacing:0">(optional)</span></label>
+    <input id="sanc-proof-file" type="file" accept=".pdf,.jpg,.jpeg,.png" class="filter-input" style="width:100%;padding:8px 12px;font-size:12.5px;margin-bottom:6px">
+    <div style="font-size:11px;color:var(--muted);margin-bottom:12px">If uploaded, this is saved straight into this case's PDD checklist.</div>
+
+    <div id="sanc-details-error" style="display:none;margin-bottom:12px;padding:9px 12px;background:var(--red-bg);border-radius:8px;font-size:12px;color:var(--red-text)"></div>
+
+    <div style="display:flex;gap:8px;justify-content:flex-end">
+      <button class="btn" onclick="closeSanctionedDetailsModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="submitSanctionedDetails()">
+        <i class="ti ti-check" style="font-size:12px"></i> Confirm Sanctioned
+      </button>
+    </div>
+  </div>
+</div>
+
 <div class="modal-overlay" id="disbursement-confirm-modal">
-  <div class="modal" style="width:360px">
+  <div class="modal" style="width:380px">
     <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px">
       <div style="width:40px;height:40px;border-radius:10px;background:var(--amber-bg);display:flex;align-items:center;justify-content:center;flex-shrink:0">
         <i class="ti ti-alert-triangle" style="color:var(--amber-text);font-size:18px"></i>
       </div>
       <div>
-        <div style="font-size:15px;font-weight:600;color:var(--text)">Confirm Disbursement</div>
+        <div style="font-size:15px;font-weight:600;color:var(--text)">Mark as Disbursed</div>
         <div style="font-size:12px;color:var(--muted)">This action cannot be undone</div>
       </div>
     </div>
-    <div style="font-size:13px;color:var(--text2);margin-bottom:20px;line-height:1.6;background:var(--surface2);border-radius:var(--radius-sm);padding:12px 14px">
-      Once marked <strong>Disbursed</strong>, this case's status can no longer be changed. Are you sure you want to proceed?
+
+    <label style="font-size:11px;font-weight:600;color:var(--muted);display:block;margin-bottom:5px;text-transform:uppercase;letter-spacing:.05em">Disbursement Amount (₹) <span style="color:var(--red-text)">*</span></label>
+    <input id="disb-amount" type="number" min="0" placeholder="e.g. 850000" class="filter-input" style="width:100%;padding:9px 12px;font-size:13px;margin-bottom:12px">
+
+    <label style="font-size:11px;font-weight:600;color:var(--muted);display:block;margin-bottom:5px;text-transform:uppercase;letter-spacing:.05em">Disbursed Date <span style="color:var(--red-text)">*</span></label>
+    <input id="disb-date" type="date" class="filter-input" style="width:100%;padding:9px 12px;font-size:13px;margin-bottom:12px">
+
+    <label style="font-size:11px;font-weight:600;color:var(--muted);display:block;margin-bottom:5px;text-transform:uppercase;letter-spacing:.05em">Disbursal Proof <span style="color:var(--muted);font-weight:400;text-transform:none;letter-spacing:0">(optional)</span></label>
+    <input id="disb-proof-file" type="file" accept=".pdf,.jpg,.jpeg,.png" class="filter-input" style="width:100%;padding:8px 12px;font-size:12.5px;margin-bottom:6px">
+    <div style="font-size:11px;color:var(--muted);margin-bottom:12px">If uploaded, this is saved straight into this case's PDD checklist.</div>
+
+    <div style="font-size:12px;color:var(--text2);margin-bottom:14px;line-height:1.5;background:var(--surface2);border-radius:var(--radius-sm);padding:10px 12px">
+      Once marked <strong>Disbursed</strong>, this case's status can no longer be changed.
     </div>
+
+    <div id="disb-details-error" style="display:none;margin-bottom:12px;padding:9px 12px;background:var(--red-bg);border-radius:8px;font-size:12px;color:var(--red-text)"></div>
+
     <div style="display:flex;gap:8px;justify-content:flex-end">
       <button class="btn" onclick="closeDisbursementConfirm()">Cancel</button>
       <button class="btn btn-primary" onclick="finalizeDisbursement()">

@@ -502,7 +502,86 @@ function closeStatusChangeModal() {
   document.getElementById('status-change-modal').classList.remove('open');
 }
 
+// ── SANCTIONED DETAILS ─────────────────────────────────────────────────────────
+function openSanctionedDetailsModal() {
+  closeStatusChangeModal();
+  document.getElementById('sanc-caseid').textContent = 'Case ' + _actionMenuCaseId;
+  document.getElementById('sanc-amount').value = '';
+  document.getElementById('sanc-date').value = new Date().toISOString().slice(0, 10);
+  document.getElementById('sanc-proof-file').value = '';
+  document.getElementById('sanc-details-error').style.display = 'none';
+  document.getElementById('sanctioned-details-modal').classList.add('open');
+}
+
+function closeSanctionedDetailsModal() {
+  document.getElementById('sanctioned-details-modal').classList.remove('open');
+}
+
+async function submitSanctionedDetails() {
+  const caseId = _actionMenuCaseId;
+  if (!caseId) return;
+
+  const amount = document.getElementById('sanc-amount').value;
+  const date = document.getElementById('sanc-date').value;
+  const fileEl = document.getElementById('sanc-proof-file');
+  const errEl = document.getElementById('sanc-details-error');
+
+  if (!amount || !date) {
+    errEl.textContent = 'Sanctioned amount and date are required';
+    errEl.style.display = 'block';
+    return;
+  }
+  errEl.style.display = 'none';
+  closeSanctionedDetailsModal();
+
+  const c = cases.find(x => x.id === caseId);
+  const oldStatus = c ? c.status : null;
+
+  try {
+    const { error } = await db.from('cases').update({
+      status: 'Sanctioned',
+      sanctioned_amount: parseFloat(amount),
+      sanctioned_date: date,
+      updated_at: new Date().toISOString()
+    }).eq('id', caseId);
+
+    if (error) { console.error('Sanctioned update error:', error.message); showFlash('Status update failed: ' + error.message); return; }
+
+    if (c) c.status = 'Sanctioned';
+
+    const uid = (window.currentLoggedInUser && window.currentLoggedInUser.id) || null;
+    try {
+      await db.from('audit_log').insert({
+        user_id: uid,
+        action: 'Status changed: ' + (oldStatus||'—') + ' → Sanctioned (₹' + amount + ')',
+        table_name: 'cases',
+        record_id: caseId,
+        old_value: { status: oldStatus },
+        new_value: { status: 'Sanctioned', sanctioned_amount: amount, sanctioned_date: date }
+      });
+    } catch(auditErr) { console.error('Audit log write failed:', auditErr.message); }
+
+    const file = fileEl.files[0];
+    if (file) {
+      const ok = await uploadPDDProofDirect(caseId, 'sanction_proof', 'Sanction Proof', file);
+      if (!ok) showFlash('Status updated, but the proof upload failed — try again from the PDD tab');
+    }
+
+    if (typeof renderAllCases === 'function') renderAllCases();
+    showFlash('Status updated — ' + caseId + ' → Sanctioned');
+  } catch(e) {
+    console.error('submitSanctionedDetails failed:', e.message);
+    showFlash('Status update failed');
+  }
+}
+
+// ── DISBURSEMENT DETAILS ───────────────────────────────────────────────────────
 function confirmDisbursement() {
+  closeStatusChangeModal();
+  document.getElementById('disb-amount').value = '';
+  document.getElementById('disb-date').value = new Date().toISOString().slice(0, 10);
+  document.getElementById('disb-proof-file').value = '';
+  document.getElementById('disb-details-error').style.display = 'none';
   document.getElementById('disbursement-confirm-modal').classList.add('open');
 }
 
@@ -510,9 +589,119 @@ function closeDisbursementConfirm() {
   document.getElementById('disbursement-confirm-modal').classList.remove('open');
 }
 
-function finalizeDisbursement() {
+async function finalizeDisbursement() {
+  const caseId = _actionMenuCaseId;
+  if (!caseId) return;
+
+  const amount = document.getElementById('disb-amount').value;
+  const date = document.getElementById('disb-date').value;
+  const fileEl = document.getElementById('disb-proof-file');
+  const errEl = document.getElementById('disb-details-error');
+
+  if (!amount || !date) {
+    errEl.textContent = 'Disbursement amount and date are required';
+    errEl.style.display = 'block';
+    return;
+  }
+  errEl.style.display = 'none';
   closeDisbursementConfirm();
-  submitStatusChange('Disbursed');
+
+  const c = cases.find(x => x.id === caseId);
+  const oldStatus = c ? c.status : null;
+
+  try {
+    const { error } = await db.from('cases').update({
+      status: 'Disbursed',
+      disbursed_amount: parseFloat(amount),
+      disbursed_date: date,
+      updated_at: new Date().toISOString()
+    }).eq('id', caseId);
+
+    if (error) { console.error('Disbursement update error:', error.message); showFlash('Status update failed: ' + error.message); return; }
+
+    if (c) c.status = 'Disbursed';
+
+    const uid = (window.currentLoggedInUser && window.currentLoggedInUser.id) || null;
+    try {
+      await db.from('audit_log').insert({
+        user_id: uid,
+        action: 'Status changed: ' + (oldStatus||'—') + ' → Disbursed (₹' + amount + ')',
+        table_name: 'cases',
+        record_id: caseId,
+        old_value: { status: oldStatus },
+        new_value: { status: 'Disbursed', disbursed_amount: amount, disbursed_date: date }
+      });
+    } catch(auditErr) { console.error('Audit log write failed:', auditErr.message); }
+
+    // Upload disbursal proof BEFORE seeding the PDD checklist, so the seed
+    // step's "already exists" check correctly skips re-creating this row.
+    const file = fileEl.files[0];
+    if (file) {
+      const ok = await uploadPDDProofDirect(caseId, 'disbursal_proof', 'Disbursal Proof', file);
+      if (!ok) showFlash('Status updated, but the proof upload failed — try again from the PDD tab');
+    }
+
+    await seedPDDChecklist(caseId, c ? c.bankId : null);
+
+    if (typeof renderAllCases === 'function') renderAllCases();
+    showFlash('Status updated — ' + caseId + ' → Disbursed');
+  } catch(e) {
+    console.error('finalizeDisbursement failed:', e.message);
+    showFlash('Status update failed');
+  }
+}
+
+// Shared by the Sanctioned/Disbursed flows above and (eventually) anything
+// else that needs to drop a proof straight into a case's PDD checklist
+// without going through the PDD tab's own upload picker. Checks for an
+// existing row first so re-uploading (e.g. before Disbursed has even seeded
+// the checklist yet) updates in place instead of creating a duplicate.
+async function uploadPDDProofDirect(caseId, docType, docLabel, file) {
+  try {
+    const ext = (file.name.split('.').pop() || 'bin').toLowerCase();
+    const friendlyName = buildDocFileName(caseId, docLabel, ext);
+    const storagePath = `${caseId}/${friendlyName}`;
+
+    const { error: uploadErr } = await db.storage.from('pdd-documents').upload(storagePath, file, { upsert: true });
+    if (uploadErr) { console.error('PDD proof upload error:', uploadErr.message); return false; }
+
+    const uid = (window.currentLoggedInUser && window.currentLoggedInUser.id) || null;
+    const { data: existing } = await db.from('pdd_documents').select('id').eq('case_id', caseId).eq('doc_type', docType).maybeSingle();
+
+    const rowPayload = {
+      case_id: caseId,
+      doc_type: docType,
+      doc_label: docLabel,
+      status: 'Received',
+      storage_path: storagePath,
+      file_name: friendlyName,
+      file_size_kb: Math.round(file.size / 1024),
+      uploaded_by: uid,
+      uploaded_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    };
+
+    if (existing && existing.id) {
+      const { error } = await db.from('pdd_documents').update(rowPayload).eq('id', existing.id);
+      if (error) { console.error('PDD proof row update error:', error.message); return false; }
+    } else {
+      const { error } = await db.from('pdd_documents').insert(rowPayload);
+      if (error) { console.error('PDD proof row insert error:', error.message); return false; }
+    }
+
+    // Keep the in-memory PDD cache in sync in case the PDD tab is/has been loaded
+    if (typeof _pddDocsByCase !== 'undefined') {
+      if (!_pddDocsByCase[caseId]) _pddDocsByCase[caseId] = [];
+      const idx = _pddDocsByCase[caseId].findIndex(d => d.doc_type === docType);
+      const merged = { ...rowPayload, id: existing?.id };
+      if (idx >= 0) _pddDocsByCase[caseId][idx] = merged; else _pddDocsByCase[caseId].push(merged);
+    }
+
+    return true;
+  } catch(e) {
+    console.error('uploadPDDProofDirect failed:', e.message);
+    return false;
+  }
 }
 
 async function submitStatusChange(newStatus) {
@@ -554,11 +743,6 @@ async function submitStatusChange(newStatus) {
         new_value: { status: newStatus }
       });
     } catch(auditErr) { console.error('Audit log write failed:', auditErr.message); }
-
-    // Seed the PDD checklist the moment a case becomes Disbursed
-    if (newStatus === 'Disbursed') {
-      await seedPDDChecklist(caseId, c ? c.bankId : null);
-    }
 
     if (typeof renderAllCases === 'function') renderAllCases();
     showFlash('Status updated — ' + caseId + ' → ' + newStatus);

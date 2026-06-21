@@ -743,47 +743,21 @@ input[data-aadhaar]{font-family:'DM Mono',monospace;letter-spacing:.1em}
             </select>
           </div>
           <div class="field">
-            <label>&nbsp;</label>
-            <button type="button" onclick="openShareModal()" style="width:100%;padding:9px 12px;border-radius:var(--r-sm);border:1px solid var(--accent);background:var(--green-bg);color:var(--accent);font-family:inherit;font-size:13px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:5px;white-space:nowrap;transition:all .15s" title="Share CIBIL request with customer">
-              <i class="ti ti-share" style="font-size:14px"></i> Get CIBIL
-            </button>
+            <label>Preferred bank</label>
+            <select id="pref-bank">
+              <option value="">Select bank</option>
+              <option>HDFC Bank</option><option>ICICI Bank</option><option>Axis Bank</option>
+              <option>Kotak Bank</option><option>SBI</option><option>IndusInd Bank</option>
+              <option>Tata Capital</option><option>Mahindra Finance</option><option>HDB Financial</option><option>Cholamandalam</option>
+            </select>
+            <span class="field-hint">Loads live from Bank Management's active banks</span>
           </div>
         </div>
 
-        <!-- BANK & BRANCH popup — shown after CIBIL ≥ 650 -->
-        <div id="bank-branch-wrap" style="display:none;margin-top:14px;border:1.5px solid var(--accent);border-radius:var(--r);overflow:hidden;animation:fadeSlide .2s ease">
-          <div style="background:var(--accent);padding:12px 16px;display:flex;align-items:center;justify-content:space-between">
-            <div style="font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:rgba(255,255,255,.7)">Select preferred bank &amp; nearby branch</div>
-            <span style="font-size:11px;color:var(--accent);background:var(--gold);padding:2px 9px;border-radius:10px;font-weight:600" id="cibil-tag"></span>
-          </div>
-          <div style="padding:16px;background:var(--surface)">
-            <div class="g2" style="margin-bottom:14px;max-width:520px">
-              <div class="field">
-                <label>Preferred bank</label>
-                <select id="pref-bank" onchange="onBankSelect()">
-                  <option value="">Select bank</option>
-                  <option>HDFC Bank</option><option>ICICI Bank</option><option>Axis Bank</option>
-                  <option>Kotak Bank</option><option>SBI</option><option>IndusInd Bank</option>
-                  <option>Tata Capital</option><option>Mahindra Finance</option><option>HDB Financial</option><option>Cholamandalam</option>
-                </select>
-              </div>
-              <div class="field">
-                <label>Customer current pincode</label>
-                <input type="text" id="branch-pin" placeholder="6-digit pincode" maxlength="6"
-                       oninput="this.value=this.value.replace(/\D/g,'')"
-                       onblur="loadBranches()">
-                <span class="field-hint">Branch list will appear below</span>
-              </div>
-            </div>
-            <div id="branch-list-wrap" style="display:none">
-              <div style="font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-bottom:8px">Nearby branches — select one <span style="font-weight:400;text-transform:none;letter-spacing:0">(within 10 km · empaneled branches shown first)</span></div>
-              <div id="branch-list"></div>
-            </div>
-            <div id="selected-branch-confirm" style="display:none;margin-top:10px;padding:10px 14px;background:var(--green-bg);border:1px solid #6EE7B7;border-radius:var(--r-sm);font-size:12px;color:var(--green-txt);display:flex;align-items:center;gap:6px">
-              <i class="ti ti-check" style="font-size:15px"></i>
-              <span id="selected-branch-txt"></span>
-            </div>
-          </div>
+        <div style="max-width:230px;margin-top:14px">
+          <button type="button" onclick="openShareModal()" style="width:100%;padding:9px 12px;border-radius:var(--r-sm);border:1px solid var(--accent);background:var(--green-bg);color:var(--accent);font-family:inherit;font-size:13px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:5px;white-space:nowrap;transition:all .15s" title="Share CIBIL request with customer">
+            <i class="ti ti-share" style="font-size:14px"></i> Get CIBIL
+          </button>
         </div>
 
         <!-- LTV Panel -->
@@ -1017,7 +991,7 @@ input[data-aadhaar]{font-family:'DM Mono',monospace;letter-spacing:.1em}
           </div>
           <div class="field">
             <label>CIBIL score</label>
-            <input type="number" id="v-cibil" placeholder="e.g. 750" min="300" max="900" oninput="onCibilInput(this.value)">
+            <input type="number" id="v-cibil" placeholder="e.g. 750" min="300" max="900">
             <span class="field-hint">Use the "Get CIBIL" button near Preferred tenure to request it from the customer</span>
           </div>
           <div class="field">
@@ -1030,32 +1004,6 @@ input[data-aadhaar]{font-family:'DM Mono',monospace;letter-spacing:.1em}
           <div class="uz-title">Click to upload CIC report (PDF)</div>
           <div class="uz-sub">PDF only · Max 10MB</div>
         </div>
-      </div>
-
-      <!-- FOIR MATCHER -->
-      <div class="form-panel" id="foir-panel" style="display:none">
-        <div class="panel-title"><i class="ti ti-adjustments"></i> FOIR matcher — per preferred bank</div>
-        <div class="field-hint" style="margin-bottom:12px">Review the uploaded CIC report and enter the customer's existing EMI total below.</div>
-        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:14px;max-width:620px">
-          <div class="field">
-            <label>Net monthly income (₹)</label>
-            <input type="number" id="foir-income" placeholder="From Section 3" oninput="runFOIR()">
-          </div>
-          <div class="field">
-            <label>Existing EMI total (₹/month)</label>
-            <input type="number" id="foir-existing-emi" placeholder="From CIC report" oninput="runFOIR()">
-          </div>
-          <div class="field">
-            <label>Preferred bank</label>
-            <select id="foir-bank" onchange="runFOIR()">
-              <option value="all">All banks</option>
-              <option>HDFC Bank</option><option>ICICI Bank</option><option>Axis Bank</option>
-              <option>Kotak Bank</option><option>SBI</option><option>IndusInd Bank</option>
-              <option>Tata Capital</option><option>Mahindra Finance</option><option>Cholamandalam</option>
-            </select>
-          </div>
-        </div>
-        <div id="foir-results"></div>
       </div>
 
       <div class="form-footer">
@@ -1242,6 +1190,11 @@ const _editId      = _params.get('edit') || null;     // submitted case ID to ed
   const caseIdEl = document.getElementById('display-case-id');
   if (caseIdEl) caseIdEl.textContent = currentCaseId;
 
+  // 3b. Populate the Preferred Bank dropdown from the live banks table —
+  // must happen before any draft/edit restore, since restoring sets this
+  // select's value and that only sticks if the matching <option> already exists.
+  await loadBankOptionsForForm();
+
   // 4. Check for existing draft — skip if fresh load (new case from dashboard)
   if (_editId) {
     // Editing an already-submitted case — load straight from `cases` table
@@ -1344,9 +1297,9 @@ function collectFormData() {
     loan_tenure_months: parseInt(g('v-tenure')) || null,
     loan_ltv_pct:       ltv,
     cibil_score:        parseInt(g('v-cibil')) || null,
-    // ── Preferred bank & branch ──
+    // ── Preferred bank ──
     preferred_bank_name:   document.getElementById('pref-bank')?.value || null,
-    preferred_branch_name: selectedBranch || null,
+    preferred_bank_id:     document.getElementById('pref-bank')?.selectedOptions?.[0]?.dataset?.bankId || null,
     // ── Employment ──
     emp_type:           g('emp-type'),
     emp_company:        g('emp-company'),
@@ -1583,7 +1536,6 @@ function restoreFormData(data) {
   s('v-loan', data.loan_amount); s('v-tenure', data.loan_tenure_months); s('v-cibil', data.cibil_score);
   s('emp-type', data.emp_type); s('emp-company', data.emp_company); s('inc-net', data.inc_net_monthly);
   if (data.emp_type) handleEmpType();
-  if (data.cibil_score >= 650) onCibilInput(data.cibil_score);
 }
 
 // ── STATE ─────────────────────────────────────────────────────────────────────
@@ -1600,23 +1552,9 @@ function slotLabelFor(key) {
   if (key.startsWith('itr-')) return FY[parseInt(key.slice(4))] || null;
   return null;
 }
-let selectedBranch = null;
-let selectedBankName = null;
 
 const MONTHS = ['May 2026','Apr 2026','Mar 2026','Feb 2026','Jan 2026','Dec 2025','Nov 2025','Oct 2025','Sep 2025','Aug 2025','Jul 2025','Jun 2025'];
 const FY     = ['FY 2024–25','FY 2023–24','FY 2022–23'];
-
-const BANKS_FOIR = [
-  {n:'HDFC Bank',    limit:50},
-  {n:'ICICI Bank',   limit:55},
-  {n:'Axis Bank',    limit:55},
-  {n:'Kotak Bank',   limit:50},
-  {n:'SBI',          limit:60},
-  {n:'IndusInd Bank',limit:60},
-  {n:'Tata Capital', limit:65},
-  {n:'Mahindra Finance',limit:65},
-  {n:'Cholamandalam',limit:70},
-];
 
 const fmt = n => '₹' + Number(Math.round(n)).toLocaleString('en-IN');
 
@@ -2098,46 +2036,10 @@ function simulateCIC() {
     if (subEl) subEl.textContent = (file.size/1024).toFixed(0) + ' KB';
     injectUZActions(el, 'uz-cic', 'CIC report uploaded ✓');
     showFlash('CIC report uploaded');
-    showFOIRPanel();
   };
   document.body.appendChild(input);
   input.click();
   setTimeout(() => document.body.removeChild(input), 1000);
-}
-
-function showFOIRPanel() {
-  document.getElementById('foir-panel').style.display = 'block';
-  // pre-fill FOIR income from section 3
-  const inc = document.getElementById('inc-net')?.value;
-  if (inc) document.getElementById('foir-income').value = inc;
-  runFOIR();
-}
-
-// ── FOIR MATCHER ──────────────────────────────────────────────────────────────
-// Existing EMI total is entered manually by the RM/BM after reviewing the
-// uploaded CIC report — there's no automated extraction.
-function runFOIR() {
-  const income   = parseFloat(document.getElementById('foir-income').value) || 0;
-  const totalEMI = parseFloat(document.getElementById('foir-existing-emi').value) || 0;
-  const pref     = document.getElementById('foir-bank').value;
-  if (!income) { document.getElementById('foir-results').innerHTML = '<div style="font-size:12px;color:var(--muted);padding:10px">Enter net monthly income above to see FOIR results.</div>'; return; }
-  const foirPct  = Math.round((totalEMI / income) * 100);
-  const banks = pref === 'all' ? BANKS_FOIR : BANKS_FOIR.filter(b => b.n === pref);
-  document.getElementById('foir-results').innerHTML = `
-    <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;padding:10px 12px;background:var(--surface2);border-radius:var(--r-sm);font-size:12px">
-      <span style="color:var(--muted)">Existing EMI total</span>
-      <strong style="font-family:'DM Mono',monospace">${fmt(totalEMI)}/month</strong>
-      <span style="color:var(--muted);margin-left:8px">Current FOIR</span>
-      <strong style="font-family:'DM Mono',monospace;color:${foirPct<=50?'var(--green-txt)':foirPct<=65?'var(--amber-txt)':'var(--red-txt)'}">${foirPct}%</strong>
-    </div>
-    ${banks.map(b => {
-      const pass = foirPct <= b.limit;
-      return `<div style="display:flex;align-items:center;gap:10px;padding:9px 12px;border:1px solid ${pass?'#6EE7B7':'#FCA5A5'};border-radius:var(--r-sm);background:${pass?'var(--green-bg)':'var(--red-bg)'};margin-bottom:6px;font-size:12px">
-        <div style="font-weight:500;flex:1;color:${pass?'var(--green-txt)':'var(--red-txt)'}">${b.n}</div>
-        <div style="font-size:11px;color:${pass?'var(--green-txt)':'var(--red-txt)'}">Limit ${b.limit}% · Customer ${foirPct}%</div>
-        <span style="font-size:11px;padding:2px 9px;border-radius:10px;font-weight:600;background:${pass?'#D1FAE5':'#FEE2E2'};color:${pass?'#166534':'var(--red-txt)'}">${pass?'Pass':'Fail'}</span>
-      </div>`;
-    }).join('')}`;
 }
 
 // ── CO-APPLICANT ──────────────────────────────────────────────────────────────
@@ -2266,80 +2168,27 @@ function fmtDOB(el) {
   el.value = v;
 }
 
-// ── CIBIL → show bank+branch popup ───────────────────────────────────────────
-function onCibilInput(val) {
-  const n    = parseInt(val) || 0;
-  const wrap = document.getElementById('bank-branch-wrap');
-  const tag  = document.getElementById('cibil-tag');
-  if (n >= 650) {
-    wrap.style.display = 'block';
-    const tier = n >= 780 ? 'Excellent' : n >= 740 ? 'Good' : n >= 700 ? 'Average' : 'Below avg';
-    tag.textContent = 'CIBIL ' + n + ' · ' + tier;
-  } else {
-    wrap.style.display = 'none';
+// ── PREFERRED BANK ────────────────────────────────────────────────────────────
+// Populates Preferred Bank from the live `banks` table (active only) instead
+// of the old hardcoded name list — that list was missing banks added since
+// (Canara Bank, IOB, Union Bank) and, more importantly, never captured a
+// real bank_id, so preferred_bank_id was always null for every case ever
+// created. The option's `value` stays the bank NAME (matches existing saved
+// data), but each option also carries the real UUID in `data-bank-id` for
+// collectFormData() to read.
+async function loadBankOptionsForForm() {
+  const sel = document.getElementById('pref-bank');
+  if (!sel) return;
+  try {
+    const { data: banks, error } = await db.from('banks').select('id,name').eq('active', true).order('name');
+    if (error) throw error;
+    const current = sel.value;
+    sel.innerHTML = '<option value="">Select bank</option>' +
+      (banks || []).map(b => `<option value="${b.name}" data-bank-id="${b.id}">${b.name}</option>`).join('');
+    if (current) sel.value = current;
+  } catch(e) {
+    console.error('loadBankOptionsForForm failed, keeping default options:', e.message);
   }
-}
-
-function onBankSelect() {
-  const pin = document.getElementById('branch-pin').value;
-  if (pin.length === 6) loadBranches();
-}
-
-// Branch data keyed by pincode
-const PIN_BRANCHES = {
-  '600017':[{name:'T Nagar Branch',area:'T Nagar',dist:'0.8 km',emp:true},{name:'Pondy Bazaar Branch',area:'T Nagar',dist:'1.4 km',emp:false}],
-  '600034':[{name:'Anna Nagar Branch',area:'Anna Nagar',dist:'1.1 km',emp:true},{name:'2nd Avenue Branch',area:'Anna Nagar',dist:'2.6 km',emp:false}],
-  '600020':[{name:'Adyar Branch',area:'Adyar',dist:'0.9 km',emp:true},{name:'Besant Nagar Branch',area:'Adyar',dist:'3.1 km',emp:false}],
-  '600028':[{name:'Velachery Branch',area:'Velachery',dist:'1.4 km',emp:true},{name:'100 Feet Road Branch',area:'Velachery',dist:'2.8 km',emp:false}],
-  '600040':[{name:'Tambaram Branch',area:'Tambaram',dist:'1.2 km',emp:true},{name:'West Tambaram Branch',area:'Tambaram',dist:'2.5 km',emp:false}],
-  '600058':[{name:'Ambattur Branch',area:'Ambattur',dist:'1.0 km',emp:false},{name:'SIDCO Branch',area:'Ambattur',dist:'2.2 km',emp:false}],
-};
-
-function loadBranches() {
-  const bank = document.getElementById('pref-bank').value;
-  const pin  = document.getElementById('branch-pin').value;
-  if (!bank || pin.length !== 6) return;
-  const wrap     = document.getElementById('branch-list-wrap');
-  const listEl   = document.getElementById('branch-list');
-  const branches = PIN_BRANCHES[pin] || [
-    {name:bank + ' · ' + pin + ' Branch', area:'Nearby area', dist:'< 5 km', emp:false},
-    {name:bank + ' · City Branch', area:'City centre', dist:'< 10 km', emp:false},
-  ];
-  wrap.style.display = 'block';
-  listEl.innerHTML = branches.map((b, i) => `
-    <div class="branch-opt" id="bropt-${i}"
-         onclick="selectBranch(this, '${b.name}', '${bank}')"
-         style="display:flex;align-items:center;gap:10px;padding:11px 14px;
-                border:1px solid var(--border);border-radius:var(--r-sm);
-                margin-bottom:7px;cursor:pointer;transition:all .15s;
-                background:var(--surface)">
-      <div style="width:32px;height:32px;border-radius:50%;background:var(--green-bg);
-                  display:flex;align-items:center;justify-content:center;
-                  font-size:13px;flex-shrink:0;color:var(--green-txt)">
-        <i class="ti ti-map-pin"></i>
-      </div>
-      <div style="flex:1">
-        <div style="font-size:13px;font-weight:500;margin-bottom:2px">${b.name}</div>
-        <div style="font-size:11px;color:var(--muted)">${bank} · ${b.area} · ${b.dist}</div>
-      </div>
-      ${b.emp ? '<span style="font-size:10px;padding:2px 8px;border-radius:10px;background:var(--green-bg);color:var(--green-txt);font-weight:600;white-space:nowrap">Empaneled ★</span>' : ''}
-    </div>`).join('');
-}
-
-function selectBranch(el, branchName, bankName) {
-  document.querySelectorAll('.branch-opt').forEach(b => {
-    b.style.borderColor = 'var(--border)';
-    b.style.background  = 'var(--surface)';
-  });
-  el.style.borderColor = 'var(--accent)';
-  el.style.background  = 'var(--green-bg)';
-  // Store globally so collectFormData and submit can access
-  selectedBranch  = branchName;
-  selectedBankName = bankName;
-  const confirm = document.getElementById('selected-branch-confirm');
-  document.getElementById('selected-branch-txt').textContent =
-    ' ' + bankName + ' — ' + branchName + ' selected';
-  confirm.style.display = 'flex';
 }
 
 // ── SUBMIT ────────────────────────────────────────────────────────────────────

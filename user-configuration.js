@@ -61,16 +61,16 @@ function renderAccessTable() {
 
     return `
     <tr style="border-bottom:1px solid var(--border)">
-      <td style="padding:10px 14px;font-size:12px;font-weight:600;color:var(--text)">${meta.label}</td>
-      <td style="text-align:center;padding:10px 14px">
+      <td data-label="Module / Tab" style="padding:10px 14px;font-size:12px;font-weight:600;color:var(--text)">${meta.label}</td>
+      <td data-label="City Head" style="text-align:center;padding:10px 14px">
         <i class="ti ti-check" style="color:var(--accent);font-size:16px;font-weight:700" title="Always enabled"></i>
       </td>
-      <td style="text-align:center;padding:10px 14px">
+      <td data-label="Branch Manager" style="text-align:center;padding:10px 14px">
         <input type="checkbox" ${mod.bm?'checked':''}
           onchange="accessConfig['${key}']['bm']=this.checked"
           style="width:16px;height:16px;cursor:pointer;accent-color:#1E40AF">
       </td>
-      <td style="text-align:center;padding:10px 14px">
+      <td data-label="Rel. Manager" style="text-align:center;padding:10px 14px">
         <input type="checkbox" ${mod.rm?'checked':''}
           onchange="accessConfig['${key}']['rm']=this.checked"
           style="width:16px;height:16px;cursor:pointer;accent-color:#5B21B6">

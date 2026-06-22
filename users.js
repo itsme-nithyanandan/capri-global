@@ -83,7 +83,7 @@ function renderUsersList() {
     <tbody>
       ${allMembers.map(u => `
       <tr style="border-bottom:1px solid var(--border)">
-        <td style="padding:10px 14px">
+        <td data-label="Name" style="padding:10px 14px">
           <div style="display:flex;align-items:center;gap:10px">
             <div style="width:32px;height:32px;border-radius:50%;background:${roleColor[u.role]};display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:white;flex-shrink:0">
               ${u.name.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase()}
@@ -91,15 +91,15 @@ function renderUsersList() {
             <span style="font-weight:600">${u.name}</span>
           </div>
         </td>
-        <td style="padding:10px 14px"><span class="badge ${roleBadge[u.role]}">${roleLabel[u.role]}</span></td>
-        <td style="padding:10px 14px;color:var(--muted);font-size:12px">${u.email}</td>
-        <td style="padding:10px 14px;color:var(--muted);font-size:12px">${u.phone||'—'}</td>
-        <td style="padding:10px 14px;font-size:12px">${u.reports_to&&reportsToMap[u.reports_to]?reportsToMap[u.reports_to]:'—'}</td>
-        <td style="padding:10px 14px;text-align:center;font-family:'DM Mono',monospace;font-size:12px">${u.role==='city_head' ? '—' : (u.monthly_target ?? '—')}</td>
-        <td style="padding:10px 14px;text-align:center">
+        <td data-label="Role" style="padding:10px 14px"><span class="badge ${roleBadge[u.role]}">${roleLabel[u.role]}</span></td>
+        <td data-label="Email" style="padding:10px 14px;color:var(--muted);font-size:12px">${u.email}</td>
+        <td data-label="Phone" style="padding:10px 14px;color:var(--muted);font-size:12px">${u.phone||'—'}</td>
+        <td data-label="Reports To" style="padding:10px 14px;font-size:12px">${u.reports_to&&reportsToMap[u.reports_to]?reportsToMap[u.reports_to]:'—'}</td>
+        <td data-label="Target" style="padding:10px 14px;text-align:center;font-family:'DM Mono',monospace;font-size:12px">${u.role==='city_head' ? '—' : (u.monthly_target ?? '—')}</td>
+        <td data-label="Status" style="padding:10px 14px;text-align:center">
           <span class="badge ${u.active?'badge-green':'badge-red'}">${u.active?'Active':'Inactive'}</span>
         </td>
-        <td style="padding:10px 14px;text-align:center;white-space:nowrap">
+        <td data-label="Action" style="padding:10px 14px;text-align:center;white-space:nowrap">
           <button class="btn btn-sm" onclick="openEditUserModal('${u.id}')"><i class="ti ti-edit" style="font-size:12px"></i> Edit</button>
           <button class="btn btn-sm" onclick="toggleUserActive('${u.id}',${u.active})" style="margin-left:4px">
             <i class="ti ti-${u.active?'user-off':'user-check'}" style="font-size:12px"></i> ${u.active?'Deactivate':'Activate'}

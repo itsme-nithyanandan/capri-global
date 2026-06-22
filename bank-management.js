@@ -118,21 +118,21 @@ function renderBanks(){
     const topRoi = hasSlabs ? b.slabs[0].roi : '—';
 
     return `<tr>
-    <td style="font-weight:500">${b.name}</td>
-    <td><span class="badge ${typeBadge[b.type]||'badge-gray'}">${b.type}</span></td>
-    <td style="font-family:'DM Mono',monospace;font-size:12.5px">${b.minCibil}</td>
-    <td style="font-family:'DM Mono',monospace;font-size:12.5px">${b.foir}${b.foir!=='—'?'%':''}</td>
-    <td style="font-family:'DM Mono',monospace;font-size:12.5px">${b.ltv}${b.ltv!=='—'?'%':''}</td>
-    <td style="font-family:'DM Mono',monospace;color:var(--green-text);font-weight:500;font-size:12.5px">${payoutDisplay}</td>
-    <td>
+    <td data-label="Bank / NBFC" style="font-weight:500">${b.name}</td>
+    <td data-label="Type"><span class="badge ${typeBadge[b.type]||'badge-gray'}">${b.type}</span></td>
+    <td data-label="Min CIBIL" style="font-family:'DM Mono',monospace;font-size:12.5px">${b.minCibil}</td>
+    <td data-label="FOIR %" style="font-family:'DM Mono',monospace;font-size:12.5px">${b.foir}${b.foir!=='—'?'%':''}</td>
+    <td data-label="LTV %" style="font-family:'DM Mono',monospace;font-size:12.5px">${b.ltv}${b.ltv!=='—'?'%':''}</td>
+    <td data-label="Payout" style="font-family:'DM Mono',monospace;color:var(--green-text);font-weight:500;font-size:12.5px">${payoutDisplay}</td>
+    <td data-label="ROI Slab">
       ${hasSlabs
         ? `<button class="btn btn-xs" onclick="showROISlab(event,${idx})" style="font-family:'DM Mono',monospace;font-size:12px;color:var(--accent);font-weight:600;border-color:var(--green-border);background:var(--green-bg)">
             ${topRoi} <i class="ti ti-chevron-down" style="font-size:10px"></i>
           </button>`
         : '<span style="color:var(--muted2);font-size:12px">No slabs set</span>'}
     </td>
-    <td><span class="badge ${b.active?'badge-green':'badge-gray'}">${b.active?'Active':'Inactive'}</span></td>
-    <td style="white-space:nowrap">
+    <td data-label="Status"><span class="badge ${b.active?'badge-green':'badge-gray'}">${b.active?'Active':'Inactive'}</span></td>
+    <td data-label="Action" style="white-space:nowrap">
       <button class="btn btn-sm" onclick="openEditBankModal('${b.id}')">Edit</button>
       <button class="btn btn-sm" style="margin-left:4px" onclick="openEligibilityModal('${b.id}','${b.name.replace(/'/g,"\\'")}')"><i class="ti ti-list-check" style="font-size:11px"></i> Configure</button>
       <button class="btn btn-sm ${b.active?'btn-danger':''}" style="margin-left:4px" onclick="toggleBankActive('${b.id}',${idx})">${b.active?'Deactivate':'Activate'}</button>
@@ -513,12 +513,12 @@ function renderROISlabsTable() {
       : '—';
     const tenure = (s.min_tenure_mo || s.max_tenure_mo) ? `${s.min_tenure_mo ?? '—'}–${s.max_tenure_mo ?? '—'} mo` : '—';
     return `<tr>
-      <td style="font-weight:500">${s.slab_label}</td>
-      <td style="font-family:'DM Mono',monospace;font-size:12px">${s.score_min}–${s.score_max}</td>
-      <td style="font-family:'DM Mono',monospace;font-size:12px;color:var(--accent);font-weight:600">${rate}</td>
-      <td style="font-size:12px;color:var(--muted)">${tenure}</td>
-      <td><span class="badge ${s.active!==false?'badge-green':'badge-gray'}">${s.active!==false?'Active':'Inactive'}</span></td>
-      <td style="white-space:nowrap">
+      <td data-label="Label" style="font-weight:500">${s.slab_label}</td>
+      <td data-label="CIBIL Range" style="font-family:'DM Mono',monospace;font-size:12px">${s.score_min}–${s.score_max}</td>
+      <td data-label="Rate" style="font-family:'DM Mono',monospace;font-size:12px;color:var(--accent);font-weight:600">${rate}</td>
+      <td data-label="Tenure" style="font-size:12px;color:var(--muted)">${tenure}</td>
+      <td data-label="Status"><span class="badge ${s.active!==false?'badge-green':'badge-gray'}">${s.active!==false?'Active':'Inactive'}</span></td>
+      <td data-label="Action" style="white-space:nowrap">
         <button class="btn btn-xs" onclick="editROISlab('${s.id}')"><i class="ti ti-edit" style="font-size:11px"></i></button>
         <button class="btn btn-xs btn-danger" style="margin-left:4px" onclick="deleteROISlab('${s.id}')"><i class="ti ti-trash" style="font-size:11px"></i></button>
       </td>
@@ -691,10 +691,10 @@ function renderPayoutSlabsTable() {
 
   tbody.innerHTML = _payoutSlabsCache.map(s => `
     <tr>
-      <td style="font-family:'DM Mono',monospace;font-size:12px">₹${Number(s.loan_from).toLocaleString('en-IN')} – ₹${Number(s.loan_to).toLocaleString('en-IN')}</td>
-      <td style="font-family:'DM Mono',monospace;font-size:12.5px;color:var(--green-text);font-weight:600">${s.payout_pct}%</td>
-      <td><span class="badge ${s.active!==false?'badge-green':'badge-gray'}">${s.active!==false?'Active':'Inactive'}</span></td>
-      <td style="white-space:nowrap">
+      <td data-label="Loan Range (₹)" style="font-family:'DM Mono',monospace;font-size:12px">₹${Number(s.loan_from).toLocaleString('en-IN')} – ₹${Number(s.loan_to).toLocaleString('en-IN')}</td>
+      <td data-label="Payout %" style="font-family:'DM Mono',monospace;font-size:12.5px;color:var(--green-text);font-weight:600">${s.payout_pct}%</td>
+      <td data-label="Status"><span class="badge ${s.active!==false?'badge-green':'badge-gray'}">${s.active!==false?'Active':'Inactive'}</span></td>
+      <td data-label="Action" style="white-space:nowrap">
         <button class="btn btn-xs" onclick="editPayoutSlab('${s.id}')"><i class="ti ti-edit" style="font-size:11px"></i></button>
         <button class="btn btn-xs btn-danger" style="margin-left:4px" onclick="deletePayoutSlab('${s.id}')"><i class="ti ti-trash" style="font-size:11px"></i></button>
       </td>

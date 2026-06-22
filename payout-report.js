@@ -75,7 +75,7 @@ function renderPayoutTable() {
 
   const tbody = document.getElementById('payout-tbody');
   if (!rows.length) {
-    tbody.innerHTML = '<tr><td colspan="8"><div class="empty-state" style="padding:24px"><i class="ti ti-table-off"></i><span>No payouts yet — these appear once a case\'s PDD is approved</span></div></td></tr>';
+    tbody.innerHTML = '<tr><td colspan="9"><div class="empty-state" style="padding:24px"><i class="ti ti-table-off"></i><span>No payouts yet — these appear once a case\'s PDD is approved</span></div></td></tr>';
     return;
   }
 
@@ -96,15 +96,15 @@ function renderPayoutTable() {
     }
     return `
     <tr>
-      <td style="font-family:'DM Mono',monospace;font-size:11px">${p.case_id}</td>
-      <td style="font-weight:500">${p.cust_name || '—'}</td>
-      <td>${p.bank_name || '—'}</td>
-      <td>${p.member_name || '—'}</td>
-      <td style="font-family:'DM Mono',monospace;font-size:12px">${fmt(p.disbursed_amount)}</td>
-      <td style="font-family:'DM Mono',monospace;font-size:12px;color:var(--muted)">${pctLabel}</td>
-      <td style="font-family:'DM Mono',monospace;font-weight:600;color:var(--green-text)">${fmt(p.payout_amount)}</td>
-      <td>${statusBadge}</td>
-      <td style="white-space:nowrap">${actionCell}</td>
+      <td data-label="Case ID" style="font-family:'DM Mono',monospace;font-size:11px">${p.case_id}</td>
+      <td data-label="Customer" style="font-weight:500">${p.cust_name || '—'}</td>
+      <td data-label="Bank">${p.bank_name || '—'}</td>
+      <td data-label="Member">${p.member_name || '—'}</td>
+      <td data-label="Disbursed Amount" style="font-family:'DM Mono',monospace;font-size:12px">${fmt(p.disbursed_amount)}</td>
+      <td data-label="Payout %" style="font-family:'DM Mono',monospace;font-size:12px;color:var(--muted)">${pctLabel}</td>
+      <td data-label="Payout Amount" style="font-family:'DM Mono',monospace;font-weight:600;color:var(--green-text)">${fmt(p.payout_amount)}</td>
+      <td data-label="Status">${statusBadge}</td>
+      <td data-label="Action" style="white-space:nowrap">${actionCell}</td>
     </tr>`;
   }).join('');
 }

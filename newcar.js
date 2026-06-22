@@ -100,22 +100,22 @@ function renderAllCases(data){
   if (loanTotalEl) loanTotalEl.textContent = fmt(loanTotal);
   document.getElementById('cases-count').textContent=`${d.length} case${d.length!==1?'s':''}`;
   document.getElementById('all-cases-tbody').innerHTML=d.length===0
-    ?`<tr><td colspan="11"><div class="empty-state" style="padding:28px"><i class="ti ti-search-off"></i><span>No cases match your filters</span></div></td></tr>`
+    ?`<tr><td colspan="12"><div class="empty-state" style="padding:28px"><i class="ti ti-search-off"></i><span>No cases match your filters</span></div></td></tr>`
     :d.map(c=>{
       const org=caseOrgMap[c.id]||{bm:'—',rm:'—'};
       return `<tr>
-      <td><span style="font-family:'DM Mono',monospace;font-size:11px">${c.id}</span></td>
-      <td style="font-size:11px;color:var(--muted)">${fmtDate(c.date)}</td>
-      <td style="font-weight:500">${c.cust}</td>
-      <td style="font-size:12px;color:var(--muted)">${c.car}</td>
-      <td style="font-size:12.5px">${c.bank}</td>
-      <td style="font-family:'DM Mono',monospace;font-size:12px">${fmt(c.loan)}</td>
-      <td style="font-size:12px;font-weight:500">${c.createdByName||org.bm||'—'}</td>
-      <td style="font-size:12px;color:var(--muted)">${c.reportsToName||org.rm||'—'}</td>
-      <td style="font-family:'DM Mono',monospace;font-size:12px;color:${cibilColor(c.cibil)}">${c.cibil}</td>
-      <td><span class="badge ${statusColor(c.status)}">${c.status}</span></td>
-      <td style="font-family:'DM Mono',monospace;font-size:12px;color:var(--green-text);font-weight:600">${c.payout>0?fmt(c.payout):'—'}</td>
-      <td style="white-space:nowrap">
+      <td data-label="Case ID"><span style="font-family:'DM Mono',monospace;font-size:11px">${c.id}</span></td>
+      <td data-label="Date" style="font-size:11px;color:var(--muted)">${fmtDate(c.date)}</td>
+      <td data-label="Customer" style="font-weight:500">${c.cust}</td>
+      <td data-label="Car" style="font-size:12px;color:var(--muted)">${c.car}</td>
+      <td data-label="Bank" style="font-size:12.5px">${c.bank}</td>
+      <td data-label="Loan (₹)" style="font-family:'DM Mono',monospace;font-size:12px">${fmt(c.loan)}</td>
+      <td data-label="Created By" style="font-size:12px;font-weight:500">${c.createdByName||org.bm||'—'}</td>
+      <td data-label="Reporting To" style="font-size:12px;color:var(--muted)">${c.reportsToName||org.rm||'—'}</td>
+      <td data-label="CIBIL" style="font-family:'DM Mono',monospace;font-size:12px;color:${cibilColor(c.cibil)}">${c.cibil}</td>
+      <td data-label="Status"><span class="badge ${statusColor(c.status)}">${c.status}</span></td>
+      <td data-label="Payout" style="font-family:'DM Mono',monospace;font-size:12px;color:var(--green-text);font-weight:600">${c.payout>0?fmt(c.payout):'—'}</td>
+      <td data-label="Action" style="white-space:nowrap">
         <button class="btn btn-sm" onclick="openCaseDetailModal('${c.id}')"><i class="ti ti-eye" style="font-size:11px"></i> View</button>
         ${c.status !== 'Disbursed' ? `<button class="btn btn-sm" style="margin-left:4px" onclick="openCaseActionMenu(event,'${c.id}')"><i class="ti ti-edit" style="font-size:11px"></i> Edit</button>` : ''}
       </td>
@@ -947,12 +947,12 @@ function renderDraftsTable(drafts){
       : '—';
     const loan=fd.loan_amount?'₹'+(fd.loan_amount>=100000?(fd.loan_amount/100000).toFixed(2)+'L':Number(fd.loan_amount).toLocaleString('en-IN')):'—';
     return `<tr>
-      <td><span style="font-family:'DM Mono',monospace;font-size:12px;font-weight:600;color:var(--accent)">${d.case_id||'—'}</span></td>
-      <td style="font-weight:500">${fd.cust_name||'<span style="color:var(--muted2);font-style:italic">Not filled</span>'}</td>
-      <td style="font-family:'DM Mono',monospace;font-size:12px">${fd.cust_mobile||'—'}</td>
-      <td>${fd.car_model?(fd.car_model+(fd.car_variant?' · '+fd.car_variant:'')):'—'}</td>
-      <td style="font-family:'DM Mono',monospace;font-size:12px;font-weight:600">${loan}</td>
-      <td style="min-width:120px">
+      <td data-label="Case ID"><span style="font-family:'DM Mono',monospace;font-size:12px;font-weight:600;color:var(--accent)">${d.case_id||'—'}</span></td>
+      <td data-label="Customer Name" style="font-weight:500">${fd.cust_name||'<span style="color:var(--muted2);font-style:italic">Not filled</span>'}</td>
+      <td data-label="Mobile" style="font-family:'DM Mono',monospace;font-size:12px">${fd.cust_mobile||'—'}</td>
+      <td data-label="Car Model">${fd.car_model?(fd.car_model+(fd.car_variant?' · '+fd.car_variant:'')):'—'}</td>
+      <td data-label="Loan (₹)" style="font-family:'DM Mono',monospace;font-size:12px;font-weight:600">${loan}</td>
+      <td data-label="Progress" style="min-width:120px">
         <div style="display:flex;align-items:center;gap:8px">
           <div style="flex:1;height:5px;border-radius:3px;background:var(--border);overflow:hidden">
             <div style="height:100%;width:${pct}%;background:${barColor};border-radius:3px;transition:width .5s"></div>
@@ -961,8 +961,8 @@ function renderDraftsTable(drafts){
         </div>
         <div style="font-size:10px;color:var(--muted);margin-top:2px">Section ${d.section||1} of 3</div>
       </td>
-      <td style="font-size:12px;color:var(--muted)">${savedAt}</td>
-      <td style="text-align:center">
+      <td data-label="Last Saved" style="font-size:12px;color:var(--muted)">${savedAt}</td>
+      <td data-label="Actions" style="text-align:center">
         <div style="display:flex;align-items:center;justify-content:center;gap:6px">
           <button class="btn btn-primary btn-xs" onclick="resumeDraft('${d.case_id}',${d.section||1})">
             <i class="ti ti-player-play" style="font-size:11px"></i> Resume
@@ -1174,8 +1174,8 @@ function renderPDDQueue(list) {
       const myReqTypes = new Set(myReqs.map(r=>r.doc_type));
 
       const docCells = allDocTypesInOrder.map(r => {
-        if (!myReqTypes.has(r.doc_type)) return '<td style="text-align:center;color:var(--muted2);font-size:11px">N/A</td>';
-        return `<td style="text-align:center">${docCellHTML(c, r)}</td>`;
+        if (!myReqTypes.has(r.doc_type)) return `<td data-label="${r.doc_label}" style="text-align:center;color:var(--muted2);font-size:11px">N/A</td>`;
+        return `<td data-label="${r.doc_label}" style="text-align:center">${docCellHTML(c, r)}</td>`;
       }).join('');
 
       let approveCell;
@@ -1199,12 +1199,12 @@ function renderPDDQueue(list) {
       }
 
       return `<tr>
-        <td><span style="font-family:'DM Mono',monospace;font-size:12px;font-weight:600;color:var(--accent)">${c.id}</span></td>
-        <td style="font-weight:500">${c.cust}</td>
-        <td>${c.bank}</td>
-        <td style="font-family:'DM Mono',monospace;font-size:12px">${fmt(c.loan)}</td>
+        <td data-label="Case ID"><span style="font-family:'DM Mono',monospace;font-size:12px;font-weight:600;color:var(--accent)">${c.id}</span></td>
+        <td data-label="Customer" style="font-weight:500">${c.cust}</td>
+        <td data-label="Bank">${c.bank}</td>
+        <td data-label="Loan (₹)" style="font-family:'DM Mono',monospace;font-size:12px">${fmt(c.loan)}</td>
         ${docCells}
-        <td style="text-align:center">${approveCell}</td>
+        <td data-label="Approval" style="text-align:center">${approveCell}</td>
       </tr>`;
     }).join('')}
     </tbody>

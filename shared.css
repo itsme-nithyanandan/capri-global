@@ -326,6 +326,61 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);fon
   .filter-bar,.filter-bar *{flex-wrap:wrap}
 }
 
+/* ── RESPONSIVE TABLES → CARDS ON MOBILE ──────────────────────────────────────
+   Every data-table across every module renders the same way on mobile: each
+   row becomes a bordered card, each cell becomes a label/value pair using its
+   data-label attribute (added per <td> in the JS that builds these rows).
+   Desktop/tablet keep the normal table layout untouched — this only applies
+   under the breakpoint. */
+@media(max-width:768px){
+  table.data-table thead{display:none}
+  table.data-table,table.data-table tbody{display:block;width:100%}
+  table.data-table tr{
+    display:block;
+    margin-bottom:10px;
+    padding:12px 14px;
+    border:1px solid var(--border);
+    border-radius:var(--radius-sm);
+    background:var(--surface);
+    cursor:default;
+  }
+  table.data-table tr:last-child{margin-bottom:0}
+  table.data-table tbody tr:hover td{background:transparent}
+  table.data-table td{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:10px;
+    padding:6px 0;
+    border:none;
+    max-width:none;
+    white-space:normal;
+    text-align:right;
+  }
+  table.data-table td:empty{display:none}
+  table.data-table td[data-label]::before{
+    content:attr(data-label);
+    font-size:10px;
+    font-weight:700;
+    text-transform:uppercase;
+    letter-spacing:.05em;
+    color:var(--muted);
+    text-align:left;
+    flex-shrink:0;
+    margin-right:auto;
+  }
+  table.data-table td[data-label="Action"],
+  table.data-table td[data-label="Actions"]{
+    justify-content:flex-end;
+    flex-wrap:wrap;
+    gap:6px;
+  }
+  table.data-table td[data-label="Action"]::before,
+  table.data-table td[data-label="Actions"]::before{
+    display:none;
+  }
+}
+
 /* ── DATA TABLE BASE STYLES ── */
 .data-table {
   width: 100%;

@@ -157,7 +157,13 @@ input[data-aadhaar]{font-family:'DM Mono',monospace;letter-spacing:.1em}
 .slot-row.done{border-color:var(--green-txt);background:var(--green-bg)}
 .slot-num{width:24px;height:24px;border-radius:50%;background:var(--surface2);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;color:var(--muted);flex-shrink:0}
 .slot-row.done .slot-num{background:var(--green-txt);color:white}
-.slot-name{font-size:13px;font-weight:500;flex:1}
+.slot-name{font-size:13px;font-weight:500;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.itr-slot-row{display:flex;flex-direction:column;gap:8px}
+.itr-slot-row .slot-row{margin-bottom:0}
+@media(min-width:680px){
+  .itr-slot-row{flex-direction:row;align-items:flex-start;gap:12px}
+  .itr-slot-row>.slot-row,.itr-slot-row>.field{flex:1;min-width:0}
+}
 .slot-row.done .slot-name,.slot-row.done .slot-status{color:var(--green-txt)}
 .slot-status{font-size:11px;color:var(--muted)}
 .slot-btn{padding:5px 12px;border-radius:var(--r-sm);border:1px solid var(--border);background:var(--surface2);font-size:11px;font-weight:500;cursor:pointer;font-family:inherit;color:var(--text);white-space:nowrap;transition:all .15s}
@@ -233,15 +239,15 @@ input[data-aadhaar]{font-family:'DM Mono',monospace;letter-spacing:.1em}
 .summary-val{font-weight:500;text-align:right}
 
 /* ── KYC DOC CARD ── */
-.doc-card{border:1.5px dashed var(--border2);border-radius:var(--r);overflow:hidden;background:var(--surface2);transition:all .2s}
+.doc-card{border:1.5px dashed var(--border2);border-radius:var(--r);overflow:hidden;background:var(--surface2);transition:all .2s;min-width:0}
 .doc-card.uploaded{border-style:solid;border-color:var(--green-txt);background:var(--green-bg)}
 .doc-card-top{padding:18px 12px 12px;text-align:center;cursor:pointer;position:relative}
 .doc-card-top:hover{background:rgba(0,0,0,.03)}
 .doc-card .uz-icon{font-size:22px;color:var(--muted);display:block;margin-bottom:6px}
 .doc-card.uploaded .uz-icon{color:var(--green-txt)}
-.doc-card-title{font-size:12px;font-weight:500;color:var(--text);margin-bottom:2px}
+.doc-card-title{font-size:12px;font-weight:500;color:var(--text);margin-bottom:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .doc-card.uploaded .doc-card-title{color:var(--green-txt)}
-.doc-card-sub{font-size:10px;color:var(--muted)}
+.doc-card-sub{font-size:10px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%;display:block}
 .doc-card.uploaded .doc-card-sub{color:var(--green-txt);opacity:.75}
 .doc-card-actions{display:none;border-top:1px solid var(--green-txt);background:rgba(255,255,255,.6)}
 .doc-card.uploaded .doc-card-actions{display:grid;grid-template-columns:1fr 1fr 1fr}
@@ -810,7 +816,7 @@ input[data-aadhaar]{font-family:'DM Mono',monospace;letter-spacing:.1em}
             </select>
           </div>
           <div class="field">
-            <label>Company / Employer name</label>
+            <label>Company Name / Profession</label>
             <input type="text" id="emp-company" placeholder="e.g. Infosys Ltd">
           </div>
           <div class="field">
@@ -2113,9 +2119,9 @@ function buildSlots(type) {
     const fyLabel = cfg.labels[from + i] || 'Item ' + (i + 1);
     const nameText = done && file ? file.name : fyLabel;
     const isItr = type === 'itr';
-    if (isItr) html += `<div style="display:flex;gap:12px;align-items:flex-start;flex-wrap:wrap">`;
+    if (isItr) html += `<div class="itr-slot-row">`;
 
-    html += `<div class="slot-row ${done ? 'done' : ''}" id="slot-${key}" style="${isItr ? 'flex:1 1 220px;min-width:0' : ''}">
+    html += `<div class="slot-row ${done ? 'done' : ''}" id="slot-${key}">
       <div class="slot-num">${done ? '<i class="ti ti-check" style="font-size:11px"></i>' : i + 1}</div>
       <div class="slot-name" id="sname-${key}" title="${fyLabel}">${nameText}</div>
       <div class="slot-status" id="sst-${key}">${statusText}</div>
@@ -2129,10 +2135,9 @@ function buildSlots(type) {
 
     if (isItr) {
       const savedVal = itrIncomeByKey[key] || '';
-      html += `<div style="flex:1 1 220px;min-width:0">
-        <label style="font-size:11px;color:var(--muted);display:block;margin-bottom:3px">Income of the ${fyLabel}</label>
-        <input type="number" id="itr-income-${key}" placeholder="e.g. 850000" value="${savedVal}"
-               oninput="onItrIncomeInput('${key}')" style="width:100%">
+      html += `<div class="field">
+        <label>Income of the ${fyLabel}</label>
+        <input type="number" id="itr-income-${key}" placeholder="e.g. 850000" value="${savedVal}" oninput="onItrIncomeInput('${key}')">
         <span class="field-hint amount-words" id="itr-income-${key}-words"></span>
       </div></div>`;
     }

@@ -360,12 +360,12 @@ input[data-aadhaar]{font-family:'DM Mono',monospace;letter-spacing:.1em}
   <div class="modal-back" id="share-modal" onclick="closeShareModal(event)">
     <div class="modal-sheet">
       <div class="modal-handle"></div>
-      <div class="modal-title">Share CIBIL report request</div>
-      <div class="modal-sub">Send the customer a pre-drafted message with CIBIL instructions and a request to share PAN &amp; Aadhaar. Message adapts based on documents already uploaded.</div>
+      <div class="modal-title">Get CIBIL report</div>
+      <div class="modal-sub">Choose how to proceed — ask the customer directly, or send their KYC documents straight to the bank for a CIBIL pull.</div>
       <button class="share-btn" onclick="shareViaWhatsApp()">
         <div class="share-icon share-wa"><i class="ti ti-brand-whatsapp"></i></div>
         <div>
-          <div>Share via WhatsApp</div>
+          <div>Ask customer via WhatsApp</div>
           <div class="share-btn-sub">Pre-drafted message · CIBIL link · KYC attachment request</div>
         </div>
         <i class="ti ti-chevron-right" style="margin-left:auto;color:var(--muted)"></i>
@@ -373,8 +373,8 @@ input[data-aadhaar]{font-family:'DM Mono',monospace;letter-spacing:.1em}
       <button class="share-btn" onclick="shareViaMail()">
         <div class="share-icon share-mail"><i class="ti ti-mail"></i></div>
         <div>
-          <div>Share via Email</div>
-          <div class="share-btn-sub">Formal email draft · CIBIL steps · document checklist</div>
+          <div>Send to bank via Email</div>
+          <div class="share-btn-sub">Applicant details + PAN &amp; Aadhaar attached, for the bank's CIBIL pull</div>
         </div>
         <i class="ti ti-chevron-right" style="margin-left:auto;color:var(--muted)"></i>
       </button>
@@ -2866,9 +2866,46 @@ function getCustomerDetails() {
   const name   = document.getElementById('f-name')?.value.trim() || 'Customer';
   const mobile = document.getElementById('f-mobile')?.value.trim() || '';
   const pan    = document.getElementById('f-pan')?.value.trim() || '';
+  const aadhaar = document.getElementById('f-aadhaar')?.value.trim() || '';
+  const loanAmount = document.getElementById('v-loan')?.value || '';
   const panUploaded  = document.getElementById('dc-pan')?.classList.contains('uploaded') || false;
   const aadharUploaded = document.getElementById('dc-af')?.classList.contains('uploaded') || false;
-  return {name, mobile, pan, panUploaded, aadharUploaded};
+  return {name, mobile, pan, aadhaar, loanAmount, panUploaded, aadharUploaded};
+}
+
+function getPermanentAddress() {
+  const parts = [
+    document.getElementById('p-addr1')?.value.trim(),
+    document.getElementById('p-addr2')?.value.trim(),
+    document.getElementById('p-city')?.value.trim(),
+    document.getElementById('p-dist')?.value.trim(),
+    document.getElementById('p-state')?.value,
+    document.getElementById('p-pin')?.value.trim(),
+  ].filter(Boolean);
+  return parts.length ? parts.join(', ') : 'Not provided';
+}
+
+// Returns a real File object for a doc-card, for use with the Web Share API —
+// either the one just picked this session (uploadedFiles), or fetched fresh
+// from Storage if it was saved earlier and not re-touched. Returns null if
+// neither source is available or the fetch fails (caller should handle that).
+async function getFileForSharing(cardId, fallbackName) {
+  if (uploadedFiles[cardId]) return uploadedFiles[cardId];
+  const saved = savedDocs[cardId];
+  if (saved && saved.storage_path) {
+    try {
+      const { data } = db.storage.from('Customer_Documets').getPublicUrl(saved.storage_path);
+      if (!data || !data.publicUrl) return null;
+      const res = await fetch(data.publicUrl);
+      if (!res.ok) return null;
+      const blob = await res.blob();
+      return new File([blob], saved.file_name || fallbackName, { type: blob.type || 'application/octet-stream' });
+    } catch(e) {
+      console.error('getFileForSharing fetch failed for', cardId, ':', e.message);
+      return null;
+    }
+  }
+  return null;
 }
 
 function shareViaWhatsApp() {
@@ -2913,68 +2950,86 @@ function shareViaWhatsApp() {
   closeShareModal();
 }
 
-function shareViaMail() {
-  const {name, mobile, pan, panUploaded, aadharUploaded} = getCustomerDetails();
+async function shareViaMail() {
+  const {name, mobile, pan, aadhaar, loanAmount, panUploaded, aadharUploaded} = getCustomerDetails();
 
-  // Build attachment instruction
-  let attachLines = '';
-  if (panUploaded && aadharUploaded) {
-    attachLines =
-      'We already have your PAN card and Aadhaar card on file from your application.\n' +
-      'No additional KYC documents are needed — please only attach your CIBIL report PDF.';
-  } else if (panUploaded) {
-    attachLines =
-      'We have your PAN card on file. Please attach the following to your reply:\n' +
-      '  1. CIBIL credit report (PDF)\n' +
-      '  2. Aadhaar card — front side (clear photo / scan)\n' +
-      '  3. Aadhaar card — back side (clear photo / scan)';
-  } else if (aadharUploaded) {
-    attachLines =
-      'We have your Aadhaar card on file. Please attach the following to your reply:\n' +
-      '  1. CIBIL credit report (PDF)\n' +
-      '  2. PAN card — front side (clear photo / scan)';
-  } else {
-    attachLines =
-      'Please attach the following documents to your reply email:\n' +
-      '  1. CIBIL credit report (PDF)\n' +
-      '  2. PAN card — front side (clear photo / scan)\n' +
-      '  3. Aadhaar card — front side (clear photo / scan)\n' +
-      '  4. Aadhaar card — back side (clear photo / scan)';
+  if (!panUploaded || !aadharUploaded) {
+    closeShareModal();
+    showFlash('Upload PAN and Aadhaar first — both are needed to send to the bank', true);
+    return;
   }
 
-  const panLine = pan ? '\nPAN Number on file: ' + pan : '';
-  const subject = encodeURIComponent('Action Required: CIBIL Report — Capri Global Capital Car Loan Application');
+  const address = getPermanentAddress();
+  const loanLine = loanAmount ? fmt(parseFloat(loanAmount)) : 'Not specified';
 
-  const body = encodeURIComponent(
-    'Dear ' + name + ',' + panLine + '\n\n' +
-    'Thank you for applying for a New Car Loan with Capri Global Capital, Chennai.\n\n' +
-    'To evaluate and process your loan application, we require your CIBIL credit report. ' +
-    'Please obtain and share your report at the earliest convenience.\n\n' +
+  const bodyText =
+    'Dear Sir/Madam,\n\n' +
+    'We are submitting the following car loan applicant\'s details for your CIBIL credit report pull, ' +
+    'as part of processing this application with Capri Global Capital, Chennai.\n\n' +
     '─────────────────────────────────\n' +
-    'HOW TO GET YOUR FREE CIBIL REPORT\n' +
+    'APPLICANT DETAILS\n' +
     '─────────────────────────────────\n' +
-    'Option 1 — CIBIL (TransUnion)\n' +
-    '  Visit: https://www.cibil.com/freecreditscore\n' +
-    '  Steps: Register / Login → View score → Download PDF\n\n' +
-    'Option 2 — Experian India\n' +
-    '  Visit: https://www.experian.in\n\n' +
-    'Option 3 — CRIF High Mark\n' +
-    '  Visit: https://www.crifhighmark.com\n\n' +
+    'Customer Name   : ' + name + '\n' +
+    'Mobile Number   : ' + (mobile || 'Not provided') + '\n' +
+    'PAN Number      : ' + (pan || 'Not provided') + '\n' +
+    'Aadhaar Number  : ' + (aadhaar || 'Not provided') + '\n' +
+    'Address         : ' + address + '\n' +
+    'Loan Amount     : ' + loanLine + '\n' +
+    '─────────────────────────────────\n\n' +
+    'DOCUMENTS ATTACHED\n' +
     '─────────────────────────────────\n' +
-    'DOCUMENTS TO ATTACH IN YOUR REPLY\n' +
-    '─────────────────────────────────\n' +
-    attachLines + '\n\n' +
-    'Please reply to this email with the above attachments, or WhatsApp them to your ' +
-    'relationship manager directly.\n\n' +
-    'This helps us fast-track your loan approval and get you the best rate.\n\n' +
+    '1. PAN card\n' +
+    '2. Aadhaar card\n\n' +
+    'Kindly process the CIBIL report at the earliest and share it with us, so we can proceed with the loan evaluation.\n\n' +
     'Warm regards,\n' +
     'Capri Global Capital\n' +
-    'Chennai Operations Team\n' +
-    'New Car Loans Division'
-  );
+    'Chennai Operations — New Car Loans Division';
 
-  window.location.href = 'mailto:?subject=' + subject + '&body=' + body;
+  const subject = 'CIBIL Pull Request — ' + name + ' — Capri Global Capital';
+
   closeShareModal();
+  showFlash('Preparing documents...');
+
+  const [panFile, aadhaarFile] = await Promise.all([
+    getFileForSharing('dc-pan', 'PAN Card.jpg'),
+    getFileForSharing('dc-af', 'Aadhaar Card.jpg'),
+  ]);
+  const files = [panFile, aadhaarFile].filter(Boolean);
+
+  if (!files.length) {
+    showFlash('Could not retrieve the documents — check your connection and try again', true);
+    window.location.href = 'mailto:?subject=' + encodeURIComponent(subject) + '&body=' + encodeURIComponent(bodyText);
+    return;
+  }
+
+  // Preferred path: hand the files + text straight to whatever app the
+  // person picks (Gmail, Outlook, Mail, WhatsApp...) via the native share
+  // sheet — this is what actually gets them attached for real. Supported on
+  // most mobile browsers (Android Chrome, iOS Safari); not in Firefox, and
+  // desktop support varies, hence the fallback below.
+  if (navigator.canShare && navigator.canShare({ files })) {
+    try {
+      await navigator.share({ title: subject, text: bodyText, files });
+      return;
+    } catch(e) {
+      if (e.name === 'AbortError') return; // person just cancelled the share sheet
+      console.error('Web Share failed, falling back to email draft:', e.message);
+    }
+  }
+
+  // Fallback for browsers without file-sharing support (or if it failed):
+  // download the files directly so they're one tap away from being attached,
+  // then open a plain email draft with a note to attach them manually.
+  files.forEach(f => {
+    const url = URL.createObjectURL(f);
+    const a = document.createElement('a');
+    a.href = url; a.download = f.name;
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    setTimeout(() => URL.revokeObjectURL(url), 2000);
+  });
+
+  const fallbackBody = bodyText + '\n\n[PAN card and Aadhaar card have been downloaded to your device — please attach them to this email before sending.]';
+  window.location.href = 'mailto:?subject=' + encodeURIComponent(subject) + '&body=' + encodeURIComponent(fallbackBody);
 }
 
 </script>

@@ -244,13 +244,13 @@ input[data-aadhaar]{font-family:'DM Mono',monospace;letter-spacing:.1em}
 .doc-card-sub{font-size:10px;color:var(--muted)}
 .doc-card.uploaded .doc-card-sub{color:var(--green-txt);opacity:.75}
 .doc-card-actions{display:none;border-top:1px solid var(--green-txt);background:rgba(255,255,255,.6)}
-.doc-card.uploaded .doc-card-actions{display:flex}
-.doc-action-btn{flex:1;padding:7px 4px;border:none;background:transparent;font-family:inherit;font-size:11px;font-weight:500;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:4px;transition:background .15s}
+.doc-card.uploaded .doc-card-actions{display:grid;grid-template-columns:1fr 1fr 1fr}
+.doc-action-btn{padding:7px 2px;border:none;background:transparent;font-family:inherit;font-size:10.5px;font-weight:500;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;transition:background .15s;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
 .doc-action-btn:hover{background:rgba(0,0,0,.06)}
 .doc-action-btn.view{color:var(--blue-txt)}
 .doc-action-btn.replace{color:var(--amber-txt)}
 .doc-action-btn.remove{color:var(--red-txt)}
-.doc-action-sep{width:1px;background:var(--green-txt);opacity:.3;flex-shrink:0}
+.doc-action-sep{display:none}
 /* Aadhaar expand back */
 .aadhar-back-trigger{display:none;margin-top:8px;padding:8px 12px;border:1px dashed var(--border2);border-radius:var(--r-sm);text-align:center;font-size:12px;font-weight:500;color:var(--muted);cursor:pointer;transition:all .15s;background:var(--surface2)}
 .aadhar-back-trigger.show{display:block}
@@ -706,11 +706,7 @@ input[data-aadhaar]{font-family:'DM Mono',monospace;letter-spacing:.1em}
             </select>
           </div>
         </div>
-        <div class="g3">
-          <div class="field">
-            <label>Colour</label>
-            <input type="text" placeholder="e.g. Titan Grey">
-          </div>
+        <div class="g2">
           <div class="field">
             <label>Ex-showroom price (₹)</label>
             <input type="number" id="v-exshow" placeholder="e.g. 1350000" oninput="calcLoan();updateAmountWords('v-exshow','v-exshow-words')">
@@ -1298,9 +1294,7 @@ function collectFormData() {
     // ── Vehicle ──
     car_make:           g('car-make'),
     car_model:          g('car-model'),
-    car_variant:        g('car-variant'),
     car_fuel:           g('v-fuel'),
-    car_colour:         g('car-colour'),
     car_exshowroom:     exshow,
     car_onroad_extras:  onroadX,
     car_onroad_total:   onroad,
@@ -2118,7 +2112,10 @@ function buildSlots(type) {
     const statusText = done && file ? (file.size/1024).toFixed(0) + ' KB' : (done ? 'Uploaded' : 'Pending');
     const fyLabel = cfg.labels[from + i] || 'Item ' + (i + 1);
     const nameText = done && file ? file.name : fyLabel;
-    html += `<div class="slot-row ${done ? 'done' : ''}" id="slot-${key}">
+    const isItr = type === 'itr';
+    if (isItr) html += `<div style="display:flex;gap:12px;align-items:flex-start;flex-wrap:wrap">`;
+
+    html += `<div class="slot-row ${done ? 'done' : ''}" id="slot-${key}" style="${isItr ? 'flex:1 1 220px;min-width:0' : ''}">
       <div class="slot-num">${done ? '<i class="ti ti-check" style="font-size:11px"></i>' : i + 1}</div>
       <div class="slot-name" id="sname-${key}" title="${fyLabel}">${nameText}</div>
       <div class="slot-status" id="sst-${key}">${statusText}</div>
@@ -2130,14 +2127,14 @@ function buildSlots(type) {
       }
     </div>`;
 
-    if (type === 'itr') {
+    if (isItr) {
       const savedVal = itrIncomeByKey[key] || '';
-      html += `<div style="margin:4px 0 10px 38px;max-width:260px">
-        <label style="font-size:11px;color:var(--muted);display:block;margin-bottom:3px">Income of the ${fyLabel.replace('FY ', 'FY ')}</label>
+      html += `<div style="flex:1 1 220px;min-width:0">
+        <label style="font-size:11px;color:var(--muted);display:block;margin-bottom:3px">Income of the ${fyLabel}</label>
         <input type="number" id="itr-income-${key}" placeholder="e.g. 850000" value="${savedVal}"
                oninput="onItrIncomeInput('${key}')" style="width:100%">
         <span class="field-hint amount-words" id="itr-income-${key}-words"></span>
-      </div>`;
+      </div></div>`;
     }
   }
   html += '</div>';

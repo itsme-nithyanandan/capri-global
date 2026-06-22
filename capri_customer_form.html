@@ -74,6 +74,8 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);fon
 /* ── MAIN FORM AREA ── */
 .main{padding:68px 16px 100px;overflow-y:auto}
 @media(min-width:520px){.main{padding:68px 24px 100px;}}
+.kyc-doc-grid{display:grid;grid-template-columns:1fr;gap:16px}
+@media(min-width:680px){.kyc-doc-grid{grid-template-columns:repeat(3,1fr)}}
 .form-header{margin-bottom:28px}
 .form-section-num{font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--accent);margin-bottom:6px}
 .form-section-title{font-family:'Fraunces',serif;font-size:28px;font-weight:500;color:var(--text);line-height:1.2;margin-bottom:6px}
@@ -99,6 +101,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);fon
 .field label .badge-new{background:var(--green-bg);color:var(--green-txt)}
 .field label .badge-cond{background:var(--amber-bg);color:var(--amber-txt)}
 .field-hint{font-size:11px;color:var(--muted);margin-top:2px;line-height:1.5}
+.amount-words{color:var(--accent);font-style:italic;font-weight:500}
 .field input,.field select,.field textarea{
   padding:9px 12px;
   border:1px solid var(--border);
@@ -420,7 +423,6 @@ input[data-aadhaar]{font-family:'DM Mono',monospace;letter-spacing:.1em}
           <div class="field">
             <label>Aadhaar number</label>
             <input type="text" id="f-aadhaar" data-aadhaar placeholder="XXXX XXXX XXXX" maxlength="14" oninput="fmtAadhaar(this)">
-            <span class="field-hint">Masked after entry — last 4 digits only shown</span>
           </div>
         </div>
         <div class="g2" style="margin-bottom:14px">
@@ -461,8 +463,10 @@ input[data-aadhaar]{font-family:'DM Mono',monospace;letter-spacing:.1em}
 
         <div style="font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-bottom:12px">Standard KYC — required for all profiles</div>
 
+        <div class="kyc-doc-grid">
+
         <!-- PAN -->
-        <div style="margin-bottom:16px">
+        <div>
           <div class="doc-label">PAN card <span style="color:var(--red-txt)">*</span></div>
           <div class="doc-card" id="dc-pan">
             <div class="doc-card-top" onclick="triggerUpload('dc-pan','pan-sample.jpg','PAN uploaded ✓')">
@@ -481,7 +485,7 @@ input[data-aadhaar]{font-family:'DM Mono',monospace;letter-spacing:.1em}
         </div>
 
         <!-- AADHAAR — front only upload; back expands after front uploaded -->
-        <div style="margin-bottom:16px">
+        <div>
           <div class="doc-label">Aadhaar card <span style="color:var(--red-txt)">*</span></div>
           <div class="doc-card" id="dc-af">
             <div class="doc-card-top" onclick="triggerUpload('dc-af','aadhar-front.jpg','Aadhaar front ✓')">
@@ -521,7 +525,7 @@ input[data-aadhaar]{font-family:'DM Mono',monospace;letter-spacing:.1em}
         </div>
 
         <!-- DRIVING LICENSE — front first, back on demand -->
-        <div style="margin-bottom:16px">
+        <div>
           <div class="doc-label">Driving license <span style="font-size:10px;color:var(--muted)">(optional)</span></div>
           <div class="doc-card" id="dc-dl">
             <div class="doc-card-top" onclick="triggerUpload('dc-dl','dl-front.jpg','DL front ✓')">
@@ -558,6 +562,8 @@ input[data-aadhaar]{font-family:'DM Mono',monospace;letter-spacing:.1em}
               </div>
             </div>
           </div>
+        </div>
+
         </div>
       </div>
 
@@ -685,12 +691,12 @@ input[data-aadhaar]{font-family:'DM Mono',monospace;letter-spacing:.1em}
         <div class="panel-title"><i class="ti ti-car"></i> Vehicle details</div>
         <div class="g3" style="margin-bottom:14px">
           <div class="field">
-            <label>Car make & model</label>
-            <input type="text" id="car-model" placeholder="e.g. Hyundai Creta SX">
+            <label>Make</label>
+            <input type="text" id="car-make" placeholder="e.g. Hyundai">
           </div>
           <div class="field">
-            <label>Variant</label>
-            <input type="text" placeholder="e.g. SX(O) Turbo DCT">
+            <label>Model</label>
+            <input type="text" id="car-model" placeholder="e.g. Creta SX">
           </div>
           <div class="field">
             <label>Fuel type</label>
@@ -707,11 +713,13 @@ input[data-aadhaar]{font-family:'DM Mono',monospace;letter-spacing:.1em}
           </div>
           <div class="field">
             <label>Ex-showroom price (₹)</label>
-            <input type="number" id="v-exshow" placeholder="e.g. 1350000" oninput="calcLoan()">
+            <input type="number" id="v-exshow" placeholder="e.g. 1350000" oninput="calcLoan();updateAmountWords('v-exshow','v-exshow-words')">
+            <span class="field-hint amount-words" id="v-exshow-words"></span>
           </div>
           <div class="field">
             <label>On road price (₹)</label>
-            <input type="number" id="v-reg" placeholder="e.g. 230000" oninput="calcLoan()">
+            <input type="number" id="v-reg" placeholder="e.g. 230000" oninput="calcLoan();updateAmountWords('v-reg','v-reg-words')">
+            <span class="field-hint amount-words" id="v-reg-words"></span>
           </div>
         </div>
       </div>
@@ -722,7 +730,8 @@ input[data-aadhaar]{font-family:'DM Mono',monospace;letter-spacing:.1em}
         <div class="g2" style="margin-bottom:14px;max-width:480px">
           <div class="field">
             <label>Loan amount required (₹)</label>
-            <input type="number" id="v-loan" placeholder="e.g. 1200000" oninput="calcDownPayment()">
+            <input type="number" id="v-loan" placeholder="e.g. 1200000" oninput="calcDownPayment();updateAmountWords('v-loan','v-loan-words')">
+            <span class="field-hint amount-words" id="v-loan-words"></span>
           </div>
           <div class="field">
             <label>Down payment by customer (₹)</label>
@@ -734,13 +743,14 @@ input[data-aadhaar]{font-family:'DM Mono',monospace;letter-spacing:.1em}
         <div class="g2" style="max-width:480px">
           <div class="field">
             <label>Preferred tenure</label>
-            <select id="v-tenure">
+            <select id="v-tenure" onchange="updateTenureYears()">
               <option value="">Select</option>
               <option value="12">12 months</option><option value="24">24 months</option><option value="36">36 months</option>
               <option value="48">48 months</option><option value="60" selected>60 months</option>
               <option value="72">72 months</option><option value="84">84 months</option>
               <option value="96">96 months</option><option value="108">108 months</option><option value="120">120 months</option>
             </select>
+            <span class="field-hint amount-words" id="v-tenure-years"></span>
           </div>
           <div class="field">
             <label>Preferred bank</label>
@@ -750,7 +760,6 @@ input[data-aadhaar]{font-family:'DM Mono',monospace;letter-spacing:.1em}
               <option>Kotak Bank</option><option>SBI</option><option>IndusInd Bank</option>
               <option>Tata Capital</option><option>Mahindra Finance</option><option>HDB Financial</option><option>Cholamandalam</option>
             </select>
-            <span class="field-hint">Loads live from Bank Management's active banks</span>
           </div>
         </div>
 
@@ -817,26 +826,36 @@ input[data-aadhaar]{font-family:'DM Mono',monospace;letter-spacing:.1em}
           </div>
         </div>
 
-        <div class="alert alert-info" id="alert-sal"><i class="ti ti-info-circle"></i><div><strong>Salaried profile</strong> — engine will verify salary is credited every month from the declared employer. Missing months, irregular dates or employer name mismatch will be flagged as rejection risks.</div></div>
-        <div class="alert alert-warn" id="alert-self"><i class="ti ti-alert-triangle"></i><div><strong>Self-employed profile</strong> — engine will average business inflows. Income stability trend analysed instead of fixed salary check.</div></div>
         <div class="alert alert-warn" id="alert-pen"><i class="ti ti-alert-triangle"></i><div><strong>Pensioner profile</strong> — pension credit must be regular. Max tenure may be restricted to 60 months by some banks.</div></div>
       </div>
 
-      <div class="form-panel">
-        <div class="panel-title"><i class="ti ti-currency-rupee"></i> Income details</div>
-        <div class="g3">
+      <div class="form-panel" id="income-panel" style="display:none">
+        <div class="panel-title"><i class="ti ti-currency-rupee"></i> Income details <span class="badge-label badge-cond" style="margin-left:6px">Salaried &amp; Pensioner only</span></div>
+        <div class="g2" style="margin-bottom:14px">
           <div class="field">
             <label>Net monthly income (₹)</label>
-            <input type="number" id="inc-net" placeholder="Take-home after all deductions">
+            <input type="number" id="inc-net" placeholder="Take-home after all deductions" oninput="updateAmountWords('inc-net','inc-net-words')">
             <span class="field-hint">As credited to bank account</span>
+            <span class="field-hint amount-words" id="inc-net-words"></span>
           </div>
           <div class="field">
             <label>Gross monthly income (₹)</label>
-            <input type="number" placeholder="Before deductions">
+            <input type="number" id="inc-gross" placeholder="Before deductions" oninput="updateAmountWords('inc-gross','inc-gross-words')">
+            <span class="field-hint amount-words" id="inc-gross-words"></span>
+          </div>
+        </div>
+        <div class="g2">
+          <div class="field">
+            <label>Other income type</label>
+            <select id="inc-other-type">
+              <option value="">Select (if any)</option>
+              <option>Rental</option><option>Freelancer</option><option>Interest</option>
+            </select>
           </div>
           <div class="field">
             <label>Other income per month (₹)</label>
-            <input type="number" placeholder="Rent / freelance / bonus">
+            <input type="number" id="inc-other" placeholder="e.g. 15000" oninput="updateAmountWords('inc-other','inc-other-words')">
+            <span class="field-hint amount-words" id="inc-other-words"></span>
           </div>
         </div>
       </div>
@@ -854,9 +873,7 @@ input[data-aadhaar]{font-family:'DM Mono',monospace;letter-spacing:.1em}
           </div>
           <div class="field">
             <label>Starting from</label>
-            <select id="slip-from" onchange="buildSlots('slip')">
-              <option value="0">May 2026 (current)</option><option value="1">April 2026</option><option value="2">March 2026</option><option value="3">February 2026</option>
-            </select>
+            <select id="slip-from" onchange="buildSlots('slip')"></select>
           </div>
         </div>
         <div id="slip-slots"><div class="slot-placeholder"><i class="ti ti-arrow-up" style="font-size:13px"></i> Select number of months above to see upload slots</div></div>
@@ -874,10 +891,8 @@ input[data-aadhaar]{font-family:'DM Mono',monospace;letter-spacing:.1em}
             </select>
           </div>
           <div class="field">
-            <label>Starting from financial year</label>
-            <select id="f16-from" onchange="buildSlots('f16')">
-              <option value="0">FY 2024–25</option><option value="1">FY 2023–24</option><option value="2">FY 2022–23</option>
-            </select>
+            <label>Financial Year</label>
+            <select id="f16-from" onchange="buildSlots('f16')"></select>
           </div>
         </div>
         <div id="f16-slots"><div class="slot-placeholder"><i class="ti ti-arrow-up" style="font-size:13px"></i> Select number of years above to see upload slots</div></div>
@@ -904,12 +919,11 @@ input[data-aadhaar]{font-family:'DM Mono',monospace;letter-spacing:.1em}
             </div>
           </div>
         </div>
-        <div class="alert alert-info show" style="margin-top:10px"><i class="ti ti-info-circle"></i> Engine reads employer name from company ID and cross-verifies with declared employer and bank statement.</div>
       </div>
 
       <!-- ITR FULL SET — self-employed only -->
       <div class="form-panel" id="itr-panel" style="display:none">
-        <div class="panel-title"><i class="ti ti-file-text"></i> ITR full set upload <span class="badge-label badge-cond" style="margin-left:6px">Self-employed only</span></div>
+        <div class="panel-title"><i class="ti ti-file-text"></i> ITR <span class="badge-label badge-cond" style="margin-left:6px">Self-employed only</span></div>
         <div class="alert alert-info show" style="margin-bottom:14px"><i class="ti ti-info-circle"></i><div>Full set includes ITR V acknowledgement, computation of income, P&L and balance sheet where applicable.</div></div>
         <div class="g2" style="margin-bottom:14px;max-width:480px">
           <div class="field">
@@ -920,19 +934,17 @@ input[data-aadhaar]{font-family:'DM Mono',monospace;letter-spacing:.1em}
             </select>
           </div>
           <div class="field">
-            <label>Starting from financial year</label>
-            <select id="itr-from" onchange="buildSlots('itr')">
-              <option value="0">FY 2024–25</option><option value="1">FY 2023–24</option><option value="2">FY 2022–23</option>
-            </select>
+            <label>Financial Year</label>
+            <select id="itr-from" onchange="buildSlots('itr')"></select>
           </div>
         </div>
         <div id="itr-slots"><div class="slot-placeholder"><i class="ti ti-arrow-up" style="font-size:13px"></i> Select number of years above to see upload slots</div></div>
 
         <div class="panel-divider"></div>
-        <div class="panel-title"><i class="ti ti-receipt"></i> GST returns (if applicable)</div>
-        <div class="upload-zone" id="uz-gst" onclick="markUpload('uz-gst','GST returns uploaded ✓','Click to replace')">
+        <div class="panel-title"><i class="ti ti-receipt"></i> Balance Sheet <span style="font-size:10px;color:var(--muted);font-weight:400;text-transform:none;letter-spacing:0">(if applicable)</span></div>
+        <div class="upload-zone" id="uz-gst" onclick="markUpload('uz-gst','Balance sheet uploaded ✓','Click to replace')">
           <i class="ti ti-receipt uz-icon"></i>
-          <div class="uz-title">Upload GST returns</div>
+          <div class="uz-title">Upload balance sheet</div>
           <div class="uz-sub">PDF · Max 5MB</div>
         </div>
       </div>
@@ -941,17 +953,18 @@ input[data-aadhaar]{font-family:'DM Mono',monospace;letter-spacing:.1em}
 
       <div class="form-panel">
         <div class="panel-title"><i class="ti ti-building-bank"></i> Bank statement upload</div>
+        <div id="stmt-block-1">
         <div class="g2" style="margin-bottom:14px;max-width:480px">
           <div class="field">
             <label>Bank name</label>
-            <select>
+            <select id="stmt-bank-1">
               <option value="">Select bank</option>
               <option>HDFC Bank</option><option>ICICI Bank</option><option>SBI</option><option>Axis Bank</option><option>Kotak Bank</option><option>IndusInd Bank</option><option>Canara Bank</option><option>IOB</option><option>Federal Bank</option><option>Other</option>
             </select>
           </div>
           <div class="field">
             <label>Account type</label>
-            <select>
+            <select id="stmt-acctype-1">
               <option>Savings account</option><option>Current account</option><option>Salary account</option>
             </select>
           </div>
@@ -959,13 +972,13 @@ input[data-aadhaar]{font-family:'DM Mono',monospace;letter-spacing:.1em}
         <div class="g2" style="margin-bottom:14px;max-width:480px">
           <div class="field">
             <label>Analysis period</label>
-            <select>
+            <select id="stmt-period-1">
               <option value="3">3 months</option><option value="6" selected>6 months</option><option value="12">12 months</option>
             </select>
           </div>
           <div class="field">
             <label>Statement password (if any)</label>
-            <input type="password" placeholder="Leave blank if not password-protected">
+            <input type="password" id="stmt-pass-1" placeholder="Leave blank if not password-protected">
           </div>
         </div>
         <div class="upload-zone" id="uz-stmt" onclick="markUpload('uz-stmt','Bank statement uploaded ✓','Click to replace')">
@@ -973,11 +986,12 @@ input[data-aadhaar]{font-family:'DM Mono',monospace;letter-spacing:.1em}
           <div class="uz-title">Click to upload PDF bank statement</div>
           <div class="uz-sub">PDF only · Max 10MB · Password-protected accepted</div>
         </div>
+        </div>
         <div id="extra-bank-stmts"></div>
-        <button type="button" class="btn-add-slot" onclick="addBankStatementSlot()" style="margin-top:10px;background:none;border:1px dashed var(--border2);border-radius:var(--r-sm);padding:9px 14px;font-family:inherit;font-size:12.5px;font-weight:500;color:var(--accent);cursor:pointer;display:flex;align-items:center;gap:6px">
+        <button type="button" class="btn-add-slot" id="add-stmt-btn" onclick="addBankStatementSlot()" style="margin-top:10px;background:none;border:1px dashed var(--border2);border-radius:var(--r-sm);padding:9px 14px;font-family:inherit;font-size:12.5px;font-weight:500;color:var(--accent);cursor:pointer;display:flex;align-items:center;gap:6px">
           <i class="ti ti-plus" style="font-size:13px"></i> Add another bank statement
         </button>
-        <div class="field-hint" style="margin-top:8px">If the customer has more than one bank account, upload each statement separately.</div>
+        <div class="field-hint" style="margin-top:8px">If the customer has more than one bank account, upload each statement separately — up to 3 in total.</div>
       </div>
 
       <div class="form-panel">
@@ -992,7 +1006,6 @@ input[data-aadhaar]{font-family:'DM Mono',monospace;letter-spacing:.1em}
           <div class="field">
             <label>CIBIL score</label>
             <input type="number" id="v-cibil" placeholder="e.g. 750" min="300" max="900">
-            <span class="field-hint">Use the "Get CIBIL" button near Preferred tenure to request it from the customer</span>
           </div>
           <div class="field">
             <label>Report date</label>
@@ -1003,6 +1016,30 @@ input[data-aadhaar]{font-family:'DM Mono',monospace;letter-spacing:.1em}
           <i class="ti ti-report-analytics uz-icon"></i>
           <div class="uz-title">Click to upload CIC report (PDF)</div>
           <div class="uz-sub">PDF only · Max 10MB</div>
+        </div>
+      </div>
+
+      <!-- CO-APPLICANT -->
+      <div class="form-panel">
+        <div style="display:flex;align-items:center;justify-content:space-between">
+          <div class="panel-title" style="margin-bottom:0"><i class="ti ti-user-plus"></i> Co-applicant (optional)</div>
+          <label style="display:flex;align-items:center;gap:7px;font-size:12px;cursor:pointer;font-weight:500">
+            <input type="checkbox" id="co-chk" onchange="toggleCo()" style="width:14px;height:14px;accent-color:var(--accent)">
+            Add co-applicant
+          </label>
+        </div>
+        <div class="cond-block" id="co-block">
+          <div class="cond-block-label">Co-applicant details</div>
+          <div class="g3" style="margin-bottom:14px">
+            <div class="field"><label>Full name</label><input type="text" placeholder="Co-applicant full name"></div>
+            <div class="field"><label>Relationship</label><select><option>Spouse</option><option>Parent</option><option>Sibling</option><option>Child</option></select></div>
+            <div class="field"><label>Employment type</label><select><option>Salaried</option><option>Self-employed</option><option>Pensioner</option></select></div>
+          </div>
+          <div class="upload-zone" onclick="markUpload('uz-co','Co-applicant statement uploaded ✓','Click to replace')" id="uz-co">
+            <i class="ti ti-upload uz-icon"></i>
+            <div class="uz-title">Upload co-applicant bank statement</div>
+            <div class="uz-sub">PDF · Max 10MB</div>
+          </div>
         </div>
       </div>
 
@@ -1058,31 +1095,6 @@ input[data-aadhaar]{font-family:'DM Mono',monospace;letter-spacing:.1em}
             <div class="summary-card-title">Documents</div>
             <div id="s-docs"></div>
           </div>
-        </div>
-      </div>
-
-      <!-- CO-APPLICANT -->
-      <div class="form-panel">
-        <div style="display:flex;align-items:center;justify-content:space-between">
-          <div class="panel-title" style="margin-bottom:0"><i class="ti ti-user-plus"></i> Co-applicant (optional)</div>
-          <label style="display:flex;align-items:center;gap:7px;font-size:12px;cursor:pointer;font-weight:500">
-            <input type="checkbox" id="co-chk" onchange="toggleCo()" style="width:14px;height:14px;accent-color:var(--accent)">
-            Add co-applicant
-          </label>
-        </div>
-        <div class="cond-block" id="co-block">
-          <div class="cond-block-label">Co-applicant details</div>
-          <div class="g3" style="margin-bottom:14px">
-            <div class="field"><label>Full name</label><input type="text" placeholder="Co-applicant full name"></div>
-            <div class="field"><label>Relationship</label><select><option>Spouse</option><option>Parent</option><option>Sibling</option><option>Child</option></select></div>
-            <div class="field"><label>Employment type</label><select><option>Salaried</option><option>Self-employed</option><option>Pensioner</option></select></div>
-          </div>
-          <div class="upload-zone" onclick="markUpload('uz-co','Co-applicant statement uploaded ✓','Click to replace')" id="uz-co">
-            <i class="ti ti-upload uz-icon"></i>
-            <div class="uz-title">Upload co-applicant bank statement</div>
-            <div class="uz-sub">PDF · Max 10MB</div>
-          </div>
-          <div class="alert alert-info show" style="margin-top:10px"><i class="ti ti-info-circle"></i> Co-applicant income merged automatically — combined FOIR and max loan eligibility recalculated.</div>
         </div>
       </div>
 
@@ -1284,6 +1296,7 @@ function collectFormData() {
     dealer_name:        g('d-name'),
     dealer_area:        g('d-area'),
     // ── Vehicle ──
+    car_make:           g('car-make'),
     car_model:          g('car-model'),
     car_variant:        g('car-variant'),
     car_fuel:           g('v-fuel'),
@@ -1308,6 +1321,28 @@ function collectFormData() {
     inc_net_monthly:    gn('inc-net'),
     inc_gross_monthly:  gn('inc-gross'),
     inc_other:          gn('inc-other'),
+    inc_other_type:     g('inc-other-type'),
+    itr_income_by_year: (() => {
+      const out = {};
+      Object.keys(itrIncomeByKey).forEach(key => {
+        const val = itrIncomeByKey[key];
+        if (val !== '' && val != null) out[slotLabelFor(key) || key] = parseFloat(val);
+      });
+      return Object.keys(out).length ? out : null;
+    })(),
+    bank_statements_meta: (() => {
+      const out = [];
+      // Block 1 is the static primary statement; others are dynamically
+      // numbered by whatever sequence they were added under.
+      const ids = ['1', ...Array.from(document.getElementById('extra-bank-stmts').children).map(el => el.id.replace('stmt-block-', ''))];
+      ids.forEach(n => {
+        const bank = g('stmt-bank-' + n);
+        const accType = g('stmt-acctype-' + n);
+        const period = g('stmt-period-' + n);
+        if (bank || accType || period) out.push({ n: parseInt(n), bank, account_type: accType, analysis_period_months: period ? parseInt(period) : null });
+      });
+      return out.length ? out : null;
+    })(),
     // ── Co-applicant ──
     co_app_enabled:     gb('co-chk'),
     co_app_name:        g('co-name'),
@@ -1532,9 +1567,23 @@ function restoreFormData(data) {
   document.getElementById('addr-mode-same').checked = sameAddr;
   document.getElementById('addr-mode-diff').checked = !sameAddr;
   toggleSameAddr();
-  s('d-name', data.dealer_name); s('car-model', data.car_model); s('v-fuel', data.car_fuel);
+  s('d-name', data.dealer_name); s('car-make', data.car_make); s('car-model', data.car_model); s('v-fuel', data.car_fuel);
   s('v-loan', data.loan_amount); s('v-tenure', data.loan_tenure_months); s('v-cibil', data.cibil_score);
+  updateTenureYears();
+  updateAmountWords('v-loan','v-loan-words');
+  updateAmountWords('v-exshow','v-exshow-words');
+  updateAmountWords('v-reg','v-reg-words');
   s('emp-type', data.emp_type); s('emp-company', data.emp_company); s('inc-net', data.inc_net_monthly);
+  s('inc-gross', data.inc_gross_monthly); s('inc-other', data.inc_other); s('inc-other-type', data.inc_other_type);
+  if (data.itr_income_by_year) {
+    Object.keys(data.itr_income_by_year).forEach(fyLabel => {
+      const idx = FY.indexOf(fyLabel);
+      if (idx >= 0) itrIncomeByKey['itr-' + idx] = data.itr_income_by_year[fyLabel];
+    });
+  }
+  updateAmountWords('inc-net','inc-net-words');
+  updateAmountWords('inc-gross','inc-gross-words');
+  updateAmountWords('inc-other','inc-other-words');
   if (data.emp_type) handleEmpType();
 }
 
@@ -1553,10 +1602,107 @@ function slotLabelFor(key) {
   return null;
 }
 
-const MONTHS = ['May 2026','Apr 2026','Mar 2026','Feb 2026','Jan 2026','Dec 2025','Nov 2025','Oct 2025','Sep 2025','Aug 2025','Jul 2025','Jun 2025'];
-const FY     = ['FY 2024–25','FY 2023–24','FY 2022–23'];
+// Both generated from today's date rather than hardcoded, so this form never
+// goes stale — MONTHS starts at the current month; FY starts at the most
+// recently COMPLETED financial year (Apr–Mar), since that's what you'd
+// actually have a filed ITR/Form16 for. E.g. in June 2026, current FY
+// 2026–27 is still running, so the latest selectable FY is 2025–26.
+function buildMonthsList(count = 12) {
+  const now = new Date();
+  const list = [];
+  for (let i = 0; i < count; i++) {
+    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    list.push(d.toLocaleDateString('en-IN', { month: 'short', year: 'numeric' }) + (i === 0 ? ' (current)' : ''));
+  }
+  return list;
+}
+function buildFYList(count = 4) {
+  const now = new Date();
+  const y = now.getFullYear();
+  const m = now.getMonth() + 1; // 1-12
+  const mostRecentCompletedStart = m >= 4 ? y - 1 : y - 2;
+  const list = [];
+  for (let i = 0; i < count; i++) {
+    const startYr = mostRecentCompletedStart - i;
+    list.push(`FY ${startYr}–${String(startYr + 1).slice(-2)}`);
+  }
+  return list;
+}
+const MONTHS = buildMonthsList();
+const FY     = buildFYList();
+
+// Populates the date-based dropdowns (salary slip months, Form16/ITR financial
+// years) from the dynamic lists above instead of relying on hardcoded HTML options.
+function populateDateDropdowns() {
+  const slipSel = document.getElementById('slip-from');
+  if (slipSel) slipSel.innerHTML = MONTHS.map((m, i) => `<option value="${i}">${m}</option>`).join('');
+  const fySelects = ['f16-from', 'itr-from'];
+  fySelects.forEach(id => {
+    const sel = document.getElementById(id);
+    if (sel) sel.innerHTML = FY.map((f, i) => `<option value="${i}">${f}</option>`).join('');
+  });
+}
+populateDateDropdowns();
 
 const fmt = n => '₹' + Number(Math.round(n)).toLocaleString('en-IN');
+
+// ── NUMBER → WORDS (Indian numbering: Lakh/Crore) ───────────────────────────
+function numToIndianWords(num) {
+  num = Math.round(Math.abs(parseFloat(num) || 0));
+  if (num === 0) return '';
+
+  const ones = ['','One','Two','Three','Four','Five','Six','Seven','Eight','Nine','Ten',
+    'Eleven','Twelve','Thirteen','Fourteen','Fifteen','Sixteen','Seventeen','Eighteen','Nineteen'];
+  const tens = ['','','Twenty','Thirty','Forty','Fifty','Sixty','Seventy','Eighty','Ninety'];
+
+  function twoDigits(n) {
+    if (n < 20) return ones[n];
+    return tens[Math.floor(n/10)] + (n % 10 ? ' ' + ones[n % 10] : '');
+  }
+  function threeDigits(n) {
+    let str = '';
+    if (n >= 100) { str += ones[Math.floor(n/100)] + ' Hundred'; n %= 100; if (n) str += ' '; }
+    return (str + twoDigits(n)).trim();
+  }
+
+  const crore    = Math.floor(num / 10000000); num %= 10000000;
+  const lakh     = Math.floor(num / 100000);    num %= 100000;
+  const thousand = Math.floor(num / 1000);      num %= 1000;
+  const rest     = num;
+
+  const parts = [];
+  if (crore)    parts.push(threeDigits(crore) + ' Crore' + (crore > 1 ? 's' : ''));
+  if (lakh)     parts.push(threeDigits(lakh) + ' Lakh' + (lakh > 1 ? 's' : ''));
+  if (thousand) parts.push(threeDigits(thousand) + ' Thousand');
+  if (rest)     parts.push(threeDigits(rest));
+
+  return parts.join(' ');
+}
+
+// Updates a field-hint span under any amount input to show its value in
+// words — e.g. typing 1000000 shows "Ten Lakhs". Safe to call from any
+// oninput handler alongside other logic already on that field.
+// Shows "= N years" under the tenure dropdown — every option here is an
+// exact multiple of 12, but the remainder math is kept general just in case.
+function updateTenureYears() {
+  const hintEl = document.getElementById('v-tenure-years');
+  if (!hintEl) return;
+  const months = parseInt(document.getElementById('v-tenure')?.value) || 0;
+  if (!months) { hintEl.textContent = ''; return; }
+  const years = Math.floor(months / 12);
+  const rem = months % 12;
+  let txt = '= ' + years + ' year' + (years !== 1 ? 's' : '');
+  if (rem) txt += ' ' + rem + ' month' + (rem !== 1 ? 's' : '');
+  hintEl.textContent = txt;
+}
+
+function updateAmountWords(inputId, hintId) {
+  const hintEl = document.getElementById(hintId);
+  if (!hintEl) return;
+  const val = parseFloat(document.getElementById(inputId)?.value);
+  hintEl.textContent = (val > 0) ? numToIndianWords(val) : '';
+}
+updateTenureYears();
 
 // ── MANDATORY FIELDS PER SECTION ────────────────────────────────────────────
 // Mandatory validation not yet finalized — all sections open
@@ -1675,39 +1821,85 @@ function markUpload(id, title, sub) {
   setTimeout(() => document.body.removeChild(input), 1000);
 }
 
-// Builds an upload-zone-style row for an additional bank statement, beyond
-// the primary one (uz-stmt). Number of statements is open-ended — there's
-// no upfront count selector like the salary-slip/Form16/ITR slots use.
-let _extraStmtCount = 0;
+// Builds a full statement block (bank name / account type / analysis period /
+// password / upload zone) for an additional bank statement — same fields as
+// the primary one (#1), capped at MAX_BANK_STATEMENTS total. Uses an
+// ever-increasing sequence number for keys/ids rather than a simple count, so
+// adding → removing → adding again never collides with a still-live element.
+const MAX_BANK_STATEMENTS = 3;
+let _stmtSeq = 1; // 1 is the static primary block already in the HTML
+
+function currentStatementCount() {
+  return 1 + document.getElementById('extra-bank-stmts').children.length;
+}
+
+function updateAddStatementButtonState() {
+  const btn = document.getElementById('add-stmt-btn');
+  if (btn) btn.style.display = currentStatementCount() >= MAX_BANK_STATEMENTS ? 'none' : 'flex';
+}
 
 function addBankStatementSlot() {
-  _extraStmtCount++;
-  const n = _extraStmtCount + 1; // uz-stmt is implicitly statement #1
+  if (currentStatementCount() >= MAX_BANK_STATEMENTS) return;
+  _stmtSeq++;
+  const n = _stmtSeq;
   const key = 'stmt-' + n;
   const container = document.getElementById('extra-bank-stmts');
 
-  const row = document.createElement('div');
-  row.className = 'upload-zone';
-  row.id = key;
-  row.style.marginTop = '10px';
-  row.style.position = 'relative';
-  row.innerHTML = `
-    <div class="slot-icon-btn remove" onclick="event.stopPropagation();removeBankStatementSlot('${key}')" title="Remove this statement" style="position:absolute;top:8px;right:8px;z-index:2">
-      <i class="ti ti-x" style="font-size:13px"></i>
+  const block = document.createElement('div');
+  block.id = 'stmt-block-' + n;
+  block.style.cssText = 'margin-top:16px;padding-top:16px;border-top:1px dashed var(--border2)';
+  block.innerHTML = `
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+      <div style="font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)">Bank statement ${n}</div>
+      <div class="slot-icon-btn remove" onclick="removeBankStatementSlot('${key}',${n})" title="Remove this statement" style="cursor:pointer">
+        <i class="ti ti-x" style="font-size:13px"></i>
+      </div>
     </div>
-    <i class="ti ti-upload uz-icon"></i>
-    <div class="uz-title">Click to upload bank statement ${n}</div>
-    <div class="uz-sub">PDF only · Max 10MB · Password-protected accepted</div>
+    <div class="g2" style="margin-bottom:14px;max-width:480px">
+      <div class="field">
+        <label>Bank name</label>
+        <select id="stmt-bank-${n}">
+          <option value="">Select bank</option>
+          <option>HDFC Bank</option><option>ICICI Bank</option><option>SBI</option><option>Axis Bank</option><option>Kotak Bank</option><option>IndusInd Bank</option><option>Canara Bank</option><option>IOB</option><option>Federal Bank</option><option>Other</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Account type</label>
+        <select id="stmt-acctype-${n}">
+          <option>Savings account</option><option>Current account</option><option>Salary account</option>
+        </select>
+      </div>
+    </div>
+    <div class="g2" style="margin-bottom:14px;max-width:480px">
+      <div class="field">
+        <label>Analysis period</label>
+        <select id="stmt-period-${n}">
+          <option value="3">3 months</option><option value="6" selected>6 months</option><option value="12">12 months</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Statement password (if any)</label>
+        <input type="password" id="stmt-pass-${n}" placeholder="Leave blank if not password-protected">
+      </div>
+    </div>
+    <div class="upload-zone" id="${key}">
+      <i class="ti ti-upload uz-icon"></i>
+      <div class="uz-title">Click to upload bank statement ${n}</div>
+      <div class="uz-sub">PDF only · Max 10MB · Password-protected accepted</div>
+    </div>
   `;
-  row.onclick = (e) => { if (e.target.closest('.slot-icon-btn')) return; markUpload(key, 'Bank statement ' + n + ' uploaded ✓', 'Click to replace'); };
-  container.appendChild(row);
+  container.appendChild(block);
+
+  document.getElementById(key).onclick = () => markUpload(key, 'Bank statement ' + n + ' uploaded ✓', 'Click to replace');
+  updateAddStatementButtonState();
 }
 
-function removeBankStatementSlot(key) {
+function removeBankStatementSlot(key, n) {
   delete uploadedFiles[key];
   delete savedDocs[key];
-  const row = document.getElementById(key);
-  if (row) row.remove();
+  const block = document.getElementById('stmt-block-' + n);
+  if (block) block.remove();
+  updateAddStatementButtonState();
 }
 
 // Adds a Preview / Replace / Remove button row to a uz-* zone after upload,
@@ -1881,18 +2073,28 @@ function showLTV(loan, onroad) {
 // ── EMPLOYMENT TYPE ───────────────────────────────────────────────────────────
 function handleEmpType() {
   const v = document.getElementById('emp-type').value;
-  ['alert-sal','alert-self','alert-pen'].forEach(id => document.getElementById(id).classList.remove('show'));
-  if (v === 'sal') document.getElementById('alert-sal').classList.add('show');
-  if (v === 'self' || v === 'prof') document.getElementById('alert-self').classList.add('show');
+  document.getElementById('alert-pen').classList.remove('show');
   if (v === 'pen') document.getElementById('alert-pen').classList.add('show');
 
   document.getElementById('slip-panel').style.display = v === 'sal' ? 'block' : 'none';
   document.getElementById('f16-panel').style.display  = v === 'sal' ? 'block' : 'none';
   document.getElementById('itr-panel').style.display  = (v === 'self' || v === 'prof') ? 'block' : 'none';
   document.getElementById('company-id-panel').style.display = v === 'sal' ? 'block' : 'none';
+  document.getElementById('income-panel').style.display = (v === 'sal' || v === 'pen') ? 'block' : 'none';
 }
 
 // ── SLOT BUILDER (salary slips / Form 16 / ITR) ───────────────────────────────
+// Persists ITR per-year income values across buildSlots() re-renders, since
+// that function replaces the slot container's innerHTML wholesale whenever
+// the year count/start changes — without this, typed values would vanish.
+const itrIncomeByKey = {};
+
+function onItrIncomeInput(key) {
+  const el = document.getElementById('itr-income-' + key);
+  itrIncomeByKey[key] = el ? el.value : '';
+  updateAmountWords('itr-income-' + key, 'itr-income-' + key + '-words');
+}
+
 function buildSlots(type) {
   const configs = {
     slip: { nId:'slip-n', fromId:'slip-from', slotsId:'slip-slots', labels:MONTHS, btnTxt:'Upload slip', prefix:'sl-' },
@@ -1914,10 +2116,11 @@ function buildSlots(type) {
     const done = slotDone[key];
     const file = uploadedFiles[key];
     const statusText = done && file ? (file.size/1024).toFixed(0) + ' KB' : (done ? 'Uploaded' : 'Pending');
-    const nameText = done && file ? file.name : (cfg.labels[from + i] || 'Item ' + (i + 1));
+    const fyLabel = cfg.labels[from + i] || 'Item ' + (i + 1);
+    const nameText = done && file ? file.name : fyLabel;
     html += `<div class="slot-row ${done ? 'done' : ''}" id="slot-${key}">
       <div class="slot-num">${done ? '<i class="ti ti-check" style="font-size:11px"></i>' : i + 1}</div>
-      <div class="slot-name" id="sname-${key}" title="${cfg.labels[from + i] || ''}">${nameText}</div>
+      <div class="slot-name" id="sname-${key}" title="${fyLabel}">${nameText}</div>
       <div class="slot-status" id="sst-${key}">${statusText}</div>
       ${done
         ? `<div class="slot-icon-btn view" onclick="event.stopPropagation();openSlotLightbox('${key}')" title="Preview"><i class="ti ti-eye" style="font-size:13px"></i></div>
@@ -1926,9 +2129,26 @@ function buildSlots(type) {
         : `<button class="slot-btn" onclick="doSlot('${key}')">${cfg.btnTxt}</button>`
       }
     </div>`;
+
+    if (type === 'itr') {
+      const savedVal = itrIncomeByKey[key] || '';
+      html += `<div style="margin:4px 0 10px 38px;max-width:260px">
+        <label style="font-size:11px;color:var(--muted);display:block;margin-bottom:3px">Income of the ${fyLabel.replace('FY ', 'FY ')}</label>
+        <input type="number" id="itr-income-${key}" placeholder="e.g. 850000" value="${savedVal}"
+               oninput="onItrIncomeInput('${key}')" style="width:100%">
+        <span class="field-hint amount-words" id="itr-income-${key}-words"></span>
+      </div>`;
+    }
   }
   html += '</div>';
   container.innerHTML = html;
+
+  if (type === 'itr') {
+    for (let i = 0; i < n; i++) {
+      const key = cfg.prefix + (from + i);
+      updateAmountWords('itr-income-' + key, 'itr-income-' + key + '-words');
+    }
+  }
 }
 
 function doSlot(key) {
@@ -2055,7 +2275,7 @@ function populateSummary() {
   document.getElementById('s-pan').textContent    = g('f-pan') || '—';
   document.getElementById('s-mobile').textContent = g('f-mobile') || '—';
   document.getElementById('s-pin').textContent    = g('p-pin') || '—';
-  document.getElementById('s-car').textContent    = g('car-model');
+  document.getElementById('s-car').textContent    = [g('car-make'), g('car-model')].filter(Boolean).join(' ') || '—';
   document.getElementById('s-dealer').textContent = g('d-name');
   const loan = g('v-loan');
   document.getElementById('s-loan').textContent   = loan !== '—' ? '₹' + Number(loan).toLocaleString('en-IN') : '—';
@@ -2120,7 +2340,7 @@ function populateSummary() {
     for (let i = 0; i < n; i++) if (slotDone['itr-' + (from + i)]) done++;
     addCountRow('ITR', done, n);
 
-    addDocRow('uz-gst', 'GST returns');
+    addDocRow('uz-gst', 'Balance sheet');
   }
 
   // Bank statements — the primary zone plus any added via "Add another"
@@ -2310,7 +2530,7 @@ const DOC_TYPE_MAP = {
   'dc-perf':  { type: 'invoice', label: 'Performa Invoice' },
   'uz-cid-f': { type: 'other',   label: 'Company ID Front' },
   'uz-cid-b': { type: 'other',   label: 'Company ID Back' },
-  'uz-gst':   { type: 'other',   label: 'GST Returns' },
+  'uz-gst':   { type: 'other',   label: 'Balance Sheet' },
   'uz-stmt':  { type: 'bank',    label: 'Bank Statement' },
   'uz-cic':   { type: 'cic',     label: 'CIBIL Report' },
   'uz-co':    { type: 'other',   label: 'Co-applicant Statement' },

@@ -43,7 +43,13 @@
   --topbar-h: 58px;
 }
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);font-size:14px;min-height:100vh;display:flex;overflow:hidden;-webkit-font-smoothing:antialiased}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);font-size:14px;min-height:100vh;-webkit-font-smoothing:antialiased}
+/* Opt-in only: the dashboard shell (dashboard.html) is the one page whose
+   own body must NOT scroll — its content is an iframe that scrolls itself,
+   so a scrollable body underneath it would create a confusing double-scroll.
+   Every other page (loaded inside that iframe) needs its body to scroll
+   normally, since there's no inner frame to delegate to. */
+body.app-shell-body{display:flex;overflow:hidden;height:100vh}
 
 /* ── SIDEBAR ── */
 .sidebar{width:var(--sidebar-w);background:var(--accent3);display:flex;flex-direction:column;height:100vh;flex-shrink:0;position:fixed;left:0;top:0;z-index:100;border-right:1px solid rgba(0,0,0,.15)}
@@ -326,16 +332,15 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);fon
   .filter-bar,.filter-bar *{flex-wrap:wrap}
 }
 
-/* ── RESPONSIVE TABLES → CARDS ON MOBILE ──────────────────────────────────────
-   Every data-table across every module renders the same way on mobile: each
-   row becomes a bordered card, each cell becomes a label/value pair using its
-   data-label attribute (added per <td> in the JS that builds these rows).
-   Desktop/tablet keep the normal table layout untouched — this only applies
-   under the breakpoint. */
+/* ── RESPONSIVE TABLES → CARDS ON MOBILE (FALLBACK) ───────────────────────────
+   Used only by tables that haven't been given a proper .mlist mobile card
+   (see below) yet — every cell becomes a label/value row. Functional, but
+   cramped: every column shows, nothing's prioritized. Tables with a real
+   .mlist alternative get the `has-mlist` class and use that instead. */
 @media(max-width:768px){
-  table.data-table thead{display:none}
-  table.data-table,table.data-table tbody{display:block;width:100%}
-  table.data-table tr{
+  table.data-table:not(.has-mlist) thead{display:none}
+  table.data-table:not(.has-mlist),table.data-table:not(.has-mlist) tbody{display:block;width:100%}
+  table.data-table:not(.has-mlist) tr{
     display:block;
     margin-bottom:10px;
     padding:12px 14px;
@@ -344,9 +349,9 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);fon
     background:var(--surface);
     cursor:default;
   }
-  table.data-table tr:last-child{margin-bottom:0}
-  table.data-table tbody tr:hover td{background:transparent}
-  table.data-table td{
+  table.data-table:not(.has-mlist) tr:last-child{margin-bottom:0}
+  table.data-table:not(.has-mlist) tbody tr:hover td{background:transparent}
+  table.data-table:not(.has-mlist) td{
     display:flex;
     justify-content:space-between;
     align-items:center;
@@ -357,8 +362,8 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);fon
     white-space:normal;
     text-align:right;
   }
-  table.data-table td:empty{display:none}
-  table.data-table td[data-label]::before{
+  table.data-table:not(.has-mlist) td:empty{display:none}
+  table.data-table:not(.has-mlist) td[data-label]::before{
     content:attr(data-label);
     font-size:10px;
     font-weight:700;
@@ -369,16 +374,93 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);fon
     flex-shrink:0;
     margin-right:auto;
   }
-  table.data-table td[data-label="Action"],
-  table.data-table td[data-label="Actions"]{
+  table.data-table:not(.has-mlist) td[data-label="Action"],
+  table.data-table:not(.has-mlist) td[data-label="Actions"]{
     justify-content:flex-end;
     flex-wrap:wrap;
     gap:6px;
   }
-  table.data-table td[data-label="Action"]::before,
-  table.data-table td[data-label="Actions"]::before{
+  table.data-table:not(.has-mlist) td[data-label="Action"]::before,
+  table.data-table:not(.has-mlist) td[data-label="Actions"]::before{
     display:none;
   }
+
+  /* Tables WITH a proper mobile card alternative just hide on mobile —
+     .mlist (below) takes over entirely. */
+  table.data-table.has-mlist{display:none}
+}
+
+/* ── MOBILE LIST CARDS ─────────────────────────────────────────────────────────
+   Purpose-built mobile card view. Each module's JS renders both the desktop
+   table and this list from the same data, in the same render call — CSS just
+   toggles which one is visible, they're never both on screen at once.
+
+   Structure:
+     .mlist                  → container, one per module/table
+       .mlist-card           → one per row
+         .mlist-top          → primary ID (left) + status badge (right)
+         .mlist-title        → the single most important field (name)
+         .mlist-meta         → 1-3 secondary fields, label: value pairs
+         .mlist-actions      → every action the desktop table offers, as
+                                full-width tappable buttons — nothing is
+                                dropped, just decluttered from the card body */
+.mlist{display:none}
+.mlist-card{
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  padding:14px 16px;
+  margin-bottom:10px;
+}
+.mlist-card:last-child{margin-bottom:0}
+.mlist-top{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:10px;
+  margin-bottom:6px;
+}
+.mlist-id{
+  font-family:'DM Mono',monospace;
+  font-size:11.5px;
+  font-weight:700;
+  color:var(--accent);
+  letter-spacing:.01em;
+}
+.mlist-title{
+  font-size:14.5px;
+  font-weight:600;
+  color:var(--text);
+  margin-bottom:8px;
+  line-height:1.3;
+}
+.mlist-meta{
+  display:flex;
+  flex-wrap:wrap;
+  gap:5px 16px;
+  font-size:12.5px;
+  color:var(--muted);
+  margin-bottom:12px;
+}
+.mlist-meta b{color:var(--text);font-weight:600;font-family:'DM Mono',monospace}
+.mlist-actions{
+  display:flex;
+  gap:8px;
+  flex-wrap:wrap;
+  padding-top:12px;
+  border-top:1px solid var(--border);
+}
+.mlist-actions .btn{flex:1;justify-content:center;min-width:0}
+.mlist-empty{
+  text-align:center;
+  padding:32px 16px;
+  color:var(--muted);
+  font-size:13px;
+}
+.mlist-empty i{font-size:24px;display:block;margin-bottom:8px;opacity:.4}
+
+@media(max-width:768px){
+  .mlist{display:block}
 }
 
 /* ── DATA TABLE BASE STYLES ── */
@@ -398,17 +480,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);fon
   max-width: 180px;
 }
 #cases-card {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-  min-height: 0;
   margin: 0 20px 20px;
-}
-#cases-scroll-wrap {
-  flex: 1;
-  overflow: auto;
-  min-height: 0;
 }
 
 

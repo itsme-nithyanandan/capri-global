@@ -53,6 +53,7 @@ const accessConfig = {
 
 function renderAccessTable() {
   const tbody = document.getElementById('access-table-body');
+  const mlist = document.getElementById('access-mlist');
   if (!tbody) return;
 
   tbody.innerHTML = Object.entries(MODULE_META).map(([key, meta]) => {
@@ -77,6 +78,37 @@ function renderAccessTable() {
       </td>
     </tr>`;
   }).join('');
+
+  // Mobile: a checkbox grid is cramped and unlabeled at this width — each
+  // module becomes its own card with a labeled row per role instead.
+  if (mlist) {
+    mlist.innerHTML = Object.entries(MODULE_META).map(([key, meta]) => {
+      const mod = accessConfig[key];
+      if (!mod) return '';
+      return `
+      <div class="mlist-card">
+        <div class="mlist-title">${meta.label}</div>
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <label style="display:flex;align-items:center;justify-content:space-between;font-size:13px;color:var(--accent);font-weight:600">
+            City Head
+            <i class="ti ti-check" style="font-size:16px" title="Always enabled"></i>
+          </label>
+          <label style="display:flex;align-items:center;justify-content:space-between;font-size:13px;color:#1E40AF;font-weight:600">
+            Branch Manager
+            <input type="checkbox" ${mod.bm?'checked':''}
+              onchange="accessConfig['${key}']['bm']=this.checked"
+              style="width:18px;height:18px;cursor:pointer;accent-color:#1E40AF">
+          </label>
+          <label style="display:flex;align-items:center;justify-content:space-between;font-size:13px;color:#5B21B6;font-weight:600">
+            Rel. Manager
+            <input type="checkbox" ${mod.rm?'checked':''}
+              onchange="accessConfig['${key}']['rm']=this.checked"
+              style="width:18px;height:18px;cursor:pointer;accent-color:#5B21B6">
+          </label>
+        </div>
+      </div>`;
+    }).join('');
+  }
 }
 
 async function saveAccessConfig() {

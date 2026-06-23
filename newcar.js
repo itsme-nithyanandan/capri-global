@@ -121,6 +121,31 @@ function renderAllCases(data){
       </td>
     </tr>`;
     }).join('');
+
+  // Mobile cards — deliberately just the fields that matter at a glance
+  // (Case ID, Customer, Loan, Bank, Status); every action the table offers
+  // stays available as a full-width button, nothing is dropped.
+  const mlist = document.getElementById('all-cases-mlist');
+  if (mlist) {
+    mlist.innerHTML = d.length===0
+      ? `<div class="mlist-empty"><i class="ti ti-search-off"></i><span>No cases match your filters</span></div>`
+      : d.map(c => `
+      <div class="mlist-card">
+        <div class="mlist-top">
+          <span class="mlist-id">${c.id}</span>
+          <span class="badge ${statusColor(c.status)}">${c.status}</span>
+        </div>
+        <div class="mlist-title">${c.cust}</div>
+        <div class="mlist-meta">
+          <span>Loan: <b>${fmt(c.loan)}</b></span>
+          <span>Bank: <b>${c.bank}</b></span>
+        </div>
+        <div class="mlist-actions">
+          <button class="btn btn-sm" onclick="openCaseDetailModal('${c.id}')"><i class="ti ti-eye" style="font-size:11px"></i> View</button>
+          ${c.status !== 'Disbursed' ? `<button class="btn btn-sm" onclick="openCaseActionMenu(event,'${c.id}')"><i class="ti ti-edit" style="font-size:11px"></i> Edit</button>` : ''}
+        </div>
+      </div>`).join('');
+  }
 }
 
 function filterCases(){
@@ -931,9 +956,11 @@ function filterDrafts(){
 
 function renderDraftsTable(drafts){
   const tbody=document.getElementById('drafts-tbody');
+  const mlist=document.getElementById('drafts-mlist');
   if(!tbody) return;
   if(!drafts.length){
     tbody.innerHTML='<tr><td colspan="8" style="text-align:center;padding:28px;color:var(--muted)">No drafts match your search</td></tr>';
+    if (mlist) mlist.innerHTML='<div class="mlist-empty"><i class="ti ti-pencil-off"></i><span>No drafts match your search</span></div>';
     return;
   }
   tbody.innerHTML=drafts.map(d=>{
@@ -973,6 +1000,41 @@ function renderDraftsTable(drafts){
       </td>
     </tr>`;
   }).join('');
+
+  const mlist2 = document.getElementById('drafts-mlist');
+  if (mlist2) {
+    mlist2.innerHTML = drafts.map(d=>{
+      const fd=d.form_data||{};
+      const pct=d.completion_pct||0;
+      const barColor=pct>=66?'var(--green-text)':pct>=33?'var(--gold)':'var(--amber-text)';
+      const savedAt=d.last_saved_at
+        ? new Date(d.last_saved_at).toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'2-digit'})
+        : '—';
+      const loan=fd.loan_amount?'₹'+(fd.loan_amount>=100000?(fd.loan_amount/100000).toFixed(2)+'L':Number(fd.loan_amount).toLocaleString('en-IN')):'—';
+      const carLabel = [fd.car_make, fd.car_model].filter(Boolean).join(' ') || '—';
+      return `
+      <div class="mlist-card">
+        <div class="mlist-top">
+          <span class="mlist-id">${d.case_id||'—'}</span>
+          <span style="font-size:11px;font-weight:600;color:${barColor}">${pct}% · Sec ${d.section||1}/3</span>
+        </div>
+        <div class="mlist-title">${fd.cust_name || '<span style="color:var(--muted2);font-style:italic">Not filled</span>'}</div>
+        <div class="mlist-meta">
+          <span>Loan: <b>${loan}</b></span>
+          <span>Car: <b>${carLabel}</b></span>
+          <span>Saved: <b>${savedAt}</b></span>
+        </div>
+        <div class="mlist-actions">
+          <button class="btn btn-primary btn-sm" onclick="resumeDraft('${d.case_id}',${d.section||1})">
+            <i class="ti ti-player-play" style="font-size:11px"></i> Resume
+          </button>
+          <button class="btn btn-danger btn-sm" onclick="confirmDeleteDraft('${d.case_id}')">
+            <i class="ti ti-trash" style="font-size:11px"></i> Delete
+          </button>
+        </div>
+      </div>`;
+    }).join('');
+  }
 }
 
 function resumeDraft(caseId, section){
@@ -1157,7 +1219,7 @@ function renderPDDQueue(list) {
   const role = (window.currentLoggedInUser && window.currentLoggedInUser.role) || '';
   const canApprove = role === 'bm' || role === 'city_head';
 
-  wrap.innerHTML = `<table class="data-table" style="width:100%">
+  wrap.innerHTML = `<table class="data-table has-mlist" style="width:100%">
     <thead><tr>
       <th>Case ID</th>
       <th>Customer</th>
@@ -1207,7 +1269,51 @@ function renderPDDQueue(list) {
       </tr>`;
     }).join('')}
     </tbody>
-  </table>`;
+  </table>
+  <div class="mlist">
+    ${list.map(c => {
+      const st = pddCaseState(c);
+      const myReqs = requiredDocsFor(c);
+      const myReqTypes = new Set(myReqs.map(r=>r.doc_type));
+
+      const docRows = allDocTypesInOrder.map(r => {
+        const applicable = myReqTypes.has(r.doc_type);
+        return `<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0">
+          <span style="font-size:12.5px;color:var(--text)">${r.doc_label}</span>
+          ${applicable ? docCellHTML(c, r) : '<span style="color:var(--muted2);font-size:11px">N/A</span>'}
+        </div>`;
+      }).join('');
+
+      let approveAction;
+      if (st.approved) {
+        approveAction = canApprove
+          ? `<span class="badge badge-green"><i class="ti ti-shield-check" style="font-size:10px"></i> Approved</span>
+             <button class="btn btn-sm btn-danger" onclick="openPDDRevokeModal('${c.id}')"><i class="ti ti-shield-x" style="font-size:11px"></i> Revoke</button>`
+          : `<span class="badge badge-green"><i class="ti ti-shield-check" style="font-size:10px"></i> Approved</span>`;
+      } else if (!canApprove) {
+        approveAction = `<span style="font-size:12px;color:var(--muted2)">${st.allUploaded ? 'Awaiting BM approval' : 'Upload pending'}</span>`;
+      } else {
+        approveAction = `<button class="btn btn-sm btn-primary" ${st.allUploaded ? '' : 'disabled style="opacity:.4;cursor:not-allowed"'} onclick="${st.allUploaded ? `openPDDApproveModal('${c.id}')` : ''}">
+          <i class="ti ti-shield-check" style="font-size:11px"></i> Approve
+        </button>`;
+      }
+
+      return `
+      <div class="mlist-card">
+        <div class="mlist-top">
+          <span class="mlist-id">${c.id}</span>
+          ${st.approved ? '<span class="badge badge-green">Approved</span>' : '<span class="badge badge-amber">Pending</span>'}
+        </div>
+        <div class="mlist-title">${c.cust}</div>
+        <div class="mlist-meta">
+          <span>Bank: <b>${c.bank}</b></span>
+          <span>Loan: <b>${fmt(c.loan)}</b></span>
+        </div>
+        <div style="border-top:1px solid var(--border);padding-top:4px">${docRows}</div>
+        <div class="mlist-actions" style="align-items:center">${approveAction}</div>
+      </div>`;
+    }).join('')}
+  </div>`;
 }
 
 function openPDDUpload(caseId, docType, docLabel, existingDocId) {

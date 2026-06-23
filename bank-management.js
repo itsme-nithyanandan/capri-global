@@ -100,10 +100,12 @@ function renderBanks(){
   });
 
   const tbody = document.getElementById('banks-tbody');
+  const mlist = document.getElementById('banks-mlist');
   if (!tbody) return;
 
   if (!filtered.length) {
     tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:28px;color:var(--muted)">No banks match your search</td></tr>';
+    if (mlist) mlist.innerHTML = '<div class="mlist-empty"><i class="ti ti-building-bank"></i><span>No banks match your search</span></div>';
     return;
   }
 
@@ -139,6 +141,37 @@ function renderBanks(){
     </td>
   </tr>`;
   }).join('');
+
+  if (mlist) {
+    mlist.innerHTML = filtered.map((b)=>{
+      const idx = banks.indexOf(b);
+      let payoutDisplay = '—';
+      if (b.fixedPayout) payoutDisplay = '₹'+Number(b.fixedPayout).toLocaleString('en-IN')+'/file';
+      else if (b.payoutPct) payoutDisplay = b.payoutPct+'%';
+      else if (b.dsaPayoutPct) payoutDisplay = b.dsaPayoutPct+'%';
+      const hasSlabs = b.slabs && b.slabs.length > 0;
+      const topRoi = hasSlabs ? b.slabs[0].roi : '—';
+
+      return `
+      <div class="mlist-card">
+        <div class="mlist-top">
+          <span class="mlist-id">${b.name}</span>
+          <span class="badge ${b.active?'badge-green':'badge-gray'}">${b.active?'Active':'Inactive'}</span>
+        </div>
+        <div class="mlist-title"><span class="badge ${typeBadge[b.type]||'badge-gray'}">${b.type}</span></div>
+        <div class="mlist-meta">
+          <span>Payout: <b>${payoutDisplay}</b></span>
+          <span>Top ROI: <b>${topRoi}</b></span>
+          <span>Min CIBIL: <b>${b.minCibil}</b></span>
+        </div>
+        <div class="mlist-actions">
+          <button class="btn btn-sm" onclick="openEditBankModal('${b.id}')">Edit</button>
+          <button class="btn btn-sm" onclick="openEligibilityModal('${b.id}','${b.name.replace(/'/g,"\\'")}')"><i class="ti ti-list-check" style="font-size:11px"></i> Configure</button>
+          <button class="btn btn-sm ${b.active?'btn-danger':''}" onclick="toggleBankActive('${b.id}',${idx})">${b.active?'Deactivate':'Activate'}</button>
+        </div>
+      </div>`;
+    }).join('');
+  }
 }
 
 async function toggleBankActive(bankId, idx) {
@@ -492,11 +525,13 @@ async function loadROISlabsForModal(bankId) {
 function renderROISlabsTable() {
   const tbody = document.getElementById('roi-slabs-tbody');
   const table = document.getElementById('roi-slabs-table');
+  const mlist = document.getElementById('roi-slabs-mlist');
   const empty = document.getElementById('roi-slabs-empty');
   if (!tbody) return;
 
   if (!_roiSlabsCache.length) {
     table.style.display = 'none';
+    if (mlist) mlist.innerHTML = '';
     empty.style.display = 'block';
     return;
   }
@@ -524,6 +559,30 @@ function renderROISlabsTable() {
       </td>
     </tr>`;
   }).join('');
+
+  if (mlist) {
+    mlist.innerHTML = _roiSlabsCache.map(s => {
+      const rateVal = s.rate_type === 'floating' ? s.floating_rate : s.fixed_rate;
+      const rate = rateVal != null ? `${rateVal}% ${rateTypeLabel[s.rate_type]||s.rate_type}` : '—';
+      const tenure = (s.min_tenure_mo || s.max_tenure_mo) ? `${s.min_tenure_mo ?? '—'}–${s.max_tenure_mo ?? '—'} mo` : '—';
+      return `
+      <div class="mlist-card">
+        <div class="mlist-top">
+          <span class="mlist-id">${s.slab_label}</span>
+          <span class="badge ${s.active!==false?'badge-green':'badge-gray'}">${s.active!==false?'Active':'Inactive'}</span>
+        </div>
+        <div class="mlist-meta">
+          <span>CIBIL: <b>${s.score_min}–${s.score_max}</b></span>
+          <span>Rate: <b>${rate}</b></span>
+          <span>Tenure: <b>${tenure}</b></span>
+        </div>
+        <div class="mlist-actions">
+          <button class="btn btn-sm" onclick="editROISlab('${s.id}')"><i class="ti ti-edit" style="font-size:11px"></i> Edit</button>
+          <button class="btn btn-sm btn-danger" onclick="deleteROISlab('${s.id}')"><i class="ti ti-trash" style="font-size:11px"></i> Delete</button>
+        </div>
+      </div>`;
+    }).join('');
+  }
 }
 
 const RATE_TYPES = ['fixed', 'floating', 'ev'];
@@ -678,11 +737,13 @@ async function loadPayoutSlabsForModal(bankId) {
 function renderPayoutSlabsTable() {
   const tbody = document.getElementById('payout-slabs-tbody');
   const table = document.getElementById('payout-slabs-table');
+  const mlist = document.getElementById('payout-slabs-mlist');
   const empty = document.getElementById('payout-slabs-empty');
   if (!tbody) return;
 
   if (!_payoutSlabsCache.length) {
     table.style.display = 'none';
+    if (mlist) mlist.innerHTML = '';
     empty.style.display = 'block';
     return;
   }
@@ -699,6 +760,21 @@ function renderPayoutSlabsTable() {
         <button class="btn btn-xs btn-danger" style="margin-left:4px" onclick="deletePayoutSlab('${s.id}')"><i class="ti ti-trash" style="font-size:11px"></i></button>
       </td>
     </tr>`).join('');
+
+  if (mlist) {
+    mlist.innerHTML = _payoutSlabsCache.map(s => `
+      <div class="mlist-card">
+        <div class="mlist-top">
+          <span class="mlist-id">₹${Number(s.loan_from).toLocaleString('en-IN')} – ₹${Number(s.loan_to).toLocaleString('en-IN')}</span>
+          <span class="badge ${s.active!==false?'badge-green':'badge-gray'}">${s.active!==false?'Active':'Inactive'}</span>
+        </div>
+        <div class="mlist-meta"><span>Payout: <b>${s.payout_pct}%</b></span></div>
+        <div class="mlist-actions">
+          <button class="btn btn-sm" onclick="editPayoutSlab('${s.id}')"><i class="ti ti-edit" style="font-size:11px"></i> Edit</button>
+          <button class="btn btn-sm btn-danger" onclick="deletePayoutSlab('${s.id}')"><i class="ti ti-trash" style="font-size:11px"></i> Delete</button>
+        </div>
+      </div>`).join('');
+  }
 }
 
 function editPayoutSlab(slabId) {

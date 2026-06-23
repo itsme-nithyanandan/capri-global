@@ -67,7 +67,7 @@ function renderUsersList() {
   const allMembers = [...groups.city_head, ...groups.bm, ...groups.rm];
 
   container.innerHTML = `
-  <table style="width:100%;border-collapse:collapse;font-size:13px">
+  <table class="has-mlist" style="width:100%;border-collapse:collapse;font-size:13px">
     <thead>
       <tr style="background:var(--surface2);border-bottom:2px solid var(--border)">
         <th style="text-align:left;padding:10px 14px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--muted)">Name</th>
@@ -107,7 +107,29 @@ function renderUsersList() {
         </td>
       </tr>`).join('')}
     </tbody>
-  </table>`;
+  </table>
+  <div class="mlist">
+    ${allMembers.map(u => `
+    <div class="mlist-card">
+      <div class="mlist-top">
+        <span class="mlist-id" style="color:${roleColor[u.role]}">${u.name}</span>
+        <span class="badge ${u.active?'badge-green':'badge-red'}">${u.active?'Active':'Inactive'}</span>
+      </div>
+      <div class="mlist-title"><span class="badge ${roleBadge[u.role]}">${roleLabel[u.role]}</span></div>
+      <div class="mlist-meta">
+        <span>Email: <b style="font-family:inherit;font-weight:500">${u.email}</b></span>
+        <span>Phone: <b style="font-family:inherit;font-weight:500">${u.phone||'—'}</b></span>
+        <span>Reports to: <b style="font-family:inherit;font-weight:500">${u.reports_to&&reportsToMap[u.reports_to]?reportsToMap[u.reports_to]:'—'}</b></span>
+        ${u.role!=='city_head' ? `<span>Target: <b>${u.monthly_target ?? '—'}</b></span>` : ''}
+      </div>
+      <div class="mlist-actions">
+        <button class="btn btn-sm" onclick="openEditUserModal('${u.id}')"><i class="ti ti-edit" style="font-size:12px"></i> Edit</button>
+        <button class="btn btn-sm" onclick="toggleUserActive('${u.id}',${u.active})">
+          <i class="ti ti-${u.active?'user-off':'user-check'}" style="font-size:12px"></i> ${u.active?'Deactivate':'Activate'}
+        </button>
+      </div>
+    </div>`).join('')}
+  </div>`;
 }
 
 // ── USER MODAL (Add/Edit) ─────────────────────────────────────────────────────

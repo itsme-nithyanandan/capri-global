@@ -10,16 +10,12 @@
 <style>
   body{display:block;min-height:100vh;padding:20px}
   .fab-new-case{left:24px!important}
-  /* tab-cases needs flex layout (not block) for its internal scroll area —
-     but only once it's actually the active pane, otherwise the inline flex
-     would override .tab-pane{display:none} and show through other tabs. */
-  .nc-cases-pane.on{display:flex!important}
 </style>
 </head>
 <body>
 
-<div class="tab-pane nc-cases-pane" id="tab-cases" style="flex-direction:column;flex:1;min-height:0">
-      <div style="flex-shrink:0">
+<div class="tab-pane nc-cases-pane" id="tab-cases">
+      <div style="position:sticky;top:0;z-index:5;background:var(--bg);padding-bottom:4px">
         <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
           <button onclick="toggleCasesFilter()" id="cases-filter-btn"
             style="display:flex;align-items:center;gap:6px;padding:7px 14px;border-radius:var(--radius-sm);border:1px solid var(--border);background:var(--surface);cursor:pointer;font-family:inherit;font-size:12.5px;font-weight:500;color:var(--text);box-shadow:var(--shadow-sm)">
@@ -88,9 +84,9 @@
         </div>
       </div>
 
-      <div class="card" id="cases-card" style="margin:0;border-radius:var(--radius);flex:1;min-height:0;display:flex;flex-direction:column">
-        <div id="cases-scroll-wrap" style="overflow:auto;flex:1;height:100%">
-        <table class="data-table" id="all-cases-table" style="width:100%;table-layout:fixed">
+      <div class="card" id="cases-card" style="margin:0;border-radius:var(--radius)">
+        <div id="cases-scroll-wrap">
+        <table class="data-table has-mlist" id="all-cases-table" style="width:100%;table-layout:fixed">
           <thead>
             <tr>
               <th style="width:7%">Case ID</th>
@@ -109,6 +105,7 @@
           </thead>
           <tbody id="all-cases-tbody"></tbody>
         </table>
+        <div class="mlist" id="all-cases-mlist"></div>
         </div>
       </div>
     </div>
@@ -121,7 +118,7 @@
       </div>
     </div>
 
-    <div class="tab-pane" id="tab-pdd" style="overflow-y:auto">
+    <div class="tab-pane" id="tab-pdd">
       <div style="padding:4px 0 16px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px">
         <div>
           <div style="font-size:15px;font-weight:600;color:var(--text)">Post-Disbursement Documents</div>
@@ -170,7 +167,7 @@
       </div>
     </div>
 
-    <div class="tab-pane" id="tab-drafts" style="overflow-y:auto">
+    <div class="tab-pane" id="tab-drafts">
       <div style="padding:4px 0 16px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px">
         <div>
           <div style="font-size:15px;font-weight:600;color:var(--text)">Saved Drafts</div>
@@ -208,7 +205,7 @@
           <div style="font-size:12px;color:var(--muted2);margin-top:4px">Start a new case and click "Save Draft" to save your progress</div>
         </div>
         <div style="overflow:auto" id="drafts-table-wrap">
-          <table class="data-table" id="drafts-table" style="width:100%;table-layout:fixed">
+          <table class="data-table has-mlist" id="drafts-table" style="width:100%;table-layout:fixed">
             <thead>
               <tr>
                 <th style="width:10%">Case ID</th>
@@ -223,6 +220,7 @@
             </thead>
             <tbody id="drafts-tbody"></tbody>
           </table>
+          <div class="mlist" id="drafts-mlist"></div>
         </div>
       </div>
     </div>

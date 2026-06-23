@@ -31,10 +31,11 @@
     <div style="font-size:13px;font-weight:500;color:var(--muted)">No banks configured yet</div>
     <div style="font-size:12px;color:var(--muted2);margin-top:4px">Add banks in Supabase to see them here</div>
   </div>
-  <table class="data-table" id="banks-table" style="display:none">
+  <table class="data-table has-mlist" id="banks-table" style="display:none">
     <thead><tr><th>Bank / NBFC</th><th>Type</th><th>Min CIBIL</th><th>FOIR %</th><th>LTV %</th><th>Payout</th><th>ROI Slab</th><th>Status</th><th>Action</th></tr></thead>
     <tbody id="banks-tbody"></tbody>
   </table>
+  <div class="mlist" id="banks-mlist"></div>
 </div>
 
 <div id="roi-popup" class="roi-popup" style="display:none;position:fixed;z-index:500"></div>
@@ -161,10 +162,11 @@
             </div>
           </div>
 
-          <table class="data-table" id="roi-slabs-table">
+          <table class="data-table has-mlist" id="roi-slabs-table">
             <thead><tr><th>Label</th><th>CIBIL Range</th><th>Rate</th><th>Tenure</th><th>Status</th><th>Action</th></tr></thead>
             <tbody id="roi-slabs-tbody"></tbody>
           </table>
+          <div class="mlist" id="roi-slabs-mlist"></div>
           <div id="roi-slabs-empty" style="display:none;padding:24px;text-align:center;color:var(--muted);font-size:12.5px">No ROI slabs configured for this bank yet</div>
         </div>
       </div>
@@ -220,10 +222,11 @@
             </div>
           </div>
 
-          <table class="data-table" id="payout-slabs-table">
+          <table class="data-table has-mlist" id="payout-slabs-table">
             <thead><tr><th>Loan Range (₹)</th><th>Payout %</th><th>Status</th><th>Action</th></tr></thead>
             <tbody id="payout-slabs-tbody"></tbody>
           </table>
+          <div class="mlist" id="payout-slabs-mlist"></div>
           <div id="payout-slabs-empty" style="display:none;padding:24px;text-align:center;color:var(--muted);font-size:12.5px">No payout slabs configured for this bank yet</div>
 
           <div id="bm-payout-type-error" style="display:none;margin-top:16px;padding:8px 12px;background:var(--red-bg);border-radius:8px;font-size:11px;color:var(--red-text)"></div>

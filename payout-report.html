@@ -44,13 +44,14 @@
 </div>
 
 <div class="card">
-  <table class="data-table">
+  <table class="data-table has-mlist">
     <thead><tr>
       <th>Case ID</th><th>Customer</th><th>Bank</th><th>Member</th>
       <th>Disbursed Amount</th><th>Payout %</th><th>Payout Amount</th><th>Status</th><th>Action</th>
     </tr></thead>
     <tbody id="payout-tbody"><tr><td colspan="9"><div class="empty-state" style="padding:24px"><i class="ti ti-table-off"></i><span>Loading...</span></div></td></tr></tbody>
   </table>
+  <div class="mlist" id="payout-mlist"></div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>

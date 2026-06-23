@@ -74,8 +74,10 @@ function renderPayoutTable() {
   document.getElementById('kpi-payout-total').textContent    = fmt(rows.reduce((s, p) => s + parseFloat(p.payout_amount || 0), 0));
 
   const tbody = document.getElementById('payout-tbody');
+  const mlist = document.getElementById('payout-mlist');
   if (!rows.length) {
     tbody.innerHTML = '<tr><td colspan="9"><div class="empty-state" style="padding:24px"><i class="ti ti-table-off"></i><span>No payouts yet — these appear once a case\'s PDD is approved</span></div></td></tr>';
+    if (mlist) mlist.innerHTML = '<div class="mlist-empty"><i class="ti ti-table-off"></i><span>No payouts yet — these appear once a case\'s PDD is approved</span></div>';
     return;
   }
 
@@ -107,6 +109,35 @@ function renderPayoutTable() {
       <td data-label="Action" style="white-space:nowrap">${actionCell}</td>
     </tr>`;
   }).join('');
+
+  if (mlist) {
+    mlist.innerHTML = rows.map(p => {
+      const statusBadge = `<span class="badge ${STATUS_BADGE[p.status]||'badge-gray'}">${p.status.charAt(0).toUpperCase()+p.status.slice(1)}</span>`;
+      let action = '';
+      if (canManage) {
+        if (p.status === 'pending') {
+          action = `<button class="btn btn-sm" onclick="markPayoutStatus('${p.id}','approved')">Approve</button>`;
+        } else if (p.status === 'approved') {
+          action = `<button class="btn btn-sm btn-primary" onclick="markPayoutStatus('${p.id}','paid')">Mark Paid</button>`;
+        } else {
+          action = `<span style="font-size:12px;color:var(--green-text)"><i class="ti ti-check" style="font-size:11px"></i> Paid ${p.paid_at ? new Date(p.paid_at).toLocaleDateString('en-IN') : ''}</span>`;
+        }
+      }
+      return `
+      <div class="mlist-card">
+        <div class="mlist-top">
+          <span class="mlist-id">${p.case_id}</span>
+          ${statusBadge}
+        </div>
+        <div class="mlist-title">${p.cust_name || '—'}</div>
+        <div class="mlist-meta">
+          <span>Payout: <b>${fmt(p.payout_amount)}</b></span>
+          <span>Bank: <b>${p.bank_name || '—'}</b></span>
+        </div>
+        ${action ? `<div class="mlist-actions">${action}</div>` : ''}
+      </div>`;
+    }).join('');
+  }
 }
 
 async function markPayoutStatus(payoutId, newStatus) {

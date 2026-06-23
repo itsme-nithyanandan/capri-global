@@ -75,6 +75,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);fon
 .main{padding:68px 16px 100px;overflow-y:auto}
 @media(min-width:520px){.main{padding:68px 24px 100px;}}
 .kyc-doc-grid{display:grid;grid-template-columns:1fr;gap:16px}
+.kyc-doc-grid>div{min-width:0}
 @media(min-width:680px){.kyc-doc-grid{grid-template-columns:repeat(3,1fr)}}
 .form-header{margin-bottom:28px}
 .form-section-num{font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--accent);margin-bottom:6px}
@@ -357,31 +358,6 @@ input[data-aadhaar]{font-family:'DM Mono',monospace;letter-spacing:.1em}
   
 
   <!-- ══ SHARE CIBIL MODAL ══ -->
-  <div class="modal-back" id="share-modal" onclick="closeShareModal(event)">
-    <div class="modal-sheet">
-      <div class="modal-handle"></div>
-      <div class="modal-title">Get CIBIL report</div>
-      <div class="modal-sub">Choose how to proceed — ask the customer directly, or send their KYC documents straight to the bank for a CIBIL pull.</div>
-      <button class="share-btn" onclick="shareViaWhatsApp()">
-        <div class="share-icon share-wa"><i class="ti ti-brand-whatsapp"></i></div>
-        <div>
-          <div>Ask customer via WhatsApp</div>
-          <div class="share-btn-sub">Pre-drafted message · CIBIL link · KYC attachment request</div>
-        </div>
-        <i class="ti ti-chevron-right" style="margin-left:auto;color:var(--muted)"></i>
-      </button>
-      <button class="share-btn" onclick="shareViaMail()">
-        <div class="share-icon share-mail"><i class="ti ti-mail"></i></div>
-        <div>
-          <div>Send to bank via Email</div>
-          <div class="share-btn-sub">Applicant details + PAN &amp; Aadhaar attached, for the bank's CIBIL pull</div>
-        </div>
-        <i class="ti ti-chevron-right" style="margin-left:auto;color:var(--muted)"></i>
-      </button>
-      <button class="modal-cancel" onclick="closeShareModal()">Cancel</button>
-    </div>
-  </div>
-
   <!-- ══ MAIN ══ -->
   <main class="main">
 
@@ -652,11 +628,11 @@ input[data-aadhaar]{font-family:'DM Mono',monospace;letter-spacing:.1em}
           </div>
           <div class="field">
             <label>Years at current address</label>
-            <select><option>Less than 1 year</option><option>1–2 years</option><option>2–5 years</option><option>More than 5 years</option></select>
+            <select id="res-years"><option>Less than 1 year</option><option>1–2 years</option><option>2–5 years</option><option>More than 5 years</option></select>
           </div>
           <div class="field" id="rent-field" style="display:none">
             <label>Monthly rent (₹)</label>
-            <input type="number" placeholder="e.g. 12000">
+            <input type="number" id="res-rent" placeholder="e.g. 12000">
           </div>
         </div>
       </div>
@@ -672,7 +648,7 @@ input[data-aadhaar]{font-family:'DM Mono',monospace;letter-spacing:.1em}
           </div>
           <div class="field">
             <label>Dealer location / area</label>
-            <input type="text" placeholder="e.g. Anna Nagar, Chennai">
+            <input type="text" id="d-area" placeholder="e.g. Anna Nagar, Chennai">
           </div>
         </div>
         <div class="panel-divider"></div>
@@ -766,7 +742,7 @@ input[data-aadhaar]{font-family:'DM Mono',monospace;letter-spacing:.1em}
         </div>
 
         <div style="max-width:230px;margin-top:14px">
-          <button type="button" onclick="openShareModal()" style="width:100%;padding:9px 12px;border-radius:var(--r-sm);border:1px solid var(--accent);background:var(--green-bg);color:var(--accent);font-family:inherit;font-size:13px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:5px;white-space:nowrap;transition:all .15s" title="Share CIBIL request with customer">
+          <button type="button" onclick="requestCIBILFromBank()" style="width:100%;padding:9px 12px;border-radius:var(--r-sm);border:1px solid var(--accent);background:var(--green-bg);color:var(--accent);font-family:inherit;font-size:13px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:5px;white-space:nowrap;transition:all .15s" title="Send applicant details + PAN & Aadhaar to the bank for a CIBIL pull">
             <i class="ti ti-share" style="font-size:14px"></i> Get CIBIL
           </button>
         </div>
@@ -1033,9 +1009,9 @@ input[data-aadhaar]{font-family:'DM Mono',monospace;letter-spacing:.1em}
         <div class="cond-block" id="co-block">
           <div class="cond-block-label">Co-applicant details</div>
           <div class="g3" style="margin-bottom:14px">
-            <div class="field"><label>Full name</label><input type="text" placeholder="Co-applicant full name"></div>
-            <div class="field"><label>Relationship</label><select><option>Spouse</option><option>Parent</option><option>Sibling</option><option>Child</option></select></div>
-            <div class="field"><label>Employment type</label><select><option>Salaried</option><option>Self-employed</option><option>Pensioner</option></select></div>
+            <div class="field"><label>Full name</label><input type="text" id="co-name" placeholder="Co-applicant full name"></div>
+            <div class="field"><label>Relationship</label><select id="co-relation"><option>Spouse</option><option>Parent</option><option>Sibling</option><option>Child</option></select></div>
+            <div class="field"><label>Employment type</label><select id="co-emp-type"><option>Salaried</option><option>Self-employed</option><option>Pensioner</option></select></div>
           </div>
           <div class="upload-zone" onclick="markUpload('uz-co','Co-applicant statement uploaded ✓','Click to replace')" id="uz-co">
             <i class="ti ti-upload uz-icon"></i>
@@ -1260,8 +1236,7 @@ function collectFormData() {
 
   // Computed values
   const exshow  = gn('v-exshow');
-  const onroadX = gn('v-reg');
-  const onroad  = (exshow && onroadX) ? exshow + onroadX : (gn('v-onroad') || null);
+  const onroad  = gn('v-reg'); // v-reg IS the on-road price field directly now
   const loan    = gn('v-loan');
   const ltv     = (onroad && loan) ? Math.round((loan / onroad) * 100 * 100) / 100 : null;
 
@@ -1293,7 +1268,8 @@ function collectFormData() {
     curr_pincode:       g('c-pin'),
     // ── Residence ──
     res_type:           g('f-restype'),
-    res_years:          g('emp-years') || null,
+    res_years:          g('res-years'),
+    res_rent:           gn('res-rent'),
     // ── Dealer ──
     dealer_name:        g('d-name'),
     dealer_area:        g('d-area'),
@@ -1302,7 +1278,6 @@ function collectFormData() {
     car_model:          g('car-model'),
     car_fuel:           g('v-fuel'),
     car_exshowroom:     exshow,
-    car_onroad_extras:  onroadX,
     car_onroad_total:   onroad,
     // ── Loan ──
     loan_amount:        loan,
@@ -1553,27 +1528,60 @@ async function loadDraftById(caseId, section) {
 // ── RESTORE FORM DATA FROM DRAFT ──────────────────────────────────────────────
 function restoreFormData(data) {
   if (!data) return;
-  const s = (id, val) => { const el = document.getElementById(id); if (el && val) el.value = val; };
+  const s = (id, val) => { const el = document.getElementById(id); if (el && val != null && val !== '') el.value = val; };
+  const sc = (id, checked) => { const el = document.getElementById(id); if (el) el.checked = !!checked; };
+
+  // ── Customer ──
   s('f-name', data.cust_name); s('f-dob', data.cust_dob); s('f-gender', data.cust_gender);
   s('f-pan', data.cust_pan); s('f-aadhaar', data.cust_aadhaar); s('f-mobile', data.cust_mobile);
   s('f-email', data.cust_email); s('f-marital', data.cust_marital); s('f-dependants', data.cust_dependants);
+
+  // ── Permanent address ──
   s('p-addr1', data.perm_addr1); s('p-addr2', data.perm_addr2); s('p-city', data.perm_city);
   s('p-dist', data.perm_district); s('p-state', data.perm_state); s('p-pin', data.perm_pincode);
+
+  // ── Current address ──
   s('c-addr1', data.curr_addr1); s('c-addr2', data.curr_addr2); s('c-city', data.curr_city);
   s('c-dist', data.curr_district); s('c-state', data.curr_state); s('c-pin', data.curr_pincode);
   // curr_same_as_perm defaults true when absent (e.g. older/partial drafts),
   // matching the radio's own default-checked state.
   const sameAddr = data.curr_same_as_perm !== false;
-  document.getElementById('addr-mode-same').checked = sameAddr;
-  document.getElementById('addr-mode-diff').checked = !sameAddr;
+  sc('addr-mode-same', sameAddr);
+  sc('addr-mode-diff', !sameAddr);
   toggleSameAddr();
-  s('d-name', data.dealer_name); s('car-make', data.car_make); s('car-model', data.car_model); s('v-fuel', data.car_fuel);
+
+  // ── Residence ──
+  s('f-restype', data.res_type);
+  s('res-years', data.res_years);
+  s('res-rent', data.res_rent);
+  toggleRent();
+
+  // ── Dealer ──
+  s('d-name', data.dealer_name);
+  s('d-area', data.dealer_area);
+
+  // ── Vehicle ──
+  s('car-make', data.car_make); s('car-model', data.car_model); s('v-fuel', data.car_fuel);
+  s('v-exshow', data.car_exshowroom);
+  s('v-reg', data.car_onroad_total); // v-reg is the on-road price field directly
+
+  // ── Loan ──
   s('v-loan', data.loan_amount); s('v-tenure', data.loan_tenure_months); s('v-cibil', data.cibil_score);
+  calcLoan(); // recomputes v-onroad/v-down/LTV from the restored exshow/onroad/loan values
   updateTenureYears();
   updateAmountWords('v-loan','v-loan-words');
   updateAmountWords('v-exshow','v-exshow-words');
   updateAmountWords('v-reg','v-reg-words');
-  s('emp-type', data.emp_type); s('emp-company', data.emp_company); s('inc-net', data.inc_net_monthly);
+
+  // ── Preferred bank — match by name against whatever loadBankOptionsForForm()
+  // already populated (that call happens earlier in init, before this runs).
+  if (data.preferred_bank_name) s('pref-bank', data.preferred_bank_name);
+
+  // ── Employment ──
+  s('emp-type', data.emp_type); s('emp-company', data.emp_company); s('emp-years', data.emp_years);
+
+  // ── Income ──
+  s('inc-net', data.inc_net_monthly);
   s('inc-gross', data.inc_gross_monthly); s('inc-other', data.inc_other); s('inc-other-type', data.inc_other_type);
   if (data.itr_income_by_year) {
     Object.keys(data.itr_income_by_year).forEach(fyLabel => {
@@ -1585,6 +1593,26 @@ function restoreFormData(data) {
   updateAmountWords('inc-gross','inc-gross-words');
   updateAmountWords('inc-other','inc-other-words');
   if (data.emp_type) handleEmpType();
+
+  // ── Bank statements — block 1 is static; recreate any additional blocks
+  // that were saved before restoring their values.
+  if (Array.isArray(data.bank_statements_meta)) {
+    data.bank_statements_meta.forEach(meta => {
+      if (meta.n > 1) {
+        while (currentStatementCount() < meta.n) addBankStatementSlot();
+      }
+      s('stmt-bank-' + meta.n, meta.bank);
+      s('stmt-acctype-' + meta.n, meta.account_type);
+      s('stmt-period-' + meta.n, meta.analysis_period_months);
+    });
+  }
+
+  // ── Co-applicant ──
+  sc('co-chk', data.co_app_enabled);
+  s('co-name', data.co_app_name);
+  s('co-relation', data.co_app_relation);
+  s('co-emp-type', data.co_app_emp_type);
+  toggleCo();
 }
 
 // ── STATE ─────────────────────────────────────────────────────────────────────
@@ -2010,21 +2038,17 @@ function toggleRent() {
 
 // ── LTV CALC ──────────────────────────────────────────────────────────────────
 function calcLoan() {
-  // Called when ex-showroom or on-road price changes
-  const exshow = parseFloat(document.getElementById('v-exshow').value) || 0;
-  const reg    = parseFloat(document.getElementById('v-reg').value) || 0;
-  const onroad = exshow + reg;
-  if (onroad > 0) {
-    document.getElementById('v-onroad').value = onroad;
-  }
+  // v-reg is the On Road Price field itself (renamed from the old "extras"
+  // concept) — it's the full on-road total directly, not an add-on to sum
+  // with ex-showroom.
+  const reg = parseFloat(document.getElementById('v-reg').value) || 0;
+  document.getElementById('v-onroad').value = reg > 0 ? reg : '';
   calcDownPayment();
 }
 
 function calcDownPayment() {
   // Down payment = On road price − Loan amount required (auto-calculated, read-only)
-  const onroad = parseFloat(document.getElementById('v-onroad').value) ||
-                 (parseFloat(document.getElementById('v-exshow').value)||0) +
-                 (parseFloat(document.getElementById('v-reg').value)||0);
+  const onroad = parseFloat(document.getElementById('v-reg').value) || 0;
   const loan   = parseFloat(document.getElementById('v-loan').value) || 0;
   const down   = document.getElementById('v-down');
   if (onroad > 0 && loan > 0) {
@@ -2853,15 +2877,6 @@ function goBackToDashboard() {
 }
 
 // ── SHARE CIBIL MODAL ────────────────────────────────────────────────────────
-function openShareModal() {
-  document.getElementById('share-modal').classList.add('open');
-}
-function closeShareModal(e) {
-  if (!e || e.target === document.getElementById('share-modal')) {
-    document.getElementById('share-modal').classList.remove('open');
-  }
-}
-
 function getCustomerDetails() {
   const name   = document.getElementById('f-name')?.value.trim() || 'Customer';
   const mobile = document.getElementById('f-mobile')?.value.trim() || '';
@@ -2908,53 +2923,10 @@ async function getFileForSharing(cardId, fallbackName) {
   return null;
 }
 
-function shareViaWhatsApp() {
-  const {name, mobile, pan, panUploaded, aadharUploaded} = getCustomerDetails();
-
-  // Build attachment instruction based on what is uploaded
-  let attachNote = '';
-  if (panUploaded && aadharUploaded) {
-    attachNote = '📎 We have your PAN and Aadhaar on file. Please share your CIBIL PDF report in reply to this message.';
-  } else if (panUploaded) {
-    attachNote = '📎 We have your PAN on file. Please also share a clear photo of your Aadhaar card (front and back) along with your CIBIL report.';
-  } else if (aadharUploaded) {
-    attachNote = '📎 We have your Aadhaar on file. Please also share a clear photo of your PAN card along with your CIBIL report.';
-  } else {
-    attachNote = '📎 Please share the following documents with your CIBIL report:\n   • PAN card (clear photo — front)\n   • Aadhaar card (front and back)';
-  }
-
-  const panLine = pan ? '\n   PAN number: ' + pan : '';
-
-  const msg = encodeURIComponent(
-    'Dear ' + name + ',\n\n' +
-    'Greetings from *Capri Global Capital — Chennai* 🏦\n\n' +
-    'We are processing your *New Car Loan* application.' + panLine + '\n\n' +
-    'To proceed, we need your *CIBIL Credit Report*. Please follow these steps:\n\n' +
-    '*Step 1 — Get your free CIBIL report:*\n' +
-    '👉 https://www.cibil.com/freecreditscore\n' +
-    '(Register / Login → Download PDF report)\n\n' +
-    '*Step 2 — Alternate bureaus:*\n' +
-    '• Experian India: https://www.experian.in\n' +
-    '• CRIF High Mark: https://www.crifhighmark.com\n\n' +
-    '*Step 3 — Share the report:*\n' +
-    attachNote + '\n\n' +
-    'Please share at the earliest so we can process your application quickly.\n\n' +
-    'For any queries, contact your relationship manager directly.\n\n' +
-    'Regards,\n*Capri Global Capital*\nChennai Operations Team'
-  );
-
-  const url = mobile
-    ? 'https://wa.me/91' + mobile.replace(/\s/g,'') + '?text=' + msg
-    : 'https://wa.me/?text=' + msg;
-  window.open(url, '_blank');
-  closeShareModal();
-}
-
-async function shareViaMail() {
+async function requestCIBILFromBank() {
   const {name, mobile, pan, aadhaar, loanAmount, panUploaded, aadharUploaded} = getCustomerDetails();
 
   if (!panUploaded || !aadharUploaded) {
-    closeShareModal();
     showFlash('Upload PAN and Aadhaar first — both are needed to send to the bank', true);
     return;
   }
@@ -2987,7 +2959,6 @@ async function shareViaMail() {
 
   const subject = 'CIBIL Pull Request — ' + name + ' — Capri Global Capital';
 
-  closeShareModal();
   showFlash('Preparing documents...');
 
   const [panFile, aadhaarFile] = await Promise.all([

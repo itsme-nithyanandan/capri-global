@@ -263,7 +263,6 @@ function renderCDMTab(tab,c){
 
   if(tab==='basic'){
     const fullAddr = [f.curr_addr1, f.curr_addr2, f.curr_city, f.curr_state, f.curr_pincode].filter(Boolean).join(', ') || '—';
-    const officeAddr = [f.dealer_area].filter(Boolean).join(', ') || '—';
     body.innerHTML=`
       <div class="g2" style="gap:14px">
         <div>
@@ -277,7 +276,7 @@ function renderCDMTab(tab,c){
             ['Mobile', dash(f.cust_mobile)],
             ['Email', dash(f.cust_email)],
             ['PAN', dash(f.cust_pan)],
-            ['Aadhaar', f.cust_aadhaar ? ('XXXX XXXX ' + String(f.cust_aadhaar).slice(-4)) : '—'],
+            ['Aadhaar', dash(f.cust_aadhaar)],
             ['Address', fullAddr],
           ].map(([k,v])=>`
           <div class="detail-row"><span class="detail-key">${k}</span><span class="detail-val">${v}</span></div>`).join('')}
@@ -288,20 +287,20 @@ function renderCDMTab(tab,c){
             ['Employment Type', titleCase(f.emp_type)],
             ['Employer', dash(f.emp_company)],
             ['Monthly Income', f.inc_net_monthly ? fmt(f.inc_net_monthly) : '—'],
-            ['Experience', f.emp_years ? (f.emp_years + ' years') : '—'],
-            ['Office Address', officeAddr],
+            ['Experience', dash(f.emp_years)],
           ].map(([k,v])=>`
           <div class="detail-row"><span class="detail-key">${k}</span><span class="detail-val">${v}</span></div>`).join('')}
         </div>
       </div>`;
   } else if(tab==='loan'){
+    const carDisplay = [f.car_make, f.car_model].filter(Boolean).join(' ') || dash(c.car);
     body.innerHTML=`
       <div class="g2" style="gap:14px">
         <div>
           <div class="detail-section-title" style="margin-bottom:10px">Loan Requirement</div>
           ${[
-            ['Car Model', dash(f.car_model || c.car)],
-            ['Loan Amount', fmt(c.loan)],
+            ['Car Model', carDisplay],
+            ['Loan Amount', fmt(f.loan_amount ?? c.loan ?? 0)],
             ['Tenure', f.loan_tenure_months ? (f.loan_tenure_months + ' months') : '—'],
             ['Bank', dash(f.preferred_bank_name || c.bank)],
             ['Down Payment', f.loan_down_payment ? fmt(f.loan_down_payment) : '—'],

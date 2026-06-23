@@ -135,10 +135,10 @@ function renderAllCases(data){
           <span class="mlist-id">${c.id}</span>
           <span class="badge ${statusColor(c.status)}">${c.status}</span>
         </div>
-        <div class="mlist-title">${c.cust}</div>
-        <div class="mlist-meta">
-          <span>Loan: <b>${fmt(c.loan)}</b></span>
-          <span>Bank: <b>${c.bank}</b></span>
+        <div class="mlist-title">${c.cust} <span style="color:var(--muted);font-weight:400;font-size:13px">· ${c.car}</span></div>
+        <div class="mlist-meta" style="justify-content:space-between">
+          <span><b>${fmt(c.loan)}</b></span>
+          <span><b>${c.bank}</b></span>
         </div>
         <div class="mlist-actions">
           <button class="btn btn-sm" onclick="openCaseDetailModal('${c.id}')"><i class="ti ti-eye" style="font-size:11px"></i> View</button>
@@ -828,7 +828,7 @@ async function loadLiveCases(user) {
   try {
     // Query the view which already has created_by_name and reporting_to_name
     let q = db.from('cases_with_names')
-      .select('id,cust_name,car_model,preferred_bank_name,preferred_bank_id,pdd_approved,loan_amount,status,cibil_score,submitted_at,created_at,payout_amount,created_by,bm_id,cust_mobile,curr_pincode,perm_pincode,inc_net_monthly,emp_type,created_by_name,creator_role,reporting_to_name')
+      .select('id,cust_name,car_make,car_model,preferred_bank_name,preferred_bank_id,pdd_approved,loan_amount,status,cibil_score,submitted_at,created_at,payout_amount,created_by,bm_id,cust_mobile,curr_pincode,perm_pincode,inc_net_monthly,emp_type,created_by_name,creator_role,reporting_to_name')
       .neq('status','Draft')
       .order('created_at',{ascending:false});
 
@@ -843,7 +843,7 @@ async function loadLiveCases(user) {
     if (error && /preferred_bank_id|pdd_approved/i.test(error.message||'')) {
       console.warn('preferred_bank_id/pdd_approved not available on cases_with_names view, retrying without them:', error.message);
       let q2 = db.from('cases_with_names')
-        .select('id,cust_name,car_model,preferred_bank_name,loan_amount,status,cibil_score,submitted_at,created_at,payout_amount,created_by,bm_id,cust_mobile,curr_pincode,perm_pincode,inc_net_monthly,emp_type,created_by_name,creator_role,reporting_to_name')
+        .select('id,cust_name,car_make,car_model,preferred_bank_name,loan_amount,status,cibil_score,submitted_at,created_at,payout_amount,created_by,bm_id,cust_mobile,curr_pincode,perm_pincode,inc_net_monthly,emp_type,created_by_name,creator_role,reporting_to_name')
         .neq('status','Draft')
         .order('created_at',{ascending:false});
       if (user.role==='bm') q2 = q2.or('created_by.eq.'+user.id+',bm_id.eq.'+user.id);
@@ -861,7 +861,7 @@ async function loadLiveCases(user) {
         id: c.id,
         date: (c.submitted_at||c.created_at||'').slice(0,10),
         cust: c.cust_name||'—',
-        car: c.car_model||'—',
+        car: [c.car_make, c.car_model].filter(Boolean).join(' ') || '—',
         bank: c.preferred_bank_name||'—',
         bankId: c.preferred_bank_id||null,
         pddApproved: c.pdd_approved||false,

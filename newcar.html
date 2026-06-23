@@ -20,8 +20,9 @@
           <button onclick="toggleCasesFilter()" id="cases-filter-btn"
             style="display:flex;align-items:center;gap:6px;padding:7px 14px;border-radius:var(--radius-sm);border:1px solid var(--border);background:var(--surface);cursor:pointer;font-family:inherit;font-size:12.5px;font-weight:500;color:var(--text);box-shadow:var(--shadow-sm)">
             <i class="ti ti-filter" style="font-size:13px;color:var(--muted)"></i>
-            Filters
-            <i class="ti ti-chevron-down" id="cases-filter-chevron" style="font-size:12px;color:var(--muted);transition:transform .2s"></i>
+            <span class="filter-btn-text" style="display:inline-flex;align-items:center;gap:6px">Filters
+              <i class="ti ti-chevron-down" id="cases-filter-chevron" style="font-size:12px;color:var(--muted);transition:transform .2s"></i>
+            </span>
           </button>
           <input class="filter-input" placeholder="Search customer, case ID..." style="flex:1;max-width:240px;padding:7px 12px;font-size:12.5px" id="cases-search" oninput="filterCases()">
           <span id="cases-count" style="font-size:12px;color:var(--muted)">— cases</span>

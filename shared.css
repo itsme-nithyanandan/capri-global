@@ -49,10 +49,10 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);fon
    so a scrollable body underneath it would create a confusing double-scroll.
    Every other page (loaded inside that iframe) needs its body to scroll
    normally, since there's no inner frame to delegate to. */
-body.app-shell-body{display:flex;overflow:hidden;height:100vh}
+body.app-shell-body{display:flex;overflow:hidden;height:100vh;height:100dvh}
 
 /* ── SIDEBAR ── */
-.sidebar{width:var(--sidebar-w);background:var(--accent3);display:flex;flex-direction:column;height:100vh;flex-shrink:0;position:fixed;left:0;top:0;z-index:100;border-right:1px solid rgba(0,0,0,.15)}
+.sidebar{width:var(--sidebar-w);background:var(--accent3);display:flex;flex-direction:column;height:100vh;height:100dvh;flex-shrink:0;position:fixed;left:0;top:0;z-index:100;border-right:1px solid rgba(0,0,0,.15)}
 .sidebar-brand{padding:22px 20px 16px;border-bottom:1px solid rgba(255,255,255,.08)}
 .brand-logo{display:flex;align-items:center;gap:10px;margin-bottom:10px}
 .brand-icon{width:34px;height:34px;background:var(--gold);border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
@@ -94,7 +94,7 @@ body.app-shell-body{display:flex;overflow:hidden;height:100vh}
 .user-role{font-size:10.5px;color:rgba(255,255,255,.45)}
 
 /* ── MAIN ── */
-.main{margin-left:var(--sidebar-w);flex:1;display:flex;flex-direction:column;height:100vh;overflow:hidden}
+.main{margin-left:var(--sidebar-w);flex:1;display:flex;flex-direction:column;height:100vh;height:100dvh;overflow:hidden}
 .topbar{background:var(--surface);border-bottom:1px solid var(--border);padding:0 26px;height:var(--topbar-h);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;box-shadow:0 1px 0 var(--border)}
 .topbar-left{display:flex;align-items:center;gap:12px}
 .topbar-divider{width:1px;height:20px;background:var(--border);flex-shrink:0}
@@ -330,6 +330,10 @@ body.app-shell-body{display:flex;overflow:hidden;height:100vh}
   .kpi-value{font-size:20px!important}
   .content{padding:14px 12px 100px!important}
   .filter-bar,.filter-bar *{flex-wrap:wrap}
+  /* Filter toggle buttons collapse to icon-only on mobile — the "Filters"
+     text + chevron take real space that's better spent on the search box. */
+  .filter-btn-text{display:none!important}
+  #cases-filter-btn{padding:8px 10px!important}
 }
 
 /* ── RESPONSIVE TABLES → CARDS ON MOBILE (FALLBACK) ───────────────────────────
@@ -407,10 +411,11 @@ body.app-shell-body{display:flex;overflow:hidden;height:100vh}
 .mlist{display:none}
 .mlist-card{
   background:var(--surface);
-  border:1px solid var(--border);
+  border:1px solid var(--border2);
   border-radius:var(--radius);
   padding:14px 16px;
-  margin-bottom:10px;
+  margin-bottom:14px;
+  box-shadow:0 2px 6px rgba(0,0,0,.07), 0 1px 2px rgba(0,0,0,.05);
 }
 .mlist-card:last-child{margin-bottom:0}
 .mlist-top{

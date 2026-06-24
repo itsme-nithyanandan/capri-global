@@ -35,6 +35,16 @@ function navTo(moduleUrl, el, groupKey) {
   const frame = document.getElementById('module-frame');
   if (frame) frame.src = moduleUrl;
 
+  // On mobile the sidebar is an overlay drawer — close it after navigating,
+  // otherwise it stays open covering the page that was just selected.
+  const sidebar = document.querySelector('.sidebar');
+  if (sidebar && sidebar.classList.contains('open')) {
+    sidebar.classList.remove('open');
+    const overlay = document.getElementById('sidebar-overlay');
+    if (overlay) overlay.classList.remove('open');
+    document.body.style.overflow = '';
+  }
+
   document.querySelectorAll('.nav-item, .nav-sub-item').forEach(b => b.classList.remove('active'));
   if (el) el.classList.add('active');
 

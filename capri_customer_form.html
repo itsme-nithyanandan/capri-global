@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Capri Global — New Car Loan Application</title>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,300&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
@@ -91,6 +91,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);fon
 /* ── GRID ── */
 .g2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 .g3{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media(max-width:399px){.g2,.g3{grid-template-columns:1fr}}
 .g4{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .gcustom{display:grid;gap:14px}
 
@@ -107,7 +108,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);fon
   padding:9px 12px;
   border:1px solid var(--border);
   border-radius:var(--r-sm);
-  font-size:13px;
+  font-size:16px;
   background:var(--surface);
   color:var(--text);
   font-family:inherit;

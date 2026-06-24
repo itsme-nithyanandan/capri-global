@@ -42,7 +42,7 @@
   --sidebar-w: 228px;
   --topbar-h: 58px;
 }
-*{box-sizing:border-box;margin:0;padding:0}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);font-size:14px;min-height:100vh;-webkit-font-smoothing:antialiased}
 /* Opt-in only: the dashboard shell (dashboard.html) is the one page whose
    own body must NOT scroll — its content is an iframe that scrolls itself,
@@ -60,7 +60,7 @@ body.app-shell-body{display:flex;overflow:hidden;height:100vh;height:100dvh}
 .brand-name{font-size:13px;font-weight:600;color:white;letter-spacing:.01em;line-height:1.25}
 .brand-sub{font-size:11px;color:rgba(255,255,255,.45);letter-spacing:.01em}
 .brand-badge{display:inline-flex;align-items:center;gap:5px;background:rgba(200,168,82,.15);border:1px solid rgba(200,168,82,.35);color:var(--gold-light);font-size:10px;font-weight:600;padding:3px 9px;border-radius:20px;letter-spacing:.07em;text-transform:uppercase}
-.sidebar-nav{flex:1;padding:10px 0 8px;overflow-y:auto}
+.sidebar-nav{flex:1;padding:10px 0 8px;overflow-y:auto;-webkit-overflow-scrolling:touch}
 .nav-section{font-size:9px;font-weight:700;color:rgba(255,255,255,.28);letter-spacing:.12em;text-transform:uppercase;padding:14px 20px 5px}
 .nav-item{display:flex;align-items:center;gap:9px;padding:8.5px 20px;cursor:pointer;transition:all .15s;color:rgba(255,255,255,.6);font-size:12.5px;font-weight:400;position:relative;border-radius:0;margin:0 6px;border-radius:7px}
 .nav-item:hover{background:rgba(255,255,255,.07);color:rgba(255,255,255,.9)}
@@ -219,7 +219,7 @@ body.app-shell-body{display:flex;overflow:hidden;height:100vh;height:100dvh}
 .alert-banner.success{background:var(--green-bg);border:1px solid var(--green-border)}
 
 /* ── DETAIL PANEL ── */
-.detail-panel{position:fixed;right:0;top:0;width:420px;height:100vh;background:var(--surface);border-left:1px solid var(--border);box-shadow:var(--shadow-lg);z-index:200;transform:translateX(100%);transition:transform .28s cubic-bezier(.4,0,.2,1);overflow-y:auto}
+.detail-panel{position:fixed;right:0;top:0;width:420px;max-width:100vw;height:100vh;height:100dvh;background:var(--surface);border-left:1px solid var(--border);box-shadow:var(--shadow-lg);z-index:200;transform:translateX(100%);transition:transform .28s cubic-bezier(.4,0,.2,1);overflow-y:auto;-webkit-overflow-scrolling:touch}
 .detail-panel.open{transform:translateX(0)}
 .detail-header{padding:20px 22px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:var(--surface);z-index:1}
 .close-btn{width:30px;height:30px;border-radius:var(--radius-sm);border:1px solid var(--border);background:var(--surface2);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:14px;color:var(--muted);transition:all .15s}
@@ -234,7 +234,7 @@ body.app-shell-body{display:flex;overflow:hidden;height:100vh;height:100dvh}
 /* ── MODAL ── */
 .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.4);backdrop-filter:blur(2px);z-index:300;display:none;align-items:center;justify-content:center}
 .modal-overlay.open{display:flex}
-.modal{background:var(--surface);border-radius:var(--radius);padding:28px;width:400px;box-shadow:var(--shadow-lg);border:1px solid var(--border)}
+.modal{background:var(--surface);border-radius:var(--radius);padding:28px;width:400px;max-width:calc(100vw - 32px);box-shadow:var(--shadow-lg);border:1px solid var(--border)}
 .modal-title{font-size:16px;font-weight:600;margin-bottom:8px;color:var(--text)}
 .modal-sub{font-size:13px;color:var(--muted);margin-bottom:20px;line-height:1.65}
 .modal-actions{display:flex;gap:8px}
@@ -296,7 +296,7 @@ body.app-shell-body{display:flex;overflow:hidden;height:100vh;height:100dvh}
 /* ── DOC VIEWER MODAL ── */
 .doc-modal{background:var(--surface);border-radius:var(--radius);width:640px;max-width:96vw;max-height:88vh;display:flex;flex-direction:column;box-shadow:var(--shadow-lg);border:1px solid var(--border)}
 .doc-modal-header{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
-.doc-modal-body{flex:1;overflow-y:auto;padding:16px 20px}
+.doc-modal-body{flex:1;overflow-y:auto;padding:16px 20px;-webkit-overflow-scrolling:touch}
 .doc-file-row{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:var(--radius-sm);border:1px solid var(--border);background:var(--surface2);margin-bottom:6px;transition:all .15s}
 .doc-file-row:hover{border-color:var(--border2);background:var(--surface3)}
 .doc-file-icon{width:32px;height:32px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
@@ -306,7 +306,7 @@ body.app-shell-body{display:flex;overflow:hidden;height:100vh;height:100dvh}
 /* ── CASE DETAIL TABS ── */
 .wide-modal{background:var(--surface);border-radius:var(--radius);width:700px;max-width:96vw;max-height:90vh;display:flex;flex-direction:column;box-shadow:var(--shadow-lg);border:1px solid var(--border)}
 .wide-modal-header{padding:16px 22px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
-.wide-modal-body{flex:1;overflow-y:auto;padding:20px 22px}
+.wide-modal-body{flex:1;overflow-y:auto;padding:20px 22px;-webkit-overflow-scrolling:touch}
 
 /* ── ROI SLAB POPUP ── */
 .roi-popup{position:absolute;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);box-shadow:var(--shadow-md);z-index:400;min-width:220px;padding:12px 14px;font-size:12px}
@@ -334,6 +334,17 @@ body.app-shell-body{display:flex;overflow:hidden;height:100vh;height:100dvh}
      text + chevron take real space that's better spent on the search box. */
   .filter-btn-text{display:none!important}
   #cases-filter-btn{padding:8px 10px!important}
+
+  /* Generic multi-column grids — these had NO mobile handling at all, so a
+     .g3/.g4 used anywhere (detail panels, settings rows, future pages) would
+     render as illegibly narrow columns on a 320-375px phone. .g-main (a
+     2fr/1fr split, usually a main content + sidebar pairing) stacks too. */
+  .g2,.g3,.g4,.g-main{grid-template-columns:1fr!important}
+
+  /* iOS Safari auto-zooms the page when a focused input/select is under
+     16px — these were all set well below that for a denser desktop look,
+     which is fine on desktop but triggers that zoom on every tap on iPhone. */
+  .filter-input,.filter-select,.tm-input{font-size:16px!important}
 }
 
 /* ── RESPONSIVE TABLES → CARDS ON MOBILE (FALLBACK) ───────────────────────────
@@ -502,7 +513,7 @@ body.app-shell-body{display:flex;overflow:hidden;height:100vh;height:100dvh}
   .hamburger{display:flex}
   #kpi-grid{grid-template-columns:1fr 1fr!important;gap:10px!important}
   .kpi{padding:14px 12px!important}
-  .fab-new-case{left:16px!important;bottom:20px!important;padding:0!important;width:48px!important;height:48px!important;border-radius:50%!important;justify-content:center!important}
+  .fab-new-case{left:16px!important;bottom:20px!important;bottom:calc(20px + env(safe-area-inset-bottom))!important;padding:0!important;width:48px!important;height:48px!important;border-radius:50%!important;justify-content:center!important}
   .fab-label{display:none!important}
   .fab-icon{width:auto!important;height:auto!important;background:transparent!important;font-size:22px!important}
 }

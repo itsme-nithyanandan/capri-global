@@ -92,16 +92,17 @@ const docTypeMeta = {
 };
 
 // ── ALL FILES TAB ─────────────────────────────────────────────────────────────
-// RMs can't edit anything in All Files — every case here has already been
-// submitted at least once (Drafts, which aren't locked yet, live in their
-// own separate tab), and the RLS update policy only lets the original
-// creator edit while unlocked, or a BM/City Head edit regardless of lock
-// status. Showing "Edit" to an RM here would just walk them into a
-// guaranteed row-level-security failure on save.
+// Mirrors the cases_update RLS policy: RM can edit their OWN case right up
+// until it's Disbursed; BM/City Head can edit any case regardless of
+// ownership or status (except Disbursed, which is terminal for everyone —
+// status changes from there go through the dedicated disbursement flow,
+// not a plain case edit).
 function canEditCase(c) {
   const role = (window.currentLoggedInUser && window.currentLoggedInUser.role) || '';
+  const myId = (window.currentLoggedInUser && window.currentLoggedInUser.id) || null;
   if (c.status === 'Disbursed') return false;
   if (role === 'bm' || role === 'city_head') return true;
+  if (role === 'rm') return !!myId && c.createdBy === myId;
   return false;
 }
 
@@ -922,6 +923,7 @@ async function loadLiveCases(user) {
         bmId: c.bm_id||null,
         loan: c.loan_amount||0,
         member: c.created_by_name||'—',
+        createdBy: c.created_by||null,
         bm: c.reporting_to_name||'—',
         createdByName: c.created_by_name||'—',
         reportsToName: c.reporting_to_name||'—',

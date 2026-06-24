@@ -214,6 +214,33 @@ function onCasesPeriodChange(){
   filterCases();
 }
 
+// On mobile, search collapses to just an icon by default so the filter
+// button and the case-count/loan-total never get squeezed off-screen.
+// Tapping it swaps the row to show the full input instead; desktop is
+// unaffected since these toggles only show via the mobile media query.
+function expandMobileSearch() {
+  document.getElementById('cases-filter-btn').style.display = 'none';
+  document.getElementById('cases-search-toggle').style.display = 'none';
+  document.getElementById('cases-count-wrap').style.display = 'none';
+  const input = document.getElementById('cases-search');
+  input.style.setProperty('display', 'block', 'important');
+  input.style.maxWidth = 'none';
+  document.getElementById('cases-search-close').style.display = 'flex';
+  input.focus();
+}
+
+function collapseMobileSearch() {
+  document.getElementById('cases-filter-btn').style.display = '';
+  document.getElementById('cases-search-toggle').style.display = '';
+  document.getElementById('cases-count-wrap').style.display = '';
+  const input = document.getElementById('cases-search');
+  input.style.display = '';
+  input.style.maxWidth = '';
+  document.getElementById('cases-search-close').style.display = 'none';
+  input.value = '';
+  filterCases();
+}
+
 function toggleCasesFilter() {
   const panel   = document.getElementById('cases-filter-panel');
   const chevron = document.getElementById('cases-filter-chevron');
@@ -476,7 +503,21 @@ function openCaseActionMenu(e, caseId) {
   if (!menu) return;
   const rect = e.target.closest('button').getBoundingClientRect();
   menu.style.left = Math.max(8, rect.right - 180) + 'px';
-  menu.style.top = (rect.bottom + 6) + 'px';
+
+  // Flip upward when there isn't room below — otherwise this clips off the
+  // bottom of the screen (or behind the FAB) for rows near the end of a
+  // scrolled list. Anchoring by `bottom` instead of `top` when flipped means
+  // it self-adjusts to the menu's real height, not an estimate.
+  const estimatedHeight = 90;
+  const spaceBelow = window.innerHeight - rect.bottom;
+  if (spaceBelow < estimatedHeight + 12) {
+    menu.style.bottom = (window.innerHeight - rect.top + 6) + 'px';
+    menu.style.top = 'auto';
+  } else {
+    menu.style.top = (rect.bottom + 6) + 'px';
+    menu.style.bottom = 'auto';
+  }
+
   menu.style.display = 'block';
   // Use a slight delay before attaching the outside-click closer so the
   // current click event (which is still bubbling) doesn't immediately close it.

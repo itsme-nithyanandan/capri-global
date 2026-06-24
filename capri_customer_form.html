@@ -52,6 +52,9 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);fon
   border-radius:40px;
   padding:5px 6px;
   box-shadow:0 4px 24px rgba(0,0,0,.10),0 1px 6px rgba(0,0,0,.06);
+  max-width:calc(100vw - 24px);
+  overflow-x:auto;
+  -webkit-overflow-scrolling:touch;
 }
 .fp-step{
   display:flex;align-items:center;gap:6px;
@@ -60,12 +63,24 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);fon
   color:var(--muted);
   transition:all .25s;
   white-space:nowrap;cursor:pointer;
+  flex-shrink:0;
 }
 .fp-step.active{background:var(--accent);color:white;}
 .fp-step.done{background:var(--green-bg);color:var(--green-txt);}
 .fp-dot{width:7px;height:7px;border-radius:50%;background:currentColor;flex-shrink:0;opacity:.5;}
 .fp-step.active .fp-dot,.fp-step.done .fp-dot{opacity:1;}
 .fp-sep{width:1px;height:18px;background:var(--border);flex-shrink:0;}
+@media(max-width:680px){
+  /* The full labels ("Customer & Vehicle", "Employment & Bank") never wrap
+     and have no width cap, so on a 320-375px phone the pill overflowed
+     equally past both screen edges with no way to reach the clipped parts.
+     Shorter labels + tighter sizing fit comfortably on real phone widths;
+     overflow-x:auto above is just a safety net in case of an unusually
+     narrow viewport even after that. */
+  .fp-label-full{display:none}
+  .fp-step{padding:5px 10px;font-size:11px;gap:4px}
+  .float-progress{padding:4px 5px}
+}
 /* draft save chip — bottom right corner */
 
 
@@ -344,11 +359,11 @@ input[data-aadhaar]{font-family:'DM Mono',monospace;letter-spacing:.1em}
   <!-- ══ FLOATING PROGRESS PILL ══ -->
   <div class="float-progress" id="float-progress">
     <div class="fp-step active" id="fp-1" onclick="tryGoTo(1)">
-      <span class="fp-dot"></span> Customer &amp; Vehicle
+      <span class="fp-dot"></span> Customer<span class="fp-label-full">&nbsp;&amp; Vehicle</span>
     </div>
     <div class="fp-sep"></div>
     <div class="fp-step" id="fp-2" onclick="tryGoTo(2)">
-      <span class="fp-dot"></span> Employment &amp; Bank
+      <span class="fp-dot"></span> Employment<span class="fp-label-full">&nbsp;&amp; Bank</span>
     </div>
     <div class="fp-sep"></div>
     <div class="fp-step" id="fp-3" onclick="tryGoTo(3)">

@@ -345,6 +345,12 @@ body.app-shell-body{display:flex;overflow:hidden;height:100vh;height:100dvh}
      16px — these were all set well below that for a denser desktop look,
      which is fine on desktop but triggers that zoom on every tap on iPhone. */
   .filter-input,.filter-select,.tm-input{font-size:16px!important}
+
+  /* New Car's case-list search collapses to an icon by default — the case
+     count + loan total were getting squeezed off the edge of the screen by
+     the full-width search box competing for the same row. */
+  #cases-search-toggle{display:flex!important}
+  #cases-search{display:none!important}
 }
 
 /* ── RESPONSIVE TABLES → CARDS ON MOBILE (FALLBACK) ───────────────────────────
@@ -547,5 +553,5 @@ body.app-shell-body{display:flex;overflow:hidden;height:100vh;height:100dvh}
 .form-back-btn{display:flex;align-items:center;gap:7px;padding:7px 14px;border-radius:8px;border:1px solid rgba(255,255,255,.2);background:rgba(255,255,255,.08);color:white;font-family:inherit;font-size:12px;font-weight:500;cursor:pointer;transition:all .15s}
 .form-back-btn:hover{background:rgba(255,255,255,.15)}
 .form-topbar-title{font-size:14px;font-weight:600;color:white;flex:1}
-.form-topbar-badge{font-size:10px;font-weight:600;padding:3px 10px;border-radius:10px;background:#C8A852;color:#1A1200}
+.form-topbar-badge{font-size:10px;font-weight:600;padding:3px 10px;border-radius:10px;background:#C8A852;color:#1A1200;margin-left:auto}
 #form-iframe{flex:1;border:none;width:100%}

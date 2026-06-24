@@ -16,18 +16,30 @@
 
 <div class="tab-pane nc-cases-pane" id="tab-cases">
       <div style="position:sticky;top:0;z-index:5;background:var(--bg);padding-bottom:4px">
-        <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px" id="cases-toolbar-row">
           <button onclick="toggleCasesFilter()" id="cases-filter-btn"
-            style="display:flex;align-items:center;gap:6px;padding:7px 14px;border-radius:var(--radius-sm);border:1px solid var(--border);background:var(--surface);cursor:pointer;font-family:inherit;font-size:12.5px;font-weight:500;color:var(--text);box-shadow:var(--shadow-sm)">
+            style="display:flex;align-items:center;gap:6px;padding:7px 14px;border-radius:var(--radius-sm);border:1px solid var(--border);background:var(--surface);cursor:pointer;font-family:inherit;font-size:12.5px;font-weight:500;color:var(--text);box-shadow:var(--shadow-sm);flex-shrink:0">
             <i class="ti ti-filter" style="font-size:13px;color:var(--muted)"></i>
             <span class="filter-btn-text" style="display:inline-flex;align-items:center;gap:6px">Filters
               <i class="ti ti-chevron-down" id="cases-filter-chevron" style="font-size:12px;color:var(--muted);transition:transform .2s"></i>
             </span>
           </button>
+
+          <button onclick="expandMobileSearch()" id="cases-search-toggle" class="icon-btn" title="Search" style="display:none;flex-shrink:0">
+            <i class="ti ti-search"></i>
+          </button>
+
           <input class="filter-input" placeholder="Search customer, case ID..." style="flex:1;max-width:240px;padding:7px 12px;font-size:12.5px" id="cases-search" oninput="filterCases()">
-          <span id="cases-count" style="font-size:12px;color:var(--muted)">— cases</span>
-          <span style="font-size:12px;color:var(--muted);margin-left:8px">|</span>
-          <span id="cases-loan-total" style="font-size:12px;font-weight:600;color:var(--accent);margin-left:8px">₹0</span>
+
+          <button onclick="collapseMobileSearch()" id="cases-search-close" class="icon-btn" style="display:none;flex-shrink:0">
+            <i class="ti ti-x"></i>
+          </button>
+
+          <span id="cases-count-wrap" style="display:flex;align-items:center;gap:8px;white-space:nowrap;flex-shrink:0;margin-left:auto">
+            <span id="cases-count" style="font-size:12px;color:var(--muted)">— cases</span>
+            <span style="font-size:12px;color:var(--muted)">|</span>
+            <span id="cases-loan-total" style="font-size:12px;font-weight:600;color:var(--accent)">₹0</span>
+          </span>
         </div>
 
         <div id="cases-filter-panel" style="display:none;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px;margin-bottom:10px;box-shadow:var(--shadow-sm)">
@@ -441,7 +453,6 @@
     <button class="form-back-btn" onclick="closeFormPage()">
       <i class="ti ti-arrow-left" style="font-size:14px"></i> Back to dashboard
     </button>
-    <div class="form-topbar-title">New Car Loan Case</div>
     <div class="form-topbar-badge">New Case</div>
   </div>
   <iframe id="form-iframe" src=""></iframe>

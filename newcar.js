@@ -971,10 +971,26 @@ async function loadDrafts() {
   if(empty)   empty.style.display   = 'none';
   if(wrap)    wrap.style.display    = 'none';
   try {
-    const { data, error } = await db.from('case_drafts').select('*').order('last_saved_at',{ascending:false});
+    // case_drafts existing isn't proof a case is still a draft — a case's
+    // real status only ever changes on `cases` (via final submit, or the
+    // Change Status / Sanctioned / Disbursed actions, none of which touch
+    // case_drafts). If a case moved on without its draft row ever getting
+    // cleaned up, it'll show here as a stale leftover unless we cross-check
+    // against the actual current status.
+    const { data, error } = await db.from('case_drafts').select('*, cases(status)').order('last_saved_at',{ascending:false});
     if(loading) loading.style.display = 'none';
     if(error){ console.error('Draft load error:',error.message); return; }
-    _allDrafts = data || [];
+
+    const allRows = data || [];
+    const staleIds = allRows.filter(d => d.cases && d.cases.status && d.cases.status !== 'Draft').map(d => d.case_id);
+    _allDrafts = allRows.filter(d => !d.cases || !d.cases.status || d.cases.status === 'Draft');
+
+    // Self-heal: clean up orphaned draft rows for cases that have already
+    // moved past Draft, so this doesn't keep resurfacing on every load.
+    if (staleIds.length) {
+      db.from('case_drafts').delete().in('case_id', staleIds)
+        .then(({ error: cleanupErr }) => { if (cleanupErr) console.error('Stale draft cleanup failed:', cleanupErr.message); });
+    }
 
     // Notify the shell to update the Drafts nav badge (lives outside this iframe)
     notifyBadgeCount('drafts', _allDrafts.length);

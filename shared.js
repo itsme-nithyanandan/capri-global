@@ -116,13 +116,13 @@ async function applyRoleRestrictions(role) {
   }
 
   // City Head always sees every DB-driven module too — nothing further to check.
-  if (role !== 'bm' && role !== 'rm') return;
+  if (role !== 'bm' && role !== 'rm') { hideEmptyNavSections(); return; }
 
   try {
     const { data, error } = await db.from('role_module_access')
       .select('module_key,can_access')
       .eq('role', role);
-    if (error) { console.error('Role module access fetch error:', error.message); return; }
+    if (error) { console.error('Role module access fetch error:', error.message); hideEmptyNavSections(); return; }
 
     const denied = new Set((data || []).filter(r => r.can_access === false).map(r => r.module_key));
     document.querySelectorAll('[data-module-key]').forEach(el => {
@@ -131,4 +131,23 @@ async function applyRoleRestrictions(role) {
   } catch(e) {
     console.error('applyRoleRestrictions DB lookup failed:', e.message);
   }
+  hideEmptyNavSections();
+}
+
+// A .nav-section label (e.g. "Info", "Configuration") shouldn't appear on
+// its own once every item underneath it has been hidden for this role —
+// an empty section heading just looks like a broken/dead-end part of the
+// sidebar. Walks each section's following siblings up to the next section
+// (or the end of the nav) and hides the label if none of them are visible.
+function hideEmptyNavSections() {
+  document.querySelectorAll('.nav-section').forEach(section => {
+    section.style.display = '';
+    let sib = section.nextElementSibling;
+    let anyVisible = false;
+    while (sib && !sib.classList.contains('nav-section')) {
+      if (sib.style.display !== 'none') { anyVisible = true; break; }
+      sib = sib.nextElementSibling;
+    }
+    section.style.display = anyVisible ? '' : 'none';
+  });
 }

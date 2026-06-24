@@ -63,6 +63,13 @@ body.app-shell-body{display:flex;overflow:hidden;height:100vh;height:100dvh}
 .sidebar-nav{flex:1;padding:10px 0 8px;overflow-y:auto;-webkit-overflow-scrolling:touch}
 .nav-section{font-size:9px;font-weight:700;color:rgba(255,255,255,.28);letter-spacing:.12em;text-transform:uppercase;padding:14px 20px 5px}
 .nav-item{display:flex;align-items:center;gap:9px;padding:8.5px 20px;cursor:pointer;transition:all .15s;color:rgba(255,255,255,.6);font-size:12.5px;font-weight:400;position:relative;border-radius:0;margin:0 6px;border-radius:7px}
+/* Every role-gated nav item is hidden the instant the stylesheet loads —
+   before identity/permissions have even been fetched — so there's no flash
+   of unauthorized modules while that DB round-trip is in flight. The
+   nav-pending class on body gets removed only once applyRoleRestrictions()
+   has finished applying the real per-item visibility. */
+body.nav-pending [data-module-key],
+body.nav-pending [data-role-restrict]{display:none!important}
 .nav-item:hover{background:rgba(255,255,255,.07);color:rgba(255,255,255,.9)}
 .nav-item.active{background:rgba(255,255,255,.12);color:white;font-weight:500}
 .nav-item.active::before{content:'';position:absolute;left:-6px;top:50%;transform:translateY(-50%);width:3px;height:20px;background:var(--gold);border-radius:0 2px 2px 0}

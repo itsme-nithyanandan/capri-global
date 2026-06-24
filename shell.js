@@ -247,7 +247,7 @@ function buildTopbarRight() {
 }
 
 // ── IDENTITY-DRIVEN CHROME UPDATES ────────────────────────────────────────────
-document.addEventListener('capri:identityReady', (e) => {
+document.addEventListener('capri:identityReady', async (e) => {
   const user = e.detail;
   if (!user) return;
 
@@ -279,7 +279,8 @@ document.addEventListener('capri:identityReady', (e) => {
     if (overviewSub.textContent === 'Loading…') overviewSub.textContent = tabTitles['overview.html'][1];
   }
 
-  applyRoleRestrictions(user.role);
+  await applyRoleRestrictions(user.role);
+  document.body.classList.remove('nav-pending');
 });
 
 // ── MODULE → SHELL MESSAGE BRIDGE ─────────────────────────────────────────────
@@ -303,3 +304,14 @@ window.addEventListener('message', (e) => {
 // ── INIT ──────────────────────────────────────────────────────────────────────
 buildTopbarRight();
 loadIdentity();
+
+// Safety net: if identity/permissions resolution never completes for any
+// reason (auth hiccup, network issue), don't leave every gated nav item
+// hidden forever — reveal them after a few seconds as a fallback. Normal
+// loads remove nav-pending well before this ever fires.
+setTimeout(() => {
+  if (document.body.classList.contains('nav-pending')) {
+    console.warn('Role restrictions did not resolve in time — revealing nav as a fallback.');
+    document.body.classList.remove('nav-pending');
+  }
+}, 6000);

@@ -92,6 +92,19 @@ const docTypeMeta = {
 };
 
 // ── ALL FILES TAB ─────────────────────────────────────────────────────────────
+// RMs can't edit anything in All Files — every case here has already been
+// submitted at least once (Drafts, which aren't locked yet, live in their
+// own separate tab), and the RLS update policy only lets the original
+// creator edit while unlocked, or a BM/City Head edit regardless of lock
+// status. Showing "Edit" to an RM here would just walk them into a
+// guaranteed row-level-security failure on save.
+function canEditCase(c) {
+  const role = (window.currentLoggedInUser && window.currentLoggedInUser.role) || '';
+  if (c.status === 'Disbursed') return false;
+  if (role === 'bm' || role === 'city_head') return true;
+  return false;
+}
+
 function renderAllCases(data){
   const d=data||cases;
   // Update loan total
@@ -117,7 +130,7 @@ function renderAllCases(data){
       <td data-label="Payout" style="font-family:'DM Mono',monospace;font-size:12px;color:var(--green-text);font-weight:600">${c.payout>0?fmt(c.payout):'—'}</td>
       <td data-label="Action" style="white-space:nowrap">
         <button class="btn btn-sm" onclick="openCaseDetailModal('${c.id}')"><i class="ti ti-eye" style="font-size:11px"></i> View</button>
-        ${c.status !== 'Disbursed' ? `<button class="btn btn-sm" style="margin-left:4px" onclick="openCaseActionMenu(event,'${c.id}')"><i class="ti ti-edit" style="font-size:11px"></i> Edit</button>` : ''}
+        ${canEditCase(c) ? `<button class="btn btn-sm" style="margin-left:4px" onclick="openCaseActionMenu(event,'${c.id}')"><i class="ti ti-edit" style="font-size:11px"></i> Edit</button>` : ''}
       </td>
     </tr>`;
     }).join('');
@@ -142,7 +155,7 @@ function renderAllCases(data){
         </div>
         <div class="mlist-actions">
           <button class="btn btn-sm" onclick="openCaseDetailModal('${c.id}')"><i class="ti ti-eye" style="font-size:11px"></i> View</button>
-          ${c.status !== 'Disbursed' ? `<button class="btn btn-sm" onclick="openCaseActionMenu(event,'${c.id}')"><i class="ti ti-edit" style="font-size:11px"></i> Edit</button>` : ''}
+          ${canEditCase(c) ? `<button class="btn btn-sm" onclick="openCaseActionMenu(event,'${c.id}')"><i class="ti ti-edit" style="font-size:11px"></i> Edit</button>` : ''}
         </div>
       </div>`).join('');
   }

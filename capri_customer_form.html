@@ -2498,25 +2498,42 @@ async function submitForm() {
       currentCaseId = await generateCaseId();
     }
 
-    // When editing an already-submitted case, preserve its current status —
-    // do NOT silently reset a Sanctioned/Disbursed case back to "In process".
+    // Check whether this case already has a row — it might, even on a
+    // "first" submit, since saveDraft() inserts a Draft-status row the
+    // moment someone starts filling the form. If a row exists, preserve its
+    // created_by and status rather than blindly overwriting them: stomping
+    // created_by on every save reassigns case ownership to whoever happens
+    // to be editing it (wrecking attribution/payout), and also silently
+    // fails RLS whenever the editor isn't the original creator — the update
+    // policy checks the EXISTING row's created_by, not whatever a fresh
+    // upsert tries to set it to.
+    const { data: existingRow } = await db.from('cases').select('created_by,status').eq('id', currentCaseId).maybeSingle();
+
     let statusToSave = 'In process';
-    if (_editId) {
-      const { data: existing } = await db.from('cases').select('status').eq('id', currentCaseId).single();
-      if (existing && existing.status) statusToSave = existing.status;
+    if (existingRow && existingRow.status && existingRow.status !== 'Draft') {
+      statusToSave = existingRow.status; // preserve Sanctioned/Disbursed/etc.
     }
 
-    // Upsert the case — preserve status if editing, lock only on first submit
-    const { error } = await db.from('cases').upsert({
-      id: currentCaseId,
-      created_by: currentUser.id,
+    const payload = {
       status: statusToSave,
       submitted_at: new Date().toISOString(),
       locked: true,
       ...formData
-    });
+    };
 
-    if (error) throw error;
+    let error;
+    if (existingRow) {
+      ({ error } = await db.from('cases').update(payload).eq('id', currentCaseId));
+    } else {
+      ({ error } = await db.from('cases').insert({ id: currentCaseId, created_by: currentUser.id, ...payload }));
+    }
+
+    if (error) {
+      if (error.message && error.message.includes('row-level security')) {
+        throw new Error('This case has already been submitted and is locked for editing. Please contact your Branch Manager or City Head if changes are needed.');
+      }
+      throw error;
+    }
 
     // Upload all selected documents to Storage + insert rows into `documents` table
     if (submitBtn) submitBtn.textContent = 'Uploading documents...';

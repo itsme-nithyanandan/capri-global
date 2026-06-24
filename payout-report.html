@@ -19,6 +19,9 @@
     <div style="font-size:12px;color:var(--muted);margin-top:2px">Payout earned on disbursed cases, by bank payout %</div>
   </div>
   <button class="btn btn-sm" onclick="exportPayoutCSV()"><i class="ti ti-download" style="font-size:12px"></i> Export CSV</button>
+  <button class="btn btn-sm" id="payout-refresh-btn" onclick="refreshPayoutData()" title="Reload payout data" style="margin-left:8px;color:var(--muted)">
+    <i class="ti ti-reload" style="font-size:12px" id="payout-refresh-icon"></i>
+  </button>
 </div>
 
 <div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap">

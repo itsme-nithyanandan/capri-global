@@ -25,6 +25,9 @@
     <button class="btn btn-sm" onclick="resetDashFilters()" style="color:var(--muted)">
       <i class="ti ti-refresh" style="font-size:12px"></i> Reset
     </button>
+    <button class="btn btn-sm" id="dash-refresh-btn" onclick="refreshOverviewData()" title="Reload dashboard data" style="color:var(--muted)">
+      <i class="ti ti-reload" style="font-size:12px" id="dash-refresh-icon"></i>
+    </button>
   </div>
   <div id="dash-filter-panel" style="display:none;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px;box-shadow:var(--shadow-sm)">
     <div style="display:flex;flex-wrap:wrap;gap:12px;align-items:flex-end">

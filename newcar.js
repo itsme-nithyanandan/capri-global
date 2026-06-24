@@ -1267,7 +1267,7 @@ function renderPDDQueue(list) {
       <th>Bank</th>
       <th>Loan (₹)</th>
       ${allDocTypesInOrder.map(r => `<th style="text-align:center">${r.doc_label}</th>`).join('')}
-      <th style="text-align:center">Approval</th>
+      ${canApprove ? '<th style="text-align:center">Approval</th>' : ''}
     </tr></thead>
     <tbody>
     ${list.map(c => {
@@ -1280,24 +1280,24 @@ function renderPDDQueue(list) {
         return `<td data-label="${r.doc_label}" style="text-align:center">${docCellHTML(c, r)}</td>`;
       }).join('');
 
-      let approveCell;
-      if (st.approved) {
-        approveCell = canApprove
-          ? `<div style="display:flex;align-items:center;justify-content:center;gap:6px">
+      // RM doesn't get an Approval column at all — not even a read-only
+      // status. Only BM/City Head have approval authority, so only they see it.
+      let approvalTd = '';
+      if (canApprove) {
+        let approveCell;
+        if (st.approved) {
+          approveCell = `<div style="display:flex;align-items:center;justify-content:center;gap:6px">
               <span class="badge badge-green"><i class="ti ti-shield-check" style="font-size:10px"></i> Approved</span>
               <button class="btn btn-xs btn-danger" onclick="openPDDRevokeModal('${c.id}')" title="Revoke approval">
                 <i class="ti ti-shield-x" style="font-size:11px"></i> Revoke
               </button>
-            </div>`
-          : '<span class="badge badge-green"><i class="ti ti-shield-check" style="font-size:10px"></i> Approved</span>';
-      } else if (!canApprove) {
-        approveCell = st.allUploaded
-          ? '<span style="font-size:11px;color:var(--muted2)">Awaiting BM approval</span>'
-          : '<span style="font-size:11px;color:var(--muted2)">Upload pending</span>';
-      } else {
-        approveCell = `<button class="btn btn-xs btn-primary" ${st.allUploaded ? '' : 'disabled style="opacity:.4;cursor:not-allowed"'} onclick="${st.allUploaded ? `openPDDApproveModal('${c.id}')` : ''}">
-          <i class="ti ti-shield-check" style="font-size:11px"></i> Approve
-        </button>`;
+            </div>`;
+        } else {
+          approveCell = `<button class="btn btn-xs btn-primary" ${st.allUploaded ? '' : 'disabled style="opacity:.4;cursor:not-allowed"'} onclick="${st.allUploaded ? `openPDDApproveModal('${c.id}')` : ''}">
+            <i class="ti ti-shield-check" style="font-size:11px"></i> Approve
+          </button>`;
+        }
+        approvalTd = `<td data-label="Approval" style="text-align:center">${approveCell}</td>`;
       }
 
       return `<tr>
@@ -1306,7 +1306,7 @@ function renderPDDQueue(list) {
         <td data-label="Bank">${c.bank}</td>
         <td data-label="Loan (₹)" style="font-family:'DM Mono',monospace;font-size:12px">${fmt(c.loan)}</td>
         ${docCells}
-        <td data-label="Approval" style="text-align:center">${approveCell}</td>
+        ${approvalTd}
       </tr>`;
     }).join('')}
     </tbody>
@@ -1325,18 +1325,16 @@ function renderPDDQueue(list) {
         </div>`;
       }).join('');
 
-      let approveAction;
-      if (st.approved) {
-        approveAction = canApprove
-          ? `<span class="badge badge-green"><i class="ti ti-shield-check" style="font-size:10px"></i> Approved</span>
-             <button class="btn btn-sm btn-danger" onclick="openPDDRevokeModal('${c.id}')"><i class="ti ti-shield-x" style="font-size:11px"></i> Revoke</button>`
-          : `<span class="badge badge-green"><i class="ti ti-shield-check" style="font-size:10px"></i> Approved</span>`;
-      } else if (!canApprove) {
-        approveAction = `<span style="font-size:12px;color:var(--muted2)">${st.allUploaded ? 'Awaiting BM approval' : 'Upload pending'}</span>`;
-      } else {
-        approveAction = `<button class="btn btn-sm btn-primary" ${st.allUploaded ? '' : 'disabled style="opacity:.4;cursor:not-allowed"'} onclick="${st.allUploaded ? `openPDDApproveModal('${c.id}')` : ''}">
-          <i class="ti ti-shield-check" style="font-size:11px"></i> Approve
-        </button>`;
+      let approveAction = '';
+      if (canApprove) {
+        if (st.approved) {
+          approveAction = `<span class="badge badge-green"><i class="ti ti-shield-check" style="font-size:10px"></i> Approved</span>
+             <button class="btn btn-sm btn-danger" onclick="openPDDRevokeModal('${c.id}')"><i class="ti ti-shield-x" style="font-size:11px"></i> Revoke</button>`;
+        } else {
+          approveAction = `<button class="btn btn-sm btn-primary" ${st.allUploaded ? '' : 'disabled style="opacity:.4;cursor:not-allowed"'} onclick="${st.allUploaded ? `openPDDApproveModal('${c.id}')` : ''}">
+            <i class="ti ti-shield-check" style="font-size:11px"></i> Approve
+          </button>`;
+        }
       }
 
       return `
@@ -1351,7 +1349,7 @@ function renderPDDQueue(list) {
           <span>Loan: <b>${fmt(c.loan)}</b></span>
         </div>
         <div style="border-top:1px solid var(--border);padding-top:4px">${docRows}</div>
-        <div class="mlist-actions" style="align-items:center">${approveAction}</div>
+        ${canApprove ? `<div class="mlist-actions" style="align-items:center">${approveAction}</div>` : ''}
       </div>`;
     }).join('')}
   </div>`;

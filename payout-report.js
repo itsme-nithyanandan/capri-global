@@ -224,3 +224,20 @@ document.addEventListener('capri:identityReady', async (e) => {
   await loadPayouts(user);
 });
 loadIdentity();
+
+// Re-fetches payout data in place — keeps current search/period/member
+// filters intact, unlike a hard browser refresh.
+async function refreshPayoutData() {
+  const icon = document.getElementById('payout-refresh-icon');
+  const btn  = document.getElementById('payout-refresh-btn');
+  if (icon) icon.classList.add('spinning');
+  if (btn) btn.disabled = true;
+  try {
+    await loadPayouts(window.currentLoggedInUser);
+  } catch(e) {
+    console.error('refreshPayoutData failed:', e.message);
+  } finally {
+    if (icon) icon.classList.remove('spinning');
+    if (btn) btn.disabled = false;
+  }
+}

@@ -144,6 +144,75 @@ function confirmLogout() {
   db.auth.signOut().finally(() => { window.location.href = 'capri_login.html'; });
 }
 
+// ── CHANGE PASSWORD ───────────────────────────────────────────────────────────
+function openChangePasswordModal() {
+  document.getElementById('cp-old').value = '';
+  document.getElementById('cp-new').value = '';
+  document.getElementById('cp-confirm').value = '';
+  document.getElementById('cp-error').style.display = 'none';
+  document.getElementById('change-password-modal').classList.add('open');
+}
+
+function closeChangePasswordModal() {
+  document.getElementById('change-password-modal').classList.remove('open');
+}
+
+async function submitChangePassword() {
+  const oldPass     = document.getElementById('cp-old').value;
+  const newPass     = document.getElementById('cp-new').value;
+  const confirmPass = document.getElementById('cp-confirm').value;
+  const errEl       = document.getElementById('cp-error');
+  const submitBtn   = document.getElementById('cp-submit-btn');
+  const showErr = (msg) => { errEl.textContent = msg; errEl.style.display = 'block'; };
+  const resetBtn = () => { submitBtn.disabled = false; submitBtn.innerHTML = '<i class="ti ti-check" style="font-size:12px"></i> Change password'; };
+
+  errEl.style.display = 'none';
+  if (!oldPass || !newPass || !confirmPass) { showErr('All fields are required'); return; }
+  if (newPass.length < 6) { showErr('New password must be at least 6 characters'); return; }
+  if (newPass !== confirmPass) { showErr('New password and confirmation do not match'); return; }
+  if (newPass === oldPass) { showErr('New password must be different from the current password'); return; }
+
+  submitBtn.disabled = true;
+  submitBtn.innerHTML = '<i class="ti ti-loader-2" style="font-size:12px"></i> Verifying...';
+
+  try {
+    const { data: { session } } = await db.auth.getSession();
+    if (!session || !session.user || !session.user.email) {
+      showErr('Could not verify your session — please sign in again.');
+      resetBtn();
+      return;
+    }
+    const email = session.user.email;
+
+    // Re-authenticate with the OLD password to actually verify it's correct
+    // — Supabase's updateUser() would otherwise accept any new password for
+    // an already-logged-in session without checking the current one at all.
+    const { error: verifyErr } = await db.auth.signInWithPassword({ email, password: oldPass });
+    if (verifyErr) {
+      showErr('Current password is incorrect');
+      resetBtn();
+      return;
+    }
+
+    submitBtn.innerHTML = '<i class="ti ti-loader-2" style="font-size:12px"></i> Updating...';
+    const { error: updateErr } = await db.auth.updateUser({ password: newPass });
+    if (updateErr) {
+      showErr(updateErr.message || 'Could not update password');
+      resetBtn();
+      return;
+    }
+
+    // Done — sign out and send back to login so they sign in fresh with the new password.
+    closeChangePasswordModal();
+    await db.auth.signOut();
+    window.location.href = 'capri_login.html';
+  } catch(e) {
+    console.error('submitChangePassword failed:', e.message);
+    showErr('Something went wrong — please try again.');
+    resetBtn();
+  }
+}
+
 // ── BUILD TOPBAR AVATAR/NOTIFICATIONS UI ──────────────────────────────────────
 function buildTopbarRight() {
   const topbarRight = document.getElementById('topbar-right');
@@ -161,6 +230,7 @@ function buildTopbarRight() {
           </div>
         </div>
         <div class="av-item" onclick="toggleAvatarMenu()"><i class="ti ti-bell" style="font-size:16px;color:var(--muted)"></i> Notifications <span style="margin-left:auto;background:var(--accent);color:white;font-size:10px;padding:2px 7px;border-radius:10px">3</span></div>
+        <div class="av-item" onclick="toggleAvatarMenu();openChangePasswordModal()"><i class="ti ti-key" style="font-size:16px;color:var(--muted)"></i> Change password</div>
         <div style="height:1px;background:var(--border)"></div>
         <div class="av-item danger" onclick="confirmLogout()"><i class="ti ti-logout" style="font-size:16px"></i> Sign out</div>
       </div>

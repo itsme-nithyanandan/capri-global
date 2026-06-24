@@ -46,6 +46,24 @@ document.addEventListener('capri:identityReady', async (e) => {
 });
 loadIdentity();
 
+// Re-fetches dashboard data in place — unlike a hard browser refresh, this
+// keeps the current filter selections (bank/BM/RM/period) intact and
+// doesn't reload the page shell, fonts, etc.
+async function refreshOverviewData() {
+  const icon = document.getElementById('dash-refresh-icon');
+  const btn  = document.getElementById('dash-refresh-btn');
+  if (icon) icon.classList.add('spinning');
+  if (btn) btn.disabled = true;
+  try {
+    await loadLiveCases(window.currentLoggedInUser);
+  } catch(e) {
+    console.error('refreshOverviewData failed:', e.message);
+  } finally {
+    if (icon) icon.classList.remove('spinning');
+    if (btn) btn.disabled = false;
+  }
+}
+
 function initPeriodDropdown(){
   PERIOD_RANGES = buildPeriodRanges(); // recompute fresh each time
   const sel = document.getElementById('dash-period-select');

@@ -157,6 +157,32 @@
 
 <div id="sidebar-overlay" class="sidebar-overlay" onclick="toggleSidebar()"></div>
 
+<div class="modal-overlay" id="change-password-modal">
+  <div class="modal" style="width:380px">
+    <div style="font-size:15px;font-weight:600;color:var(--text);margin-bottom:4px">Change password</div>
+    <div style="font-size:12px;color:var(--muted);margin-bottom:16px">You'll be signed out after changing it, to sign back in with the new password.</div>
+
+    <label style="font-size:11px;font-weight:600;color:var(--muted);display:block;margin-bottom:5px;text-transform:uppercase;letter-spacing:.05em">Current password</label>
+    <input id="cp-old" type="password" autocomplete="current-password" class="filter-input" style="width:100%;padding:9px 12px;font-size:13px;margin-bottom:12px">
+
+    <label style="font-size:11px;font-weight:600;color:var(--muted);display:block;margin-bottom:5px;text-transform:uppercase;letter-spacing:.05em">New password</label>
+    <input id="cp-new" type="password" autocomplete="new-password" class="filter-input" style="width:100%;padding:9px 12px;font-size:13px;margin-bottom:12px">
+
+    <label style="font-size:11px;font-weight:600;color:var(--muted);display:block;margin-bottom:5px;text-transform:uppercase;letter-spacing:.05em">Confirm new password</label>
+    <input id="cp-confirm" type="password" autocomplete="new-password" class="filter-input" style="width:100%;padding:9px 12px;font-size:13px;margin-bottom:6px">
+    <div style="font-size:11px;color:var(--muted);margin-bottom:12px">At least 6 characters.</div>
+
+    <div id="cp-error" style="display:none;margin-bottom:12px;padding:9px 12px;background:var(--red-bg);border-radius:8px;font-size:12px;color:var(--red-text)"></div>
+
+    <div style="display:flex;gap:8px;justify-content:flex-end">
+      <button class="btn" id="cp-cancel-btn" onclick="closeChangePasswordModal()">Cancel</button>
+      <button class="btn btn-primary" id="cp-submit-btn" onclick="submitChangePassword()">
+        <i class="ti ti-check" style="font-size:12px"></i> Change password
+      </button>
+    </div>
+  </div>
+</div>
+
 <!-- MAIN -->
 <div class="main">
   <div class="topbar">

@@ -47,6 +47,7 @@ document.addEventListener('capri:identityReady', async (e) => {
   if (!user) return;
   await loadOrgHierarchy();
   initOrgFilters();
+  await loadBankFilterOptions();
   initPeriodDropdown();
   await loadLiveCases(user);
 });
@@ -75,6 +76,7 @@ function initPeriodDropdown(){
   const sel = document.getElementById('dash-period-select');
 
   sel.innerHTML = [
+    {value:'',      label: 'All Time', placeholder:true},
     {value:'thismonth', label: PERIOD_RANGES.thismonth.label + ' (This Month)'},
     {value:'today', label: 'Today'},
     {value:'thisweek', label: 'This Week'},
@@ -93,15 +95,18 @@ function initPeriodDropdown(){
     {value:'custom', label: 'Custom Range…' },
   ].map(o=>o.disabled
     ? `<option disabled>${o.label}</option>`
-    : `<option value="${o.value}">${o.label}</option>`
+    : o.placeholder
+      ? `<option value="" selected>${o.label}</option>`
+      : `<option value="${o.value}">${o.label}</option>`
   ).join('');
 
-  // This Month is the default, on load and any time the dropdown rebuilds
-  // (e.g. a refresh that crosses into a new month) — not an empty placeholder
-  // that left the KPIs unfiltered (showing all-time totals) by default.
-  sel.value = 'thismonth';
+  // No period filter applied by default — shows all-time data until the
+  // user explicitly picks one. "This Month" is just one of the options now,
+  // not auto-selected.
+  document.getElementById('dash-date-from').value = '';
+  document.getElementById('dash-date-to').value   = '';
   document.getElementById('custom-range-wrap').style.display = 'none';
-  setPeriod('thismonth');
+  updateKpiPeriodLabels('All Time');
 }
 
 function setPeriod(key){
@@ -192,6 +197,25 @@ function initOrgFilters(){
   const bmSel = document.getElementById('dash-bm-filter');
   bmSel.innerHTML = '<option value="">All BMs</option>'
     + orgHierarchy.map(o=>`<option value="${o.bm.name}">${o.bm.name}</option>`).join('');
+}
+
+// Bank filter used to be a hardcoded list of names that could drift out of
+// sync with whatever's actually configured (and active) in Bank Management —
+// pull the real list instead.
+async function loadBankFilterOptions(){
+  const sel = document.getElementById('dash-bank-filter');
+  if (!sel) return;
+  try {
+    const { data: banks, error } = await db.from('banks')
+      .select('name')
+      .eq('active', true)
+      .order('name');
+    if (error) { console.error('Bank filter fetch error:', error.message); return; }
+    sel.innerHTML = '<option value="">All Banks / NBFCs</option>'
+      + (banks || []).map(b => `<option value="${b.name}">${b.name}</option>`).join('');
+  } catch(e) {
+    console.error('loadBankFilterOptions failed:', e.message);
+  }
 }
 
 function onBMChange(){
@@ -494,6 +518,7 @@ async function loadLiveCases(user) {
         member: c.created_by_name||'—',
         bm: c.reporting_to_name||'—',
         createdByName: c.created_by_name||'—',
+        creatorRole: c.creator_role||'',
         reportsToName: c.reporting_to_name||'—',
         cibil: c.cibil_score||0,
         status: c.status,
@@ -512,7 +537,12 @@ async function loadLiveCases(user) {
     mapped.forEach(c => cases.push(c));
 
     // Update caseOrgMap
-    mapped.forEach(c => { caseOrgMap[c.id] = { bm: c.createdByName, rm: c.reportsToName }; });
+    mapped.forEach(c => {
+      caseOrgMap[c.id] = {
+        rm: c.createdByName,
+        bm: c.creatorRole === 'bm' ? c.createdByName : c.reportsToName
+      };
+    });
 
     // Update nav badge
     // Notify the shell to update the All Files nav badge (lives outside this iframe)

@@ -1430,6 +1430,12 @@ async function autoSaveDraft(showMsg = true) {
 
       const _dt=document.getElementById('draft-time'); if(_dt) _dt.textContent = currentCaseId + ' · ' + t;
       if (showMsg) showFlash('Draft saved — ' + currentCaseId);
+
+      // Upload any newly-selected documents too — without this, files only
+      // ever get persisted at final submit, so anything picked during a
+      // draft session is lost the moment the browser/tab closes, even
+      // though the draft itself "saved" successfully.
+      try { await uploadAllDocuments(currentCaseId); } catch(docErr) { console.error('Draft document upload failed:', docErr.message); }
     } catch(e) {
       console.error('Supabase save failed:', e.message || e);
       const _dt=document.getElementById('draft-time'); if(_dt) _dt.textContent = 'Saved locally · ' + t;
@@ -1476,6 +1482,84 @@ async function loadExistingDraft() {
 }
 
 // ── LOAD SUBMITTED CASE FOR EDIT (from dashboard Edit button) ───────────────
+// Restores BOTH static doc-card/upload-zone documents AND dynamic slot-based
+// ones (salary slips, Form 16, ITR, extra bank statements) from the
+// `documents` table — used when resuming a draft or editing an
+// already-submitted case, so previously uploaded files don't appear to have
+// vanished just because there's no in-browser File object for them this
+// session (markCardAsSaved/buildSlots both render correctly from saved
+// metadata alone, no in-memory File needed).
+async function restoreSavedDocuments(caseId) {
+  try {
+    const { data: docs, error } = await db.from('documents').select('*').eq('case_id', caseId);
+    if (error) { console.error('Could not load existing documents:', error.message); return; }
+    if (!docs || !docs.length) return;
+
+    const slotBuckets = { sl: [], f16: [], itr: [] };
+    const stmtDocs = [];
+
+    docs.forEach(doc => {
+      // Static types first (PAN, Aadhaar, DL, Performa, CIC, Balance Sheet, primary bank statement)
+      const cardId = cardIdForDocLabel(doc.doc_label);
+      if (cardId) {
+        savedDocs[cardId] = doc;
+        markCardAsSaved(cardId, doc);
+        return;
+      }
+
+      // Dynamic slot types — label format is "Salary Slip — <month>", "Form 16 — <month>", "ITR — <FY>"
+      const m = (doc.doc_label || '').match(/^(Salary Slip|Form 16|ITR) — (.+)$/);
+      if (m) {
+        const kind = m[1], labelText = m[2].replace(' (current)', '');
+        const labels = kind === 'ITR' ? FY : MONTHS;
+        const idx = labels.indexOf(labelText);
+        if (idx >= 0) {
+          const prefix = kind === 'Salary Slip' ? 'sl' : kind === 'Form 16' ? 'f16' : 'itr';
+          slotBuckets[prefix].push({ idx, doc });
+        }
+        return;
+      }
+
+      // Additional bank statements beyond the first — label is "Bank Statement N"
+      const bm = (doc.doc_label || '').match(/^Bank Statement (\d+)$/);
+      if (bm) stmtDocs.push({ n: parseInt(bm[1]), doc });
+    });
+
+    // Rebuild each slot type's count/from selectors to match what was
+    // actually saved, then render once with slotDone already populated.
+    Object.entries(slotBuckets).forEach(([prefix, entries]) => {
+      if (!entries.length) return;
+      const nSel    = document.getElementById(prefix + '-n');
+      const fromSel = document.getElementById(prefix + '-from');
+      if (!nSel || !fromSel) return;
+
+      const indices = entries.map(e => e.idx);
+      const from = Math.min(...indices);
+      const count = Math.max(...indices) - from + 1;
+
+      entries.forEach(({ idx, doc }) => {
+        const key = prefix + '-' + idx;
+        slotDone[key] = true;
+        savedDocs[key] = doc;
+      });
+
+      nSel.value = String(count);
+      fromSel.value = String(from);
+      buildSlots(prefix);
+    });
+
+    // Rebuild any additional bank statement blocks beyond the first.
+    stmtDocs.forEach(({ n, doc }) => {
+      if (n > 1) { while (currentStatementCount() < n) addBankStatementSlot(); }
+      const key = n === 1 ? 'uz-stmt' : 'stmt-' + n;
+      savedDocs[key] = doc;
+      markCardAsSaved(key, doc);
+    });
+  } catch(e) {
+    console.error('restoreSavedDocuments failed:', e.message);
+  }
+}
+
 async function loadCaseForEdit(caseId) {
   try {
     const { data, error } = await db.from('cases')
@@ -1491,25 +1575,9 @@ async function loadCaseForEdit(caseId) {
 
     restoreFormData(data);
 
-    // Load any documents already saved against this case, and mark the
-    // matching card/zone as "on file" instead of leaving it at "Tap to upload"
-    // — covers the static doc types in DOC_TYPE_MAP (PAN, Aadhaar, DL, etc.);
-    // dynamic salary-slip/Form16/ITR slots aren't restored here yet.
-    try {
-      const { data: docs, error: docsErr } = await db.from('documents').select('*').eq('case_id', caseId);
-      if (docsErr) {
-        console.error('Could not load existing documents for edit:', docsErr.message);
-      } else {
-        (docs || []).forEach(doc => {
-          const cardId = cardIdForDocLabel(doc.doc_label);
-          if (!cardId) return; // dynamic slot doc, or unrecognized label — skip
-          savedDocs[cardId] = doc;
-          markCardAsSaved(cardId, doc);
-        });
-      }
-    } catch(docsLoadErr) {
-      console.error('loadCaseForEdit document load failed:', docsLoadErr.message);
-    }
+    // Restore previously uploaded documents — both static cards and dynamic
+    // slot-based types (salary slips/Form16/ITR/extra bank statements).
+    await restoreSavedDocuments(caseId);
 
     const _dt = document.getElementById('draft-time');
     if(_dt) _dt.textContent = caseId + ' · Editing';
@@ -1535,6 +1603,11 @@ async function loadDraftById(caseId, section) {
     }
 
     restoreFormData(data.form_data);
+
+    // Restore previously uploaded documents — without this, anything
+    // uploaded before the draft was saved appears to have vanished, since
+    // there's no in-browser File object for it in this fresh session.
+    await restoreSavedDocuments(caseId);
 
     // Go to the section where user left off
     const targetSection = data.section || section || 1;
@@ -2731,6 +2804,7 @@ async function uploadAllDocuments(caseId) {
       } catch(auditErr) { console.error('Audit log write failed for document upload:', auditErr.message); }
 
       savedDocs[cardId] = savedRow;
+      delete uploadedFiles[cardId]; // already persisted — no need to keep the in-memory File around
       successCount++;
     } catch(e) {
       console.error('uploadAllDocuments failed for', cardId, ':', e.message);

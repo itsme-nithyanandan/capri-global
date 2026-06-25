@@ -106,7 +106,7 @@ function loadIdentity() {
 //    against each nav element's `data-module-key` attribute. This is what
 //    the "User Configuration" page's checkboxes actually control.
 async function applyRoleRestrictions(role) {
-  const hideForBM = ['User Configuration'];
+  const hideForBM = ['User Configuration', 'Users'];
   const hideForRM = ['User Configuration', 'Users'];
   const staticHide = role === 'bm' ? hideForBM : role === 'rm' ? hideForRM : [];
   if (staticHide.length) {

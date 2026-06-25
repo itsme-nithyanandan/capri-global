@@ -881,14 +881,15 @@ function openEditFileForm() {
 // ── LOAD LIVE CASES (from Supabase) ───────────────────────────────────────────
 async function loadLiveCases(user) {
   try {
-    // Query the view which already has created_by_name and reporting_to_name
+    // Query the view which already has created_by_name and reporting_to_name.
+    // No client-side role filter here — RLS on the underlying `cases` table
+    // is the authoritative scope (city_head: everyone; bm: self + RMs
+    // currently reporting to them; rm: self only), so duplicating that logic
+    // here would just risk drifting out of sync with it again.
     let q = db.from('cases_with_names')
       .select('id,cust_name,car_make,car_model,preferred_bank_name,preferred_bank_id,pdd_approved,loan_amount,status,cibil_score,submitted_at,created_at,payout_amount,created_by,bm_id,cust_mobile,curr_pincode,perm_pincode,inc_net_monthly,emp_type,created_by_name,creator_role,reporting_to_name')
       .neq('status','Draft')
       .order('created_at',{ascending:false});
-
-    if (user.role==='bm') q = q.or('created_by.eq.'+user.id+',bm_id.eq.'+user.id);
-    else if (user.role==='rm') q = q.eq('created_by',user.id);
 
     let { data:liveCases, error } = await q;
 
@@ -901,8 +902,6 @@ async function loadLiveCases(user) {
         .select('id,cust_name,car_make,car_model,preferred_bank_name,loan_amount,status,cibil_score,submitted_at,created_at,payout_amount,created_by,bm_id,cust_mobile,curr_pincode,perm_pincode,inc_net_monthly,emp_type,created_by_name,creator_role,reporting_to_name')
         .neq('status','Draft')
         .order('created_at',{ascending:false});
-      if (user.role==='bm') q2 = q2.or('created_by.eq.'+user.id+',bm_id.eq.'+user.id);
-      else if (user.role==='rm') q2 = q2.eq('created_by',user.id);
       const retry = await q2;
       liveCases = retry.data;
       error = retry.error;

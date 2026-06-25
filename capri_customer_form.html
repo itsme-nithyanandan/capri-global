@@ -2548,11 +2548,57 @@ async function loadBankOptionsForForm() {
 }
 
 // ── SUBMIT ────────────────────────────────────────────────────────────────────
+// Checks every field that must be filled before final submission. Aggregates
+// everything missing into one list (rather than stopping at the first
+// problem) so the person sees the whole picture at once, and jumps to the
+// earliest section that needs attention.
+function validateRequiredFieldsForSubmit() {
+  const missing = [];
+  let earliestSection = null;
+  const flag = (label, section) => {
+    missing.push(label);
+    if (earliestSection === null || section < earliestSection) earliestSection = section;
+  };
+
+  const val = id => (document.getElementById(id)?.value || '').trim();
+  const uploaded = id => document.getElementById(id)?.classList.contains('uploaded');
+
+  if (!val('f-name'))      flag('Full name', 1);
+  if (!val('f-mobile'))    flag('Mobile number', 1);
+  if (!val('f-pan'))       flag('PAN number', 1);
+  if (!val('f-aadhaar'))   flag('Aadhaar number', 1);
+  if (!uploaded('dc-pan')) flag('PAN card upload', 1);
+  if (!uploaded('dc-af'))  flag('Aadhaar card upload', 1);
+
+  if (!val('p-addr1') || !val('p-city') || !val('p-dist') || !val('p-state') || !val('p-pin')) {
+    flag('Permanent address (all fields)', 1);
+  }
+
+  if (!val('v-reg'))     flag('On-road price', 1);
+  if (!val('v-loan'))    flag('Loan amount', 1);
+  if (!val('v-tenure'))  flag('Preferred tenure', 1);
+  if (!val('pref-bank')) flag('Preferred bank', 1);
+
+  if (!val('emp-type')) flag('Employment type', 2);
+
+  if (!val('stmt-bank-1'))    flag('Bank statement — bank name', 2);
+  if (!val('stmt-acctype-1')) flag('Bank statement — account type', 2);
+  if (!val('stmt-period-1'))  flag('Bank statement — analysis period', 2);
+  if (!uploaded('uz-stmt'))   flag('Bank statement upload', 2);
+
+  if (missing.length) {
+    if (earliestSection !== null && earliestSection !== currentSection) goTo(earliestSection);
+    alert('Please complete the following before submitting:\n\n' + missing.map(m => '• ' + m).join('\n'));
+    return false;
+  }
+  return true;
+}
+
 async function submitForm() {
   const decl = document.getElementById('decl-chk').checked;
   if (!decl) { alert('Please read and agree to the declaration before submitting.'); return; }
+  if (!validateRequiredFieldsForSubmit()) return;
   const name = document.getElementById('f-name')?.value?.trim();
-  if (!name) { alert('Please fill the customer name in Section 1 before submitting.'); return; }
 
   // Disable submit button
   const submitBtn = document.querySelector('[onclick="submitForm()"]');

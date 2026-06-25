@@ -19,10 +19,16 @@ function getCurrentFY(){
   return fyStart;
 }
 
+const MONTH_NAMES = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+
 function buildPeriodRanges(){
   const fy  = getCurrentFY();
   const fy2 = fy + 1;
+  const today = new Date();
+  const y = today.getFullYear(), m = today.getMonth(); // 0-based
+  const lastDayOfMonth = new Date(y, m + 1, 0).getDate();
   return {
+    thismonth: { from: toISO(y,m+1,1), to: toISO(y,m+1,lastDayOfMonth), label: MONTH_NAMES[m] },
     fy:  { from: toISO(fy,4,1),  to: toISO(fy2,3,31),  label: `FY ${fy}–${String(fy2).slice(2)} (Full year)` },
     q1:  { from: toISO(fy,4,1),  to: toISO(fy,6,30),   label: `Q1 — Apr–Jun ${fy}` },
     q2:  { from: toISO(fy,7,1),  to: toISO(fy,9,30),   label: `Q2 — Jul–Sep ${fy}` },
@@ -69,7 +75,7 @@ function initPeriodDropdown(){
   const sel = document.getElementById('dash-period-select');
 
   sel.innerHTML = [
-    {value:'',      label: 'Select Period', placeholder:true},
+    {value:'thismonth', label: PERIOD_RANGES.thismonth.label + ' (This Month)'},
     {value:'today', label: 'Today'},
     {value:'thisweek', label: 'This Week'},
     {value:'lastweek', label: 'Last Week'},
@@ -87,15 +93,15 @@ function initPeriodDropdown(){
     {value:'custom', label: 'Custom Range…' },
   ].map(o=>o.disabled
     ? `<option disabled>${o.label}</option>`
-    : o.placeholder
-      ? `<option value="" selected disabled>${o.label}</option>`
-      : `<option value="${o.value}">${o.label}</option>`
+    : `<option value="${o.value}">${o.label}</option>`
   ).join('');
 
-  // Clear date inputs and hide custom pickers until a period is chosen
-  document.getElementById('dash-date-from').value = '';
-  document.getElementById('dash-date-to').value   = '';
+  // This Month is the default, on load and any time the dropdown rebuilds
+  // (e.g. a refresh that crosses into a new month) — not an empty placeholder
+  // that left the KPIs unfiltered (showing all-time totals) by default.
+  sel.value = 'thismonth';
   document.getElementById('custom-range-wrap').style.display = 'none';
+  setPeriod('thismonth');
 }
 
 function setPeriod(key){
@@ -103,6 +109,7 @@ function setPeriod(key){
 
   if(key === 'custom'){
     customWrap.style.display = 'flex';
+    updateKpiPeriodLabels('Custom Range');
     applyDashFilters();
     return;
   }
@@ -114,9 +121,12 @@ function setPeriod(key){
   const ymd   = d => d.toISOString().slice(0,10);
   const today = ymd(now);
 
+  let shortLabel = '';
+
   if(key === 'today'){
     document.getElementById('dash-date-from').value = today;
     document.getElementById('dash-date-to').value   = today;
+    shortLabel = 'Today';
   } else if(key === 'thisweek'){
     // Week starts Monday
     const day   = now.getDay(); // 0=Sun
@@ -125,6 +135,7 @@ function setPeriod(key){
     const sun   = new Date(mon); sun.setDate(mon.getDate() + 6);
     document.getElementById('dash-date-from').value = ymd(mon);
     document.getElementById('dash-date-to').value   = ymd(sun);
+    shortLabel = 'This Week';
   } else if(key === 'lastweek'){
     const day   = now.getDay();
     const diff  = (day === 0) ? -6 : 1 - day;
@@ -133,12 +144,27 @@ function setPeriod(key){
     const lastSun = new Date(lastMon); lastSun.setDate(lastMon.getDate() + 6);
     document.getElementById('dash-date-from').value = ymd(lastMon);
     document.getElementById('dash-date-to').value   = ymd(lastSun);
+    shortLabel = 'Last Week';
+  } else if(key === 'thismonth' && PERIOD_RANGES.thismonth){
+    document.getElementById('dash-date-from').value = PERIOD_RANGES.thismonth.from;
+    document.getElementById('dash-date-to').value   = PERIOD_RANGES.thismonth.to;
+    shortLabel = PERIOD_RANGES.thismonth.label; // current month name, e.g. "June"
   } else if(key && PERIOD_RANGES[key]){
     document.getElementById('dash-date-from').value = PERIOD_RANGES[key].from;
     document.getElementById('dash-date-to').value   = PERIOD_RANGES[key].to;
+    // Dropdown labels for FY/quarter/half are long ("Q1 — Apr–Jun 2026") —
+    // the KPI cards just need the short form.
+    const shortMap = { fy: PERIOD_RANGES.fy.label.split(' (')[0], q1:'Q1', q2:'Q2', q3:'Q3', q4:'Q4', h1:'H1', h2:'H2' };
+    shortLabel = shortMap[key] || PERIOD_RANGES[key].label;
   }
 
+  updateKpiPeriodLabels(shortLabel);
   applyDashFilters();
+}
+
+function updateKpiPeriodLabels(label){
+  if (!label) return;
+  document.querySelectorAll('.kpi-period-label').forEach(el => el.textContent = label);
 }
 
 let orgHierarchy = []; // populated live by loadOrgHierarchy() — no more hardcoded BM/RM names
@@ -407,16 +433,18 @@ function resetDashFilters(){
 }
 
 // ── LOAD LIVE CASES (independent copy — this module has its own iframe scope) ──
+let payoutsByCase = {}; // case_id -> payout_amount, sourced from the payouts table (same source the Payout module itself uses)
+
 async function loadLiveCases(user) {
   try {
-    // Query the view which already has created_by_name and reporting_to_name
+    // Query the view which already has created_by_name and reporting_to_name.
+    // No client-side role filter here — RLS on the underlying `cases` table
+    // is the authoritative scope (city_head: everyone; bm: self + RMs
+    // currently reporting to them; rm: self only).
     let q = db.from('cases_with_names')
       .select('id,cust_name,car_model,preferred_bank_name,preferred_bank_id,pdd_approved,loan_amount,status,cibil_score,submitted_at,created_at,payout_amount,created_by,bm_id,cust_mobile,curr_pincode,perm_pincode,inc_net_monthly,emp_type,created_by_name,creator_role,reporting_to_name')
       .neq('status','Draft')
       .order('created_at',{ascending:false});
-
-    if (user.role==='bm') q = q.or('created_by.eq.'+user.id+',bm_id.eq.'+user.id);
-    else if (user.role==='rm') q = q.eq('created_by',user.id);
 
     let { data:liveCases, error } = await q;
 
@@ -429,8 +457,6 @@ async function loadLiveCases(user) {
         .select('id,cust_name,car_model,preferred_bank_name,loan_amount,status,cibil_score,submitted_at,created_at,payout_amount,created_by,bm_id,cust_mobile,curr_pincode,perm_pincode,inc_net_monthly,emp_type,created_by_name,creator_role,reporting_to_name')
         .neq('status','Draft')
         .order('created_at',{ascending:false});
-      if (user.role==='bm') q2 = q2.or('created_by.eq.'+user.id+',bm_id.eq.'+user.id);
-      else if (user.role==='rm') q2 = q2.eq('created_by',user.id);
       const retry = await q2;
       liveCases = retry.data;
       error = retry.error;
@@ -438,6 +464,21 @@ async function loadLiveCases(user) {
 
     if (error) { console.error('Cases fetch error:', error.message); return; }
     if (!liveCases||!liveCases.length) return;
+
+    // Pull the same payouts table the Payout module itself reads from, so
+    // the dashboard's Total Payout KPI always agrees with that module
+    // rather than computing its own number from a different source.
+    try {
+      const { data: payoutRows, error: payoutErr } = await db.from('payouts').select('case_id,payout_amount');
+      if (payoutErr) {
+        console.error('Payouts fetch error:', payoutErr.message);
+      } else {
+        payoutsByCase = {};
+        (payoutRows || []).forEach(p => { payoutsByCase[p.case_id] = parseFloat(p.payout_amount) || 0; });
+      }
+    } catch(payoutFetchErr) {
+      console.error('Payouts fetch failed:', payoutFetchErr.message);
+    }
 
     const mapped = liveCases.map(c => {
       return {
@@ -456,7 +497,7 @@ async function loadLiveCases(user) {
         reportsToName: c.reporting_to_name||'—',
         cibil: c.cibil_score||0,
         status: c.status,
-        payout: c.payout_amount||0,
+        payout: payoutsByCase[c.id] || 0,
         mobile: c.cust_mobile||'',
         pincode: c.curr_pincode||c.perm_pincode||'',
         income: c.inc_net_monthly||0,

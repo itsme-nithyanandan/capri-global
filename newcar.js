@@ -449,19 +449,23 @@ function renderCDMDocGroup(key, el) {
       <div class="doc-file-icon" style="background:${meta.color}15;color:${meta.color}"><i class="ti ${exts[ext]||'ti-file'}"></i></div>
       <div><div class="doc-file-name">${name}</div><div class="doc-file-size">${sizeDisplay} · Uploaded ${uploadedDate}</div></div>
       <div style="margin-left:auto;display:flex;gap:5px">
-        <button class="btn btn-xs" onclick="viewDocument('${d.storage_path||''}')"><i class="ti ti-eye" style="font-size:11px"></i></button>
-        <button class="btn btn-xs btn-primary" onclick="viewDocument('${d.storage_path||''}')"><i class="ti ti-share" style="font-size:11px"></i></button>
+        <button class="btn btn-xs" onclick="viewDocument('${d.storage_path||''}','${d.uploaded_at||''}')"><i class="ti ti-eye" style="font-size:11px"></i></button>
+        <button class="btn btn-xs btn-primary" onclick="viewDocument('${d.storage_path||''}','${d.uploaded_at||''}')"><i class="ti ti-share" style="font-size:11px"></i></button>
       </div>
     </div>`;
   }).join('');
 }
 
-function viewDocument(storagePath) {
+function viewDocument(storagePath, uploadedAt) {
   if (!storagePath) { showFlash('File location not available'); return; }
   try {
     const { data } = db.storage.from('Customer_Documets').getPublicUrl(storagePath);
-    if (data && data.publicUrl) window.open(data.publicUrl, '_blank');
-    else showFlash('Could not open document');
+    if (!data || !data.publicUrl) { showFlash('Could not open document'); return; }
+    // Same fix as viewPDDFile — storage path is deterministic per doc type,
+    // so a re-upload produces an identical URL and the browser serves its
+    // cached copy of the old file without this.
+    const bust = uploadedAt ? '?v=' + encodeURIComponent(new Date(uploadedAt).getTime()) : '';
+    window.open(data.publicUrl + bust, '_blank');
   } catch(e) { console.error('viewDocument failed:', e.message); showFlash('Could not open document'); }
 }
 
@@ -1264,7 +1268,7 @@ function docCellHTML(c, req) {
   }
 
   return `<div style="display:flex;gap:5px;justify-content:center">
-    <button class="btn btn-xs" onclick="viewPDDFile('${d.storage_path}')" title="${d.file_name||'View file'}"><i class="ti ti-eye" style="font-size:11px"></i></button>
+    <button class="btn btn-xs" onclick="viewPDDFile('${d.storage_path}','${d.uploaded_at||d.updated_at||''}')" title="${d.file_name||'View file'}"><i class="ti ti-eye" style="font-size:11px"></i></button>
     <button class="btn btn-xs" onclick="openPDDUpload('${c.id}','${req.doc_type}','${(req.doc_label||'').replace(/'/g,"\\'")}','${d.id}')" title="Replace file"><i class="ti ti-edit" style="font-size:11px"></i></button>
   </div>`;
 }
@@ -1462,12 +1466,18 @@ async function handlePDDFileSelected(event) {
   }
 }
 
-function viewPDDFile(storagePath) {
+function viewPDDFile(storagePath, uploadedAt) {
   if (!storagePath) { showFlash('File not available'); return; }
   try {
     const { data } = db.storage.from('pdd-documents').getPublicUrl(storagePath);
-    if (data && data.publicUrl) window.open(data.publicUrl, '_blank');
-    else showFlash('Could not open file');
+    if (!data || !data.publicUrl) { showFlash('Could not open file'); return; }
+    // The storage path is deterministic (caseId/docLabel.ext) so it's
+    // identical across re-uploads of the same doc type — without a
+    // cache-busting param the browser correctly serves its cached copy of
+    // whatever was at that URL before, even though the file underneath has
+    // genuinely changed.
+    const bust = uploadedAt ? '?v=' + encodeURIComponent(new Date(uploadedAt).getTime()) : '';
+    window.open(data.publicUrl + bust, '_blank');
   } catch(e) { console.error('viewPDDFile failed:', e.message); showFlash('Could not open file'); }
 }
 

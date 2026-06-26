@@ -2049,15 +2049,14 @@ function injectUZActions(el, id, title) {
   }
 }
 
-function openUZLightbox(id) {
+async function openUZLightbox(id) {
   const file = uploadedFiles[id];
   if (!file) {
     const saved = savedDocs[id];
     if (saved && saved.storage_path) {
-      const { data } = db.storage.from('Customer_Documets').getPublicUrl(saved.storage_path);
-      const bust = saved.uploaded_at ? '?v=' + encodeURIComponent(new Date(saved.uploaded_at).getTime()) : '';
-      if (data && data.publicUrl) window.open(data.publicUrl + bust, '_blank');
-      else showFlash('Could not open document', true);
+      const { data, error } = await db.storage.from('Customer_Documets').createSignedUrl(saved.storage_path, 60);
+      if (data && data.signedUrl) window.open(data.signedUrl, '_blank');
+      else { console.error('createSignedUrl failed:', error && error.message); showFlash('Could not open document', true); }
     } else {
       showFlash('No file to preview', true);
     }
@@ -2343,10 +2342,10 @@ function openSlotLightbox(key) {
   if (!file) {
     const saved = savedDocs[key];
     if (saved && saved.storage_path) {
-      const { data } = db.storage.from('Customer_Documets').getPublicUrl(saved.storage_path);
-      const bust = saved.uploaded_at ? '?v=' + encodeURIComponent(new Date(saved.uploaded_at).getTime()) : '';
-      if (data && data.publicUrl) window.open(data.publicUrl + bust, '_blank');
-      else showFlash('Could not open document', true);
+      db.storage.from('Customer_Documets').createSignedUrl(saved.storage_path, 60).then(({ data, error }) => {
+        if (data && data.signedUrl) window.open(data.signedUrl, '_blank');
+        else { console.error('createSignedUrl failed:', error && error.message); showFlash('Could not open document', true); }
+      });
     } else {
       showFlash('No file to preview', true);
     }
@@ -2997,10 +2996,14 @@ function openLightbox(cardId) {
   if (!file) {
     const saved = savedDocs[cardId];
     if (saved && saved.storage_path) {
-      const { data } = db.storage.from('Customer_Documets').getPublicUrl(saved.storage_path);
-      const bust = saved.uploaded_at ? '?v=' + encodeURIComponent(new Date(saved.uploaded_at).getTime()) : '';
-      if (data && data.publicUrl) window.open(data.publicUrl + bust, '_blank');
-      else showFlash('Could not open document', true);
+      // Customer_Documets is a private bucket — getPublicUrl() only ever
+      // returns /object/public/... links, which now 404 ("Bucket not
+      // found") for every user regardless of role. createSignedUrl()
+      // returns a short-lived, RLS-checked link instead.
+      db.storage.from('Customer_Documets').createSignedUrl(saved.storage_path, 60).then(({ data, error }) => {
+        if (data && data.signedUrl) window.open(data.signedUrl, '_blank');
+        else { console.error('createSignedUrl failed:', error && error.message); showFlash('Could not open document', true); }
+      });
     } else {
       showFlash('No file to preview', true);
     }
@@ -3084,10 +3087,9 @@ async function getFileForSharing(cardId, fallbackName) {
   const saved = savedDocs[cardId];
   if (saved && saved.storage_path) {
     try {
-      const { data } = db.storage.from('Customer_Documets').getPublicUrl(saved.storage_path);
-      if (!data || !data.publicUrl) return null;
-      const bust = saved.uploaded_at ? '?v=' + encodeURIComponent(new Date(saved.uploaded_at).getTime()) : '';
-      const res = await fetch(data.publicUrl + bust);
+      const { data, error } = await db.storage.from('Customer_Documets').createSignedUrl(saved.storage_path, 60);
+      if (error || !data || !data.signedUrl) return null;
+      const res = await fetch(data.signedUrl);
       if (!res.ok) return null;
       const blob = await res.blob();
       return new File([blob], saved.file_name || fallbackName, { type: blob.type || 'application/octet-stream' });

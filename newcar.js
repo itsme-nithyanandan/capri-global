@@ -456,16 +456,18 @@ function renderCDMDocGroup(key, el) {
   }).join('');
 }
 
-function viewDocument(storagePath, uploadedAt) {
+async function viewDocument(storagePath, uploadedAt) {
   if (!storagePath) { showFlash('File location not available'); return; }
   try {
-    const { data } = db.storage.from('Customer_Documets').getPublicUrl(storagePath);
-    if (!data || !data.publicUrl) { showFlash('Could not open document'); return; }
-    // Same fix as viewPDDFile — storage path is deterministic per doc type,
-    // so a re-upload produces an identical URL and the browser serves its
-    // cached copy of the old file without this.
-    const bust = uploadedAt ? '?v=' + encodeURIComponent(new Date(uploadedAt).getTime()) : '';
-    window.open(data.publicUrl + bust, '_blank');
+    // Buckets are private now — getPublicUrl() no longer works (it 404s on
+    // the /object/public/ route for private buckets). createSignedUrl()
+    // generates a short-lived, RLS-checked link instead. The token in the
+    // URL is fresh on every call, so the old uploadedAt cache-bust param is
+    // no longer needed, but the signature is kept so existing onclick="..."
+    // call sites don't need to change.
+    const { data, error } = await db.storage.from('Customer_Documets').createSignedUrl(storagePath, 60);
+    if (error || !data || !data.signedUrl) { console.error('createSignedUrl failed:', error && error.message); showFlash('Could not open document'); return; }
+    window.open(data.signedUrl, '_blank');
   } catch(e) { console.error('viewDocument failed:', e.message); showFlash('Could not open document'); }
 }
 
@@ -1466,18 +1468,13 @@ async function handlePDDFileSelected(event) {
   }
 }
 
-function viewPDDFile(storagePath, uploadedAt) {
+async function viewPDDFile(storagePath, uploadedAt) {
   if (!storagePath) { showFlash('File not available'); return; }
   try {
-    const { data } = db.storage.from('pdd-documents').getPublicUrl(storagePath);
-    if (!data || !data.publicUrl) { showFlash('Could not open file'); return; }
-    // The storage path is deterministic (caseId/docLabel.ext) so it's
-    // identical across re-uploads of the same doc type — without a
-    // cache-busting param the browser correctly serves its cached copy of
-    // whatever was at that URL before, even though the file underneath has
-    // genuinely changed.
-    const bust = uploadedAt ? '?v=' + encodeURIComponent(new Date(uploadedAt).getTime()) : '';
-    window.open(data.publicUrl + bust, '_blank');
+    // pdd-documents is also private now — same fix as viewDocument above.
+    const { data, error } = await db.storage.from('pdd-documents').createSignedUrl(storagePath, 60);
+    if (error || !data || !data.signedUrl) { console.error('createSignedUrl failed:', error && error.message); showFlash('Could not open file'); return; }
+    window.open(data.signedUrl, '_blank');
   } catch(e) { console.error('viewPDDFile failed:', e.message); showFlash('Could not open file'); }
 }
 

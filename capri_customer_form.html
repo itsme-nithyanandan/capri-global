@@ -2074,9 +2074,27 @@ async function openUZLightbox(id) {
   document.getElementById('lightbox').dataset.objectUrl = url;
 }
 
-function removeUZDoc(id) {
+async function removeUZDoc(id) {
   const el = document.getElementById(id);
   if (!el) return;
+  const saved = savedDocs[id];
+  if (saved && saved.id) {
+    if (!confirm('This document was already saved. Remove it permanently?')) return;
+    try {
+      if (saved.storage_path) {
+        const { error: rmErr } = await db.storage.from('Customer_Documets').remove([saved.storage_path]);
+        if (rmErr) console.error('Storage remove failed for', id, ':', rmErr.message);
+      }
+      const { error: delErr } = await db.from('documents').delete().eq('id', saved.id);
+      if (delErr) { console.error('Document delete failed for', id, ':', delErr.message); showFlash('Could not remove document', true); return; }
+    } catch(e) {
+      console.error('removeUZDoc failed for', id, ':', e.message);
+      showFlash('Could not remove document', true);
+      return;
+    }
+    delete savedDocs[id];
+    showFlash('Document removed');
+  }
   delete uploadedFiles[id];
   el.classList.remove('uploaded');
   const actions = el.querySelector('.uz-actions');
@@ -2363,7 +2381,25 @@ function openSlotLightbox(key) {
   document.getElementById('lightbox').dataset.objectUrl = url;
 }
 
-function removeSlot(key) {
+async function removeSlot(key) {
+  const saved = savedDocs[key];
+  if (saved && saved.id) {
+    if (!confirm('This document was already saved. Remove it permanently?')) return;
+    try {
+      if (saved.storage_path) {
+        const { error: rmErr } = await db.storage.from('Customer_Documets').remove([saved.storage_path]);
+        if (rmErr) console.error('Storage remove failed for', key, ':', rmErr.message);
+      }
+      const { error: delErr } = await db.from('documents').delete().eq('id', saved.id);
+      if (delErr) { console.error('Document delete failed for', key, ':', delErr.message); showFlash('Could not remove document', true); return; }
+    } catch(e) {
+      console.error('removeSlot failed for', key, ':', e.message);
+      showFlash('Could not remove document', true);
+      return;
+    }
+    delete savedDocs[key];
+    showFlash('Document removed');
+  }
   delete uploadedFiles[key];
   slotDone[key] = false;
   refreshSlotRow(key);
@@ -2953,9 +2989,30 @@ function triggerUpload(cardId, sampleFile, successTitle) {
   setTimeout(() => document.body.removeChild(input), 1000);
 }
 
-function removeDoc(cardId) {
+async function removeDoc(cardId) {
   const card = document.getElementById(cardId);
   if (!card) return;
+  const saved = savedDocs[cardId];
+  if (saved && saved.id) {
+    // This file was already persisted in a previous save — clearing local
+    // state alone isn't enough, or restoreSavedDocuments() just brings it
+    // right back on the next resume. Delete it for real.
+    if (!confirm('This document was already saved. Remove it permanently?')) return;
+    try {
+      if (saved.storage_path) {
+        const { error: rmErr } = await db.storage.from('Customer_Documets').remove([saved.storage_path]);
+        if (rmErr) console.error('Storage remove failed for', cardId, ':', rmErr.message);
+      }
+      const { error: delErr } = await db.from('documents').delete().eq('id', saved.id);
+      if (delErr) { console.error('Document delete failed for', cardId, ':', delErr.message); showFlash('Could not remove document', true); return; }
+    } catch(e) {
+      console.error('removeDoc failed for', cardId, ':', e.message);
+      showFlash('Could not remove document', true);
+      return;
+    }
+    delete savedDocs[cardId];
+    showFlash('Document removed');
+  }
   card.classList.remove('uploaded');
   delete uploadedFiles[cardId];
   const titleEl = card.querySelector('.doc-card-title');
